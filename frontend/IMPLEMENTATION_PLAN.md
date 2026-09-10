@@ -259,6 +259,23 @@ frontend/
 + `./gradlew bootRun`) 실제 응답을 본다. 가짜 응답으로 대체한 항목은 그 목록을 보고에 적는다.
 로그인 계정은 Flyway 시드(`backend/db/migration-local/V2__seed_data.sql`) 참조 — 로컬 비밀번호는 `password`.
 
+#### 목표 표 실측 결과 — 앱(Flutter) 갈래 1·5·6·7·8·9·10·11·12항
+
+(2·3·4항은 웹 갈래 담당이라 여기서 다루지 않는다. `f2-flutter` 워크트리 HEAD
+`2c9fa3e977cda3962d586be4d56745d728785b14` 시점 실측.)
+
+| # | 판정 | 근거 |
+|:-:|:-:|---|
+| 1 | 통과 | `baraeda_core/lib/auth/auth_api.dart` 에서 `_dio.get/post/delete` 11회를 세어 `§2.1~§2.11` 11개 절과 1:1 대조 완료(`/academies/search` GET · `/auth/signup` POST · `/auth/signup-status` GET · `/auth/signup/reapply` POST · `/auth/login` POST · `/auth/logout` POST · `/auth/password` POST · `/auth/recover` POST · `/me` GET · `/me/devices` POST · `/me/devices/{token}` DELETE). 12번째 호출(`§2.6 /auth/refresh`)은 `network/api_client.dart` 의 `_AuthInterceptor` 안에 있음(코드 주석에도 명시) — 두 파일을 합쳐 12건, 정본과 대조해 코드에 없는 것 0건 |
+| 5 | 부분 확인 | **자동화 시험(통과)**: `apps/parent-app/test/integration/auto_login_test.dart` · `apps/manager-app/test/integration/auto_login_test.dart` 둘 다 `studentA4` 로 실제 로그인해 얻은 진짜 refresh 토큰을 `FakeTokenStorage` 에 주입하고 `authBootstrapProvider` 가 로그인 화면을 건너뛰는지 확인 — `flutter test test/integration/auto_login_test.dart` 양쪽 다 `All tests passed!`(1/1). **실기기/시뮬레이터 확인(미확인)**: iOS 시뮬레이터(`2F82BAEA-FEC6-4B97-87F9-1231A7ACA19F`, iPhone 17 Pro)에 `flutter build ios --debug --simulator` 로 parent-app 을 빌드·`simctl install`·`simctl launch` 까지 실행해 실제 로그인 화면이 정상 렌더링되는 것은 스크린샷으로 확인했으나, **로그인 → 종료 → 재실행의 전체 왕복은 실제 UI 조작으로 확인하지 못했다** — `simctl spawn` 이 Keychain 조작용 POSIX 유틸리티(`security`)를 제공하지 않아 토큰을 직접 심을 수 없었고, macOS 손쉬운 사용 권한으로 화면을 클릭·타이핑하는 방식은 사용자의 실제 데스크톱 화면(다른 창이 떠 있는 상태)을 제어하게 돼 중단했다. manager-app 은 이 시뮬레이터 빌드조차 시도하지 않았다. **"확인하지 못한 항목은 미확인으로 남긴다" 는 지시에 따라 이 왕복은 미확인으로 남긴다** |
+| 6 | 통과 | 저장소 구현: `flutter_secure_storage` 뒤에서만 읽고 쓰며(`TokenStorage`), iOS/macOS 기본 옵션은 Keychain(`~/.pub-cache/.../flutter_secure_storage_darwin-0.4.1/.../FlutterSecureStorage.swift:272` 확인, 커스텀 `service`/`accountName` 미지정). **음성 대조**: `token_storage.dart` 의 `saveTokens` 를 평문 `Map` 에 쓰도록 일시적으로 바꿔 `test/storage/token_storage_test.dart` 를 돌리면 3개 중 2개가 `Expected: 'a1' / Actual: <null>` 로 실패(안전 저장소를 거치지 않은 것을 즉시 탐지) + 실 인증 흐름에 의존하는 `real_backend_auth_test.dart`·`api_client_auth_test.dart` 7건이 추가로 실패. 원복 후 `git status --porcelain --` 결과 빈 문자열(변형 미잔존), `flutter test test/storage/token_storage_test.dart` 재실행 시 3/3 통과로 복귀 확인 |
+| 7 | 통과 | `baraeda_core/test/integration/real_backend_auth_test.dart` — `pending` 계정(`parentPending`)으로 허용 목록 밖 엔드포인트를 실제로 호출해 `403 AUTH_PENDING` 수신 확인. `flutter test test/integration/real_backend_auth_test.dart` → `+4: All tests passed!`(해당 케이스 포함 4/4) |
+| 8 | 통과 | 같은 파일 — `rejected` 계정(`studentRejected`)의 `signup-status` 실제 응답에 거절 사유가 담겨 오는 것 확인(위 실행에 포함) |
+| 9 | 통과 | 같은 파일 — `blocked` 계정(`driverBlocked`, 상태 미변경)의 로그인 자체가 실제로 실패하고 사유가 응답에 담겨 오는 것 확인(위 실행에 포함) |
+| 10 | 통과 | 문면 확인 — `apps/parent-app/lib/features/auth/presentation/blocked_screen.dart` 와 `apps/manager-app/` 의 동일 파일을 `diff` 로 대조(내용 동일), "차단 범위는 계정 단위뿐이다(IP 차단 아님)" 주석 + 화면 문구 "로그인 5회 실패로 계정이 잠겼습니다 … 학원 관리자(메인 관리자)만 잠금을 해제할 수 있습니다"로 계정 단위 안내 확인. `login_screen.dart` 의 실패 중 안내도 `잔여 시도 N회`로 같은 계정을 가리킴(IP 언급 없음) |
+| 11 | 통과 | `real_backend_auth_test.dart` — 학원 검색 실제 호출에서 운영정지(비활성) 학원이 결과에서 제외되는 것 확인(위 실행에 포함) |
+| 12 | 통과(제품 2/2, Flutter 갈래 기준) | `apps/parent-app` 전체 `flutter test` → 11/11 통과(`role_policy_test.dart` 7 · `widget_test.dart` 1 · `auto_login_test.dart` 1 · setUpAll/tearDownAll 포함 표시상 11). `apps/manager-app` 전체 `flutter test` → 11/11 통과(같은 구성). `packages/baraeda_core` 전체 `flutter test` → 18/18 통과(`real_backend_auth_test.dart` 4 · `api_client_auth_test.dart` 등 저장소·네트워크 계층 시험 포함). 관계자 웹(Next.js) 몫은 이 갈래의 확인 범위 밖 |
+
 #### 만들 화면 (F2 범위)
 
 | 화면 | 유저플로우 | 3제품 공통 |
