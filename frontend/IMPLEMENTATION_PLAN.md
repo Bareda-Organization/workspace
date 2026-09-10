@@ -276,6 +276,45 @@ frontend/
 | 11 | 통과 | `real_backend_auth_test.dart` — 학원 검색 실제 호출에서 운영정지(비활성) 학원이 결과에서 제외되는 것 확인(위 실행에 포함) |
 | 12 | 통과(제품 2/2, Flutter 갈래 기준) | `apps/parent-app` 전체 `flutter test` → 11/11 통과(`role_policy_test.dart` 7 · `widget_test.dart` 1 · `auto_login_test.dart` 1 · setUpAll/tearDownAll 포함 표시상 11). `apps/manager-app` 전체 `flutter test` → 11/11 통과(같은 구성). `packages/baraeda_core` 전체 `flutter test` → 18/18 통과(`real_backend_auth_test.dart` 4 · `api_client_auth_test.dart` 등 저장소·네트워크 계층 시험 포함). 관계자 웹(Next.js) 몫은 이 갈래의 확인 범위 밖 |
 
+#### 목표 표 실측 결과 — 웹(Next.js) 갈래 2·3·4항 + 나머지 재확인
+
+조율자가 **실제 브라우저**(`puppeteer-core` + 설치된 Chrome)와 쿠키 왕복으로 직접 실측.
+좌석은 브라우저 수단이 부재해 이 3항을 "미확인" 으로 남겼고, 조율자가 그 자리를 채웠다.
+
+| # | 판정 | 근거 |
+|:-:|:-:|---|
+| 2 | 통과 | `X-Client-Type: web` 로그인 응답 본문 키가 `access_token`·`role`·`status`·`account_id`·`academy` — **`refresh_token` 부재** |
+| 3 | 통과 | `Set-Cookie` 원문에 4속성 전부 — `HttpOnly` · `Secure` · `SameSite=Strict` · `Path=/api/v1/auth`(`Max-Age=1209600`). 쿠키만 저장한 뒤 **본문을 비운 `POST /auth/refresh` 가 성공**하는 것까지 확인 |
+| 4 | 통과 | 헤드리스 Chrome — `staffA` 로그인 → `/dashboard`, **새로고침 후에도 `/dashboard` 유지**. JS 오류 0 · 로딩 잔류 없음 · 로그인 폼 깜빡임 부재 |
+| 7 | 통과 | `staffPending` → `/signup-status` "승인 대기 중입니다" + 신청 학원·일시·문의처 |
+| 8 | 통과 | `studentRejected` → "가입이 거절됐습니다" + 사유 "재학증명서 미제출" + `다른 학원으로 재신청` |
+| 9·10 | 통과 | `driverBlocked` → 로그인 화면 유지 + "계정 단위로 잠겼습니다. 다른 기기나 다른 사람의 접속과는 무관합니다" |
+| 1·11·12 | 통과 | 12콜 정본 대조 · 학원 검색 비활성 제외 · 웹 검사 16건(5파일) 전부 통과 |
+
+⚠ **이 실측 도중 백엔드 결함 하나가 드러났다** — `Access-Control-Allow-Credentials` 부재로
+**브라우저에서 웹 로그인이 통째로 실패**했다(`372c00d` 로 수정, `CorsCredentialsTest` 신설).
+`curl` 은 CORS 를 강제하지 않아 **서버 응답만 보면 정상이다.** 웹의 통신 계약(쿠키·헤더·출처)을
+바꾸면 반드시 실제 브라우저로 한 번 돌린다.
+
+#### ⚠ F2 완료 판정 — 11항 통과 · 1항 부분 확인 · **리뷰 1건 미실시**
+
+두 갈래 모두 `main` 병합 완료(웹 `3d0d3e1` · Flutter `b3ad785`). 병합 후 `main` 에서 재실행해
+**웹 16건 · 앱 37건**(`baraeda_core` 17 · `parent-app` 10 · `manager-app` 10) 실패 0 확인.
+
+**그러나 아래 2건이 남아 F2 를 "전항 통과" 로 선언하지 않는다**(`§2` 부분 통과는 완료가 아니다).
+
+| 남은 것 | 상태 | 왜 남았나 |
+|---|---|---|
+| **Flutter 갈래 게이트 리뷰** | **미실시** | 세션 토큰 한도. 웹 갈래 리뷰는 실제 공백 1건(`TOKEN_EXPIRED` 재시도 경로 미검사)을 찾아냈으므로 같은 수준의 검토가 필요하다. 먼저 볼 지점은 `.claude/f2/report-flutter.md` 2항의 자기 신고 3건 |
+| **목표 5** — 앱 재실행 자동 로그인 | **부분 확인** | 판단 로직은 진짜 refresh 토큰으로 자동화 검사 통과. **시뮬레이터에서 로그인 → 종료 → 재실행 왕복은 미확인** · `manager-app` 은 시뮬레이터 빌드 미시도 |
+
+- **F3 착수를 막지는 않는다** — F3 은 화면 구현이고 위 2건은 인증 계층의 *검증* 이 남은 것이라
+  갈래가 다르다. 다만 **F3 이 끝나기 전에는 닫아야 한다** — 인증은 3제품 전부가 그 위에 서고,
+  뒤로 밀수록 "이미 잘 돌던 것" 으로 보여 검토 동기가 사라진다
+- 목표 5 는 **시뮬레이터가 이제 실재하므로**(Xcode 26.6 · iOS 26.5 런타임 · CocoaPods 1.17.0)
+  환경 제약이 아니라 **수단 문제**다. 좌표 기반 클릭은 쓰지 마라 — 좌석이 시도했다가
+  **시뮬레이터가 아니라 사용자의 실제 화면이 잡히는 것**을 보고 중단했다
+
 #### 만들 화면 (F2 범위)
 
 | 화면 | 유저플로우 | 3제품 공통 |
