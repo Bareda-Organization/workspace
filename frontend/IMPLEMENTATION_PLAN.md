@@ -877,6 +877,23 @@ Android `https://navermaps.github.io/android-map-sdk/guide-ko/1.html`
   문서만 보고 "지원한다" 로 넘기지 마라
 - Flutter 3.44.8 호환도 같은 빌드에서 함께 확인한다
 
+##### 네이버 클라우드 플랫폼 Maps 애플리케이션에 등록할 값 (2026-09-12 실측)
+
+콘솔 등록 항목이 **서비스 URL · Android 앱 패키지 이름 · iOS Bundle ID** 셋이다. 저장소에서 직접 읽은 값:
+
+| 항목 | 값 | 출처 |
+|---|---|---|
+| Android 패키지 | `com.baraeda.parent_app` · `com.baraeda.manager_app` | 각 앱 `android/app/build.gradle` 의 `applicationId` |
+| iOS Bundle ID | `com.baraeda.parentApp` · `com.baraeda.managerApp` | `ios/Runner.xcodeproj/project.pbxproj` 의 `PRODUCT_BUNDLE_IDENTIFIER` |
+| 웹 서비스 URL | `http://localhost:3000` (운영 도메인 미정) | `academy-web` 개발 서버. 배포 도메인은 `docs/DEPLOYMENT.md` 에서 아직 자리표시 |
+
+- ⚠ **Android 는 밑줄(`parent_app`), iOS 는 대문자(`parentApp`) 로 갈린다.** 오타가 아니라 Flutter 기본 동작이다
+  (iOS 번들 식별자에 밑줄을 못 쓴다). **양쪽을 있는 그대로** 등록한다
+- ⚠ **`...RunnerTests` 로 끝나는 식별자는 등록하지 않는다** — 테스트 타깃이라 지도를 쓰지 않는다
+- **애플리케이션은 하나로 만든다.** 콘솔의 Application 하나가 세 항목을 각각 여러 개 받으므로
+  키·사용량이 한 곳에 모인다(공급자를 하나로 고정한 것과 같은 이유)
+- ⚠ **등록 시 `Dynamic Map` 체크 필수** — 빠뜨리면 키가 맞아도 **429**. 패키지명 오등록은 **401**
+
 #### 8.3.1 요금 때문에 공급자를 바꿀 수 있다 — 그래서 지도를 포트 뒤에 둔다
 
 사용자 지시(2026-09-10): *"무료 이용이 안 된다면 티맵으로 변경하는 것도 고려"*.
