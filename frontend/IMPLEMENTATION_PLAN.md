@@ -1352,6 +1352,67 @@ F4-B 병합 · 전체 실행 · 정리
 4. ⚠ **"인용을 사실로 믿지 마라"** — 이 세션에서 좌석들이 조율자 오류를 **9건 이상** 잡았다
 5. **판정문은 `verdict-*.md`** — `gate-*.md` 는 **지시서를 덮어쓴다**
 
+## 5.5 ⚖ `F5` 목표 표 — **착수 전 고정** (2026-09-14, 메인 `24157fee`)
+
+**F5 는 화면을 더 만드는 라운드가 아니라 `§6` 완료 조건 4개를 화면마다 실제로 통과시키는 라운드다.**
+⚠ **배포는 범위 밖**(`Ruling 280`) — `docker-compose` 프론트 서비스 · `deploy-web.yml` · 실 배포를 만들지 않는다.
+
+### 정본과 계수 규칙
+
+| 대상 | 정본 | ⚠ 계수 함정 |
+|---|---|---|
+| 화면 ↔ 기능 ID ↔ 유저플로우 | `docs/FEATURE_SPEC` · `docs/USER_FLOWS` | **이 계획서 `§3` 표는 인용이다.** 실제로 `A-14`·`A-18` 오기가 있었다(`Ruling 272`) |
+| 엔드포인트 | `docs/API_SPEC` `§2`~`§6` | ⚠ **절 수 ≠ 엔드포인트 수.** 한 절 제목이 둘을 담는다(`§2.11` · `§3.7` — `Ruling 268` 이 `§6` 에서 같은 것을 잡았다). **`### ` 헤더를 눈으로 읽어 세고, 센 방식을 판정문에 적는다** |
+| 오류 코드 | `API_SPEC §8`(5절) · `USER_FLOWS §12`(5절) | 화면에 **걸리는 것만** 고른다. 고르지 않은 이유도 한 줄씩 적는다 |
+
+### 좌석 배정 — **2회차 × 2좌석** (⚠ 동시 4좌석은 메모리가 부족하다 · 실측 16GB 중 15GB 사용 중)
+
+| 회차 | 좌석 | 대상 | 정본 | 전용 포트 / DB |
+|:-:|:-:|---|---|---|
+| R1 | `W1` | `academy-web` `(staff)` 13경로 | `API_SPEC §5` | `8130` / `schoolbus_f5_w1` |
+| R1 | `M` | `manager-app` 7화면 + 비상·오프라인큐 | `API_SPEC §4` | `8131` / `schoolbus_f5_m` |
+| R2 | `W2` | `academy-web` `(admin)` 8경로 + `(auth)` 3경로 | `API_SPEC §6` · `§2` | `8132` / `schoolbus_f5_w2` |
+| R2 | `P` | `parent-app` 6화면 | `API_SPEC §3` · `§2` 일부 | `8133` / `schoolbus_f5_p` |
+
+### 목표 표 — 전항 통과가 완료 조건
+
+| # | 좌석 | 완료 조건 | 검증 (이 명령·단언이 통과해야 끝) |
+|:-:|:-:|---|---|
+| 0 | 조율자 | ~~**실서버 시험이 주소를 안 받으면 *실패*한다**~~ | ✅ **완료 (2026-09-14, 착수 전 선반영).** `test/support/real_backend_target.dart` 3벌(`parent-app`·`manager-app`·`baraeda_core`) + `src/shared/testing/realBackendTarget.ts`(웹). `dart_test.yaml` 3벌에 `real_backend` 태그 선언 — **선언이 없으면 `--exclude-tags` 가 아무것도 안 거른다.** 실측 3갈래: ①주소 미지정 → `Bad state` 로 적재 실패 ②`--exclude-tags real_backend` → `No tests ran` ③주소 지정 → `parent-app` 통합 **11건 통과 · 건너뜀 0** · 웹 `wsRealBackendAuth` **5건 통과**. ⚠ **조율자 직접 편집이라 리뷰를 건너뛴다 — 게이트 판정 대상에 명시** |
+| 1 | `W1` | `(staff)` 13경로의 **정본 대조표** | 화면 → 기능 ID → 유저플로우 → 엔드포인트를 **1:1** 로 적는다. 계획서 `§3.3` 과 어긋나면 **정본이 이기고** 어긋남을 판정문에 적는다 |
+| 2 | `W1` | 그 화면들이 호출하는 엔드포인트를 **전부 실백엔드로 호출** | `npm test` 에서 `// @vitest-environment node` 계약 시험. 본보기 = `src/shared/lib/ws/wsRealBackendAuth.test.ts`. **건너뜀 0**(백엔드가 떠 있을 때) |
+| 3 | `W1` | 가짜 응답으로 **대체한 항목이 목록으로** 남는다 | 대체가 0건이면 "0건" 을 적는다. 적지 않은 것은 미확인으로 센다 |
+| 4 | `W1` | 예외 경로 재현 — `USER_FLOWS §12` + `API_SPEC §8` | 그 화면에 걸리는 오류 코드를 **실제 응답으로** 받아 확인. 최소 `ACADEMY_SCOPE_VIOLATION` · `APPROVAL_ALREADY_DECIDED` · `CAPACITY_EXCEEDED` · `PREVIEW_STALE` 중 해당분 |
+| 5 | `W1` | `frontend/CONVENTIONS.md` 위반 **0** · `npm run lint` **0건** | ⚠ **기준선 6건(오류 3 · 경고 3)까지 없앤다** — `NaverMapSurface.tsx` · `useRealtimeChannel.ts` · `useRealtimeChannel.test.ts`. 위반을 고친 것과 규칙이 안 걸린 것을 가른다 |
+| 6 | `M` | `manager-app` 9화면의 **정본 대조표** | 1번과 같은 형식. `M-06`(오프라인 큐) · `M-15`(비상) 포함 |
+| 7 | `M` | `§4` 엔드포인트 **전부 실백엔드 호출** · 건너뜀 **0** | `flutter test --dart-define=API_BASE_URL=http://localhost:8131/api/v1`. 계수는 `--reporter json` 의 **`hidden:false`** 만 |
+| 8 | `M` | 예외 경로 — **역할 경계 2종을 실제 403 으로** 받는다 | `ESCORT_ONLY`(기사가 승하차 변경) · `DRIVER_ONLY`(동승자가 운행 시작) · `START_WINDOW_CLOSED` · `DUPLICATE_ARRIVE` 중 해당분 |
+| 9 | `M` | **오프라인 큐 재전송이 멱등**임을 실서버로 확인 | `USER_FLOWS §12.2`·`§12.4` — 같은 멱등키로 2회 보내 **부수효과가 1회** |
+| 10 | `M` | `dispose()` → **타이머 정지 배선**에 검사가 있다 | 📌 F4 이월 3번. 웹에는 있고 앱만 비어 있다. **정지를 지우면 그 검사만 실패**해야 한다 |
+| 11 | `M` | `flutter analyze` 새 지적 **0** | 기존 11건(전부 `info`)은 이 라운드 소유가 아니다 — **늘지 않는 것**이 조건 |
+| 12 | `W2` | `(admin)` 8경로 + `(auth)` 3경로의 **정본 대조표** | 1번과 같은 형식. `§6` 엔드포인트 수는 **직접 센다**(`Ruling 268`) |
+| 13 | `W2` | `§6`·`§2` 엔드포인트 **전부 실백엔드 호출** · 건너뜀 **0** | 2번과 같은 형식 |
+| 14 | `W2` | 예외 경로 — **계정 상태 게이트 3종** | `AUTH_PENDING` · `AUTH_REJECTED` · `AUTH_ACCOUNT_BLOCKED` 를 실제 응답으로. ⚠ **`pending` 허용 목록 4개**(`§1.4`)를 넘겨 부르면 403 이 나와야 한다 |
+| 15 | `W2` | `CONVENTIONS.md` 위반 **0** · `npm run lint` 새 지적 **0** | 5번과 같다 |
+| 16 | `P` | `parent-app` 6화면의 **정본 대조표** | 학생 전용 분기(`S-01~05`) 포함 |
+| 17 | `P` | `§3` 엔드포인트 **전부 실백엔드 호출** · 건너뜀 **0** | 7번과 같은 형식(포트 `8133`) |
+| 18 | `P` | 예외 경로 — **②구간 한도·창 2종** | `CHANGE_LIMIT_REACHED` · `CHANGE_WINDOW_CLOSED` · `LINK_CODE_INVALID` 중 해당분을 실제 응답으로 |
+| 19 | `P` | `dispose()` → **타이머 정지 배선**에 검사가 있다 | 10번과 같다(학부모 앱 갈래) |
+| 20 | `P` | `flutter analyze` 새 지적 **0** | 기존 1건은 이 라운드 소유가 아니다 |
+| 21 | 조율자 | **병합 후 단독 전체 실행** — 실패 **0** · 건너뜀 **0** | 백엔드 · `academy-web` · `manager-app` · `parent-app` · `baraeda_core` · `baraeda_ui`. 동시 실행 좌석 **0** · 전용 포트 · 전용 DB |
+| 22 | 조율자 | **시드 서버 오염 0** | 회차 시작·종료 시점의 `schoolbus` `emergency_alert` 건수가 **1**(정본 `V2__seed_data.sql` 값). 어긋나면 오염 시각·건수·원인을 먼저 적고 나서 지운다 |
+
+### 각 좌석에 공통으로 실을 것
+
+1. ⚠ **`--dart-define=API_BASE_URL` 에 `/api/v1` 접미사를 붙인다** — 빠뜨려 앱 2종이 11건씩 실패한 전례
+2. ⚠ **인용을 사실로 믿지 마라** — 이 표의 숫자는 전부 인용이다. 직접 세고 어긋나면 보고한다
+3. ⚠ **건너뜀 0** — 종료 코드 `0` 은 "전부 건너뜀" 과 구별되지 않는다
+4. ⚠ **생성 코드 재생성** — 워크트리 착수 직후·병합 후 `build_runner`. **공유 패키지에서도 따로**
+5. **판정문은 `verdict-*.md`** — `gate-*.md` 는 대소문자 충돌로 지시서를 덮어쓴다
+6. **재시도는 실패한 것만** — 전체 재실행은 마무리 때 한 번(`phase-goal-loop §2.1`)
+7. ⚠ **웹은 전체 실행에도 `NEXT_PUBLIC_API_BASE_URL` 을 준다** — 0번 이후 실서버 시험 파일은 주소가 없으면 **적재 자체가 실패**한다. 백엔드 없이 돌릴 때만 그 파일을 `--exclude` 로 뺀다
+8. **착수 시점 정적 분석 기준선** — 웹 `npm run lint` **6건**(오류 3 · 경고 3) · `manager-app` `flutter analyze` **11건** · `parent-app` **1건** · `baraeda_core` **87건**. ⚠ 웹 6건은 **`W1` 이 없앤다**(대상이 `features/map/naver`·`shared/hooks` 라 `W2` 와 겹치지 않는다)
+
 ## 6. 완료 조건 — 화면 단위
 
 각 화면은 아래 4개를 전부 통과해야 완료. **"화면이 뜬다" 는 완료가 아님.**
