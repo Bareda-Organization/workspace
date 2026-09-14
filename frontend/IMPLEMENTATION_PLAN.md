@@ -1795,7 +1795,7 @@ StudentRouteQueryService.java:178
 
 | # | 항목 | 조율자 판정 |
 |:-:|---|---|
-| 1 | `manager-app` 의 `flutter analyze` 오류 20여 건(`offline_queue` — 생성 코드 부재로 보임) | **좌석 결함이 아니다** — `git status` 로 자기 변경분이 아님을 확인하고 넘긴 처신이 맞다. ⚠ **`parallel-agents-git.md §0.3` 의 "병합 직후 생성 코드를 다시 만들지 않으면 대량 실패" 와 같은 형태** — 병합 후 전체 실행 전에 `build_runner` 를 돌려야 한다 |
+| 1 | `manager-app` 의 `flutter analyze` 오류 20여 건(`offline_queue` — 생성 코드 부재로 보임) | ✅ **해소 — 작업 폴더 한정 현상이었다.** 조율자가 **병합 트리에서 직접 돌리니 `11 issues` 전부 `info` · 오류·경고 `0`** 이고 `OfflineQueueDatabase` 오류는 **한 건도 없다.** 원인 — `.gitignore:66` 이 `frontend/**/*.g.dart` 를 무시해 **생성 코드가 작업 폴더에 복제되지 않는다**(git 이 무시하는 파일은 `git worktree add` 가 안 가져온다 — `parallel-agents-git.md §12` 와 같은 기제). 메인에는 그 파일이 실재하고 최신이다. ⇒ **`build_runner` 재실행 불요** |
 | 2 | 검사 수 **147**(이번 5회) 대 **153**(이전 세션 보고) 불일치 | **좌석이 "추정이지 확인이 아니다" 로 적은 것이 맞다.** 5회가 전부 147 로 일치하므로 **현재 값은 147 이 정본**이고, 153 의 출처는 옛 로그가 있어야 가른다 |
 
 ⚠ **`docker exec school-bus-postgres-1` 컨테이너 이름을 시험이 하드코딩했다**(좌석 자진 신고).
