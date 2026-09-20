@@ -14,7 +14,7 @@
 | 화면 전이 · 예외 경로 | `docs/USER_FLOWS.md` |
 | 엔드포인트 계약 · 에러 코드 | `docs/API_SPEC.md` |
 | 디자인 토큰 · 컴포넌트 · 화면 킷 | `frontend/design-system/` |
-| 코드 컨벤션 (React 한정) | `frontend/CONVENTIONS.md` |
+| 코드 컨벤션 (React 한정) | `docs/frontend/CONVENTIONS_REACT.md` |
 
 **어긋나면 `docs/` 가 기준.** 디자인 시스템은 구 기획 PDF·유저플로우 이미지에서 만들어졌고
 `docs/` 재작성(2026-08-24) 이후 갱신 부재 — §4 참조.
@@ -63,7 +63,7 @@
 
 ```
 frontend/
-├── CONVENTIONS.md              React/TypeScript 컨벤션
+├── CONVENTIONS_REACT.md              React/TypeScript 컨벤션
 ├── CONVENTIONS_FLUTTER.md      Flutter/Dart 컨벤션
 ├── IMPLEMENTATION_PLAN.md      이 문서
 ├── design-system/              claude.ai 디자인 시스템 사본 (읽기 전용)
@@ -76,7 +76,7 @@ frontend/
 ```
 
 각 앱 내부 구조는 컨벤션 문서가 정본 —
-웹은 `CONVENTIONS.md` "디렉터리" 절, Flutter 는 `CONVENTIONS_FLUTTER.md` §2·§3.
+웹은 `CONVENTIONS_REACT.md` "디렉터리" 절, Flutter 는 `CONVENTIONS_FLUTTER.md` §2·§3.
 둘 다 **기능(도메인) 하나 = 폴더 하나**이고 **기능끼리 서로 import 하지 않는 것**이 확장의 근거.
 
 `design-system/` 은 **읽기 전용 사본**. 고칠 일이 생기면 원격 프로젝트를 고치고 다시 내려받음
@@ -771,7 +771,7 @@ R1 목표 표(아래 "R1 목표 표" 절)가 그대로 완료 조건이다. 더�
 | 7 | 정적 검사 통과 | 웹 `npx tsc --noEmit` + `npx eslint` · Flutter `flutter analyze` 둘 다 경고 0 |
 | 8 | 검사 전체 통과 | 웹 `npx vitest run` · Flutter `flutter test`. **실행 명령과 실제 출력**을 보고서 3항에 |
 | 9 | 새로 만든 검사마다 **결함을 심어 실패를 눈으로 봄** | 심은 변형 목록을 보고서 4항에. 변형 1회 = 원복 1회 = `git status --porcelain` 확인 1회 |
-| 10 | 컨벤션 위반 0 | 웹 `CONVENTIONS.md` · Flutter `CONVENTIONS_FLUTTER.md` |
+| 10 | 컨벤션 위반 0 | 웹 `CONVENTIONS_REACT.md` · Flutter `CONVENTIONS_FLUTTER.md` |
 
 #### ⚠ 목표 5 의 뜻 — "에러 코드를 재현" 이 무엇을 요구하는가 (Ruling 263, 2026-09-12)
 
@@ -1390,7 +1390,7 @@ F4-B 병합 · 전체 실행 · 정리
 | 2 | `W1` | 그 화면들이 호출하는 엔드포인트를 **전부 실백엔드로 호출** | `npm test` 에서 `// @vitest-environment node` 계약 시험. 본보기 = `src/shared/lib/ws/wsRealBackendAuth.test.ts`. **건너뜀 0**(백엔드가 떠 있을 때) |
 | 3 | `W1` | 가짜 응답으로 **대체한 항목이 목록으로** 남는다 | 대체가 0건이면 "0건" 을 적는다. 적지 않은 것은 미확인으로 센다 |
 | 4 | `W1` | 예외 경로 재현 — `USER_FLOWS §12` + `API_SPEC §8` | 그 화면에 걸리는 오류 코드를 **실제 응답으로** 받아 확인. 최소 `ACADEMY_SCOPE_VIOLATION` · `APPROVAL_ALREADY_DECIDED` · `CAPACITY_EXCEEDED` · `PREVIEW_STALE` 중 해당분 |
-| 5 | `W1` | `frontend/CONVENTIONS.md` 위반 **0** · `npm run lint` **0건** | ⚠ **기준선 6건(오류 3 · 경고 3)까지 없앤다** — `NaverMapSurface.tsx` · `useRealtimeChannel.ts` · `useRealtimeChannel.test.ts`. 위반을 고친 것과 규칙이 안 걸린 것을 가른다 |
+| 5 | `W1` | `docs/frontend/CONVENTIONS_REACT.md` 위반 **0** · `npm run lint` **0건** | ⚠ **기준선 6건(오류 3 · 경고 3)까지 없앤다** — `NaverMapSurface.tsx` · `useRealtimeChannel.ts` · `useRealtimeChannel.test.ts`. 위반을 고친 것과 규칙이 안 걸린 것을 가른다 |
 | 6 | `M` | `manager-app` 9화면의 **정본 대조표** | 1번과 같은 형식. `M-06`(오프라인 큐) · `M-15`(비상) 포함 |
 | 7 | `M` | `§4` 엔드포인트 **전부 실백엔드 호출** · 건너뜀 **0** | `flutter test --dart-define=API_BASE_URL=http://localhost:8131/api/v1`. 계수는 `--reporter json` 의 **`hidden:false`** 만 |
 | 8 | `M` | 예외 경로 — **역할 경계 2종을 실제 403 으로** 받는다 | `ESCORT_ONLY`(기사가 승하차 변경) · `DRIVER_ONLY`(동승자가 운행 시작) · `START_WINDOW_CLOSED` · `DUPLICATE_ARRIVE` 중 해당분 |
@@ -1400,7 +1400,7 @@ F4-B 병합 · 전체 실행 · 정리
 | 12 | `W2` | `(admin)` 8경로 + `(auth)` 3경로의 **정본 대조표** | 1번과 같은 형식. `§6` 엔드포인트 수는 **직접 센다**(`Ruling 268`) |
 | 13 | `W2` | `§6`·`§2` 엔드포인트 **전부 실백엔드 호출** · 건너뜀 **0** | 2번과 같은 형식 |
 | 14 | `W2` | 예외 경로 — **계정 상태 게이트 3종** | `AUTH_PENDING` · `AUTH_REJECTED` · `AUTH_ACCOUNT_BLOCKED` 를 실제 응답으로. ⚠ **`pending` 허용 목록 4개**(`§1.4`)를 넘겨 부르면 403 이 나와야 한다 |
-| 15 | `W2` | `CONVENTIONS.md` 위반 **0** · `npm run lint` 새 지적 **0** | 5번과 같다 |
+| 15 | `W2` | `CONVENTIONS_REACT.md` 위반 **0** · `npm run lint` 새 지적 **0** | 5번과 같다 |
 | 16 | `P` | `parent-app` 6화면의 **정본 대조표** | 학생 전용 분기(`S-01~05`) 포함 |
 | 17 | `P` | `§3` 엔드포인트 **전부 실백엔드 호출** · 건너뜀 **0** | 7번과 같은 형식(포트 `8133`) |
 | 18 | `P` | 예외 경로 — **②구간 한도·창 2종** | `CHANGE_LIMIT_REACHED` · `CHANGE_WINDOW_CLOSED` · `LINK_CODE_INVALID` 중 해당분을 실제 응답으로 |
@@ -2014,7 +2014,7 @@ StudentRouteQueryService.java:178
    Mock 응답으로 대체한 항목이 있으면 그 목록을 보고에 적음
 3. **예외 경로** — `USER_FLOWS §12`(서버 실패 · 통신 두절 · 권한 차단)와 `API_SPEC §8` 에러 코드 중
    그 화면에 걸리는 것을 실제로 재현
-4. **컨벤션** — `frontend/CONVENTIONS.md` 위반 0 (React 한정)
+4. **컨벤션** — `docs/frontend/CONVENTIONS_REACT.md` 위반 0 (React 한정)
 
 ---
 
@@ -2037,7 +2037,7 @@ StudentRouteQueryService.java:178
 | # | 항목 | 확정 |
 |:-:|---|---|
 | 1 | 메인 관리자 콘솔 | **관계자 웹에 합침.** 라우트 그룹 `(admin)`, 레이아웃은 `(staff)` 와 분리 |
-| 2 | 스타일 방식 | **Emotion 이식.** 토큰(CSS 변수)은 그대로 참조 — `CONVENTIONS.md` 참조 |
+| 2 | 스타일 방식 | **Emotion 이식.** 토큰(CSS 변수)은 그대로 참조 — `CONVENTIONS_REACT.md` 참조 |
 | 3 | Flutter 규칙 | **Flutter 관례를 따름.** `CONVENTIONS_FLUTTER.md` 신설 · 유지 대상 |
 | 4 | 디렉터리 | `apps/` + `packages/baraeda_ui/` + `design-system/`. 기능 단위 분리 |
 | 5 | 디자인이 없는 화면 | **디자인 시스템의 규칙과 색을 따라 새로 설계.** §4 참조 |
@@ -2115,7 +2115,7 @@ Android `https://navermaps.github.io/android-map-sdk/guide-ko/1.html`
 |---|---|---|
 | Android 패키지 | `com.baraeda.parent_app` · `com.baraeda.manager_app` | 각 앱 `android/app/build.gradle` 의 `applicationId` |
 | iOS Bundle ID | `com.baraeda.parentApp` · `com.baraeda.managerApp` | `ios/Runner.xcodeproj/project.pbxproj` 의 `PRODUCT_BUNDLE_IDENTIFIER` |
-| 웹 서비스 URL | `http://localhost:3000` (운영 도메인 미정) | `academy-web` 개발 서버. 배포 도메인은 `docs/DEPLOYMENT.md` 에서 아직 자리표시 |
+| 웹 서비스 URL | `http://localhost:3000` (운영 도메인 미정) | `academy-web` 개발 서버. 배포 도메인은 `docs/infra/DEPLOYMENT.md` 에서 아직 자리표시 |
 
 - ⚠ **Android 는 밑줄(`parent_app`), iOS 는 대문자(`parentApp`) 로 갈린다.** 오타가 아니라 Flutter 기본 동작이다
   (iOS 번들 식별자에 밑줄을 못 쓴다). **양쪽을 있는 그대로** 등록한다
