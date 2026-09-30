@@ -124,8 +124,11 @@ apps/academy-web/src/
   - **예외 — 아래 방향 계층 참조는 허용한다(2026-09-19 실측 15건, 순환 없음 확인).**
     `bus`·`map`·`auth` 는 다른 기능을 import 하지 않는 최하위 계층이고, 그 위로
     `schedule → bus`, `route → bus`·`schedule`·`map`, `approval → map`, `student`·`manager → auth`
-    (비밀번호 초기화 대화상자 `AccountPasswordResetDialog`), `admin`·`run → map`·`route`·`auth`
-    가 실제 계층이다(2026-09-30 웹 전체 검사 F02-05 — 앞의 넷을 이 목록에 더했다. 웹 관리 6개 기능은
+    (비밀번호 초기화 대화상자 `AccountPasswordResetDialog`), `admin`·`run → map`·`route`·`auth`,
+    `emergency → auth`(비상 알림 제공자가 로그인 세션을 읽는다), `report → run`(보고서 목록이 `run` 의
+    대시보드 조회 `getDashboard` 를 쓴다)가 실제 계층이다(2026-09-30 웹 전체 검사 F02-05 — 앞의 넷을 이 목록에 더했다.
+    W2-02 — `emergency → auth`·`report → run` 을 더했다. 둘 다 위에서 아래로 향하고 순환이 없다(`emergency`·`report` 를
+    읽는 기능이 없고, `run` 은 `report` 를 읽지 않는다). 웹 기능 전부를
     `src/features/managementFeaturesImportBoundary.test.ts` 가 이 목록과 대조한다). **모두 상대 기능의 `index.ts` 공개 창구만** 읽는다(§ 아래 규칙 준수)
   - 이 예외 밖의 참조 — 계층을 거스르거나(예: `bus` 가 `schedule` 을 import) 계층에
     없는 기능 쌍끼리의 참조 — 는 여전히 금지다. 새 참조를 추가하기 전에 순환이 생기지
