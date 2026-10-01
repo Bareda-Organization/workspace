@@ -40,6 +40,7 @@
 
 - **`PascalCase` 는 React 컴포넌트와 도메인 요소(폴더)에만.** 타입·`.d.ts`·`.ts` 파일은 `camelCase`
 - 루트에 의미 없는 `div` 대신 **fragment(`<>`)** 를 쓴다 — 불필요한 DOM 노드가 CSS 레이아웃을 어긋나게 한다
+- 주기 갱신(폴링)은 **`shared/hooks/usePolling`** 으로 한다 — `setInterval` 을 직접 쓰지 않는다. 응답을 받은 뒤 다음 요청을 예약하고, 탭이 숨으면 멈췄다가 돌아오면 즉시 1회, 실패하면 간격을 ×2 씩(상한 ×8) 늘렸다가 성공하면 원래 간격으로 돌아간다 (`Ruling 422`·`567`, 근거 `docs/frontend/IMPLEMENTATION_PLAN.md §5.17`)
 - 자식이 없으면 **self-closing**, 닫는 슬래시 앞에 공백 한 칸
   ```tsx
   <Button onClick={onClick} />   // ✓
