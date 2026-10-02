@@ -231,7 +231,7 @@ erDiagram
 | `role` | varchar(20) | NN | `parent` · `student` · `driver` · `escort` · `staff` · `system_admin`. CHECK |
 | `status` | varchar(10) | NN | `pending` · `active` · `rejected` · `blocked`. CHECK |
 | `failed_attempts` | integer | NN default 0 | 로그인 연속 실패 횟수. **5회** 도달 시 `blocked` (C-11) |
-| `must_change_password` 🆕 | boolean | NN default false | **임시 비밀번호 강제 변경 표식**(2026-10-01 `Ruling 540`) — 관리자 초기화(`API_SPEC §5.22`·`§6.7`)가 켜고 본인 변경(`§2.8`)이 끈다. 켜진 동안 계정 상태 게이트가 `§2.8`·`§2.10`·`§2.7` 외 API 를 `403 PASSWORD_CHANGE_REQUIRED` 로 막는다(`§1.4`) |
+| `must_change_password` 🆕 | boolean | NN default false | **임시 비밀번호 강제 변경 표식**(2026-10-01 `Ruling 540`) — 관리자 초기화(`API_SPEC §5.22`·`§6.7`)와 문자 복구(`§2.9`, `Ruling 785`)가 켜고 본인 변경(`§2.8`)이 끈다. 켜진 동안 계정 상태 게이트가 `§2.8`·`§2.10`·`§2.7` 외 API 를 `403 PASSWORD_CHANGE_REQUIRED` 로 막는다(`§1.4`) |
 | `blocked_at` | timestamptz | | 차단 일시 |
 | `status_before_block` 🆕 | varchar(10) | | 차단 직전 상태(`active`·`pending`·`rejected`). `blocked` 전이 시 저장, 해제 시 이 값으로 복원 후 NULL — `status='blocked'` 일 때만 NOT NULL. CHECK (2026-09-25 `Ruling 328`) |
 | `block_reason` | varchar(100) | | 차단 사유 — 차단 목록의 `reason` |
