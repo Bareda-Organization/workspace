@@ -35,7 +35,7 @@
               ECR(이미지) ◀── GitHub Actions ──▶ S3(배포파일·백업)
 ```
 
-- **웹**: `frontend/apps/academy-web`(Next.js) → Vercel 의 GitHub 연동이 `main` push 마다 빌드·배포(§12). GitHub Actions 워크플로 없음 — `deploy-web.yml` 은 2026-09-09 삭제 상태 그대로이며 되살리지 않는다. 운영 compose·nginx 에 웹 컨테이너가 없다(`Ruling 481`)
+- **웹**: `Bareda-Organization/web`(Next.js) → Vercel 프로젝트 `web-dev` 의 GitHub 연동이 `main` push 마다 빌드·배포(§12). GitHub Actions 워크플로 없음 — `deploy-web.yml` 은 2026-09-09 삭제 상태 그대로이며 되살리지 않는다. 운영 compose·nginx 에 웹 컨테이너가 없다(`Ruling 481`)
 - **API·인프라**: `backend/` + `docker-compose.prod.yml` → GitHub Actions 가 이미지 빌드해 ECR 에 올리고 SSM 으로 EC2 에 배포(`.github/workflows/deploy-backend.yml`)
 - ~~**모바일**: `frontend/` → 로컬에서 수동 빌드 후 스토어 콘솔에 직접 업로드(§9)~~ — **2026-09-09 삭제, 실행 불가**
 
@@ -1040,7 +1040,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 
 ## 12. 관계자 웹 배포 — Vercel (2026-10-01 · `Ruling 481` · `502` · `503`)
 
-관계자 웹(`frontend/apps/academy-web`, Next.js)은 **Vercel** 에서 배포한다(비용 이유 — 사용자 결정). 백엔드는 EC2 그대로다. 운영 compose·`nginx.prod.conf` 에 웹 컨테이너를 넣지 않고(시험 `DeploymentConfigGuardTest.prodServesNoWebFrontend`), API 서버의 `/` 는 404 다. 웹 변경 → `main` push → Vercel 이 빌드·배포하고 GitHub Actions 는 관여하지 않는다(옛 `deploy-web.yml` 은 되살리지 않는다).
+관계자 웹(`Bareda-Organization/web` 저장소, Next.js)은 **Vercel** 에서 배포한다(비용 이유 — 사용자 결정). 백엔드는 EC2 그대로다. 운영 compose·`nginx.prod.conf` 에 웹 컨테이너를 넣지 않고(시험 `DeploymentConfigGuardTest.prodServesNoWebFrontend`), API 서버의 `/` 는 404 다. 웹 변경 → `main` push → Vercel 이 빌드·배포하고 GitHub Actions 는 관여하지 않는다(옛 `deploy-web.yml` 은 되살리지 않는다).
 
 ### 12.1 구성
 
