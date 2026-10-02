@@ -8,7 +8,7 @@
 | 공개 | Cloudflare Tunnel — 공유기 포트 개방 부재 · HTTPS 는 Cloudflare 가 처리 |
 | 웹 | 같은 서버·같은 주소(Vercel 미사용 — 새로 고침 쿠키가 `SameSite=Strict` 라 웹과 API 가 다른 **사이트**가 되면 로그인 유지 불가). 운영은 `Ruling 481` 로 웹만 Vercel 이지만 웹·API 를 같은 사이트의 커스텀 도메인(`app.<도메인>` · `api.<도메인>`)에 두어 `Strict` 가 성립하게 한 것이고(`DEPLOYMENT.md §12.2`), 스테이징은 도메인 1개(`bus.<도메인>`)라 서버 한 곳에 묶음 |
 | 앱 | Android 만 · APK 를 서버의 `/download/` 에 두고 QR 로 설치. iOS 는 제외(원격 설치에 Apple 개발자 등록 필수) |
-| 데이터 | 백엔드 `local,staging` 프로파일 — 데모 시드 + 버스 시뮬레이터. **매일 새벽 시드 상태로 초기화** · 팀원이 웹 머리말 **[테스트 데이터 초기화]** 로 언제든 초기화(`Ruling 364`) |
+| 데이터 | 백엔드 `local,staging` 프로파일 — QA Mock 시드(`db/qa-seed` · 경기 부천 학원 3곳 · 계정과 시나리오는 [`docs/qa/QA_SCENARIOS.md`](../../qa/QA_SCENARIOS.md)) + 버스 시뮬레이터. **매일 새벽 시드 상태로 초기화** · 팀원이 웹 머리말 **[테스트 데이터 초기화]** 로 언제든 초기화(`Ruling 364`) |
 
 모든 요청은 `https://bus.<도메인>` → Cloudflare → 집 PC 의 `cloudflared` → `proxy`(nginx) → `/api`·`/ws` 는 backend, `/download` 는 APK 폴더, 나머지는 web.
 
@@ -88,7 +88,7 @@ docker compose ps                 # 6개 전부 running
 ```
 
 - 넷 중 하나라도 비면 compose 가 기동 전에 멈춘다 — 저장소에 공개된 비밀번호·JWT 키로 뜨는 일을 막는 장치
-- 확인 — 브라우저에서 `https://bus.<도메인>` 로그인. 계정 ID 는 `backend/src/main/java/src/backend/global/common/SeedFixtures.java`(`staffA` · `parentA1` · `driverA1` 등), 비밀번호는 위에서 정한 값
+- 확인 — 브라우저에서 `https://bus.<도메인>` 로그인. 계정 ID 는 [`docs/qa/QA_SCENARIOS.md`](../../qa/QA_SCENARIOS.md) §1(QA Mock — 2026-10-03 시드 분리 뒤 옛 `SeedFixtures`(`staffA` 등)는 시험 전용이라 스테이징에 없다), 비밀번호는 위에서 정한 값
 
 ## 7. APK 빌드 · 올리기 · QR
 

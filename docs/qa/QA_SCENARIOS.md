@@ -23,7 +23,7 @@
 | 백엔드 재기동(`./gradlew bootRun` · 컨테이너 재시작) | 로컬 |
 | `docker compose … down` + `up` | 컨테이너 모드 — DB 컨테이너까지 새로 |
 
-- **비밀번호는 전 계정 `password`**(local · staging). demo 는 배포 설정의 값
+- **비밀번호는 전 계정이 같다** — local 은 `password` · staging 은 스테이징 운영자가 `.env` 의 `SEED_PASSWORD_HASH` 로 정한 값(`STAGING.md §6` — 팀원에게 따로 알린다) · demo 는 배포 설정의 값
 - 웹·앱 주소와 스테이징 접속은 `docs/backend/infra/STAGING.md`
 
 ### 0.2 지도와 Directions 사용량
