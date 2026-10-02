@@ -1,7 +1,7 @@
 # API 명세서 HTML 재편 — 좌석 공통 지시서 (2026-09-02)
 
-**저장소** `/Users/mskim/Desktop/PJ/School-Bus` (모든 경로는 절대 경로로 `cat`/Read 한다. `find` 로 찾지 말고, 접힌 출력을 근거로 "없다" 고 결론 내지 마라).
-**정본** `/Users/mskim/Desktop/PJ/School-Bus/docs/API_SPEC.md` (v1.0). 기능 정의·도메인 소속은 `/Users/mskim/Desktop/PJ/School-Bus/docs/FEATURE_SPEC.md §4`.
+**저장소** `/Users/mskim/Desktop/PJ/baraeda` (모든 경로는 절대 경로로 `cat`/Read 한다. `find` 로 찾지 말고, 접힌 출력을 근거로 "없다" 고 결론 내지 마라).
+**정본** `/Users/mskim/Desktop/PJ/baraeda/docs/planning/API_SPEC.md` (v1.0). 기능 정의·도메인 소속은 `/Users/mskim/Desktop/PJ/baraeda/docs/planning/FEATURE_SPEC.md §4`.
 **산출물** 각 좌석은 지정된 **한 파일**(`docs/planning/.api_parts/partN.html`)에 **본문 조각만** 쓴다. `<html>`·`<head>`·`<style>`·`<script>`·`<body>` 를 넣지 마라 — 껍데기는 조율자가 `shell_head.html`·`shell_tail.html` 로 이미 만들었고 CSS 클래스는 거기 정의돼 있다(열어서 클래스명을 확인하라).
 **git 을 건드리지 마라.** `docs/` 는 git 무시 대상이라 add·commit 이 필요 없고, 다른 세션이 이 저장소에서 작업 중이다. 작업 트리·인덱스·HEAD·브랜치를 바꾸지 마라. 서브에이전트를 띄우지 마라.
 **파일 쓰기가 도구에서 거부되면 전문을 메시지로 보내라.** 조율자가 저장한다.
@@ -130,7 +130,7 @@
 
 ## 5. 구현 상태 대조 절차 (엔드포인트마다)
 
-1. 컨트롤러 목록: `grep -rl '@RestController' /Users/mskim/Desktop/PJ/School-Bus/backend/src/main` (44개). 경로 접두사 `/api/v1` 은 `global/config/ApiPathPrefixConfig.java` 가 붙인다 — 컨트롤러의 `@RequestMapping` 에는 없다.
+1. 컨트롤러 목록: `grep -rl '@RestController' /Users/mskim/Desktop/PJ/baraeda/backend/backend/src/main` (44개). 경로 접두사 `/api/v1` 은 `global/config/ApiPathPrefixConfig.java` 가 붙인다 — 컨트롤러의 `@RequestMapping` 에는 없다.
 2. 경로 문자열로 찾는다: `grep -rn '"/runs/{runId}/start"' backend/src/main` 처럼 **따옴표 포함**으로. 클래스 레벨 `@RequestMapping` + 메서드 레벨 매핑을 합쳐 판정한다.
 3. 판정 — `구현`(메서드·경로 실재) · `미구현`(부재) · `불일치`(실재하나 메서드/경로/권한/상태 코드가 정본과 다름 — 무엇이 다른지 한 줄). 권한은 메서드의 메타 애너테이션(`global/security/authz/` 의 `@CanXxx`)으로 본다.
 4. `파일:줄` 을 적는다 (경로는 `backend/src/main/java/src/backend/` 이하만).

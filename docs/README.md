@@ -26,6 +26,7 @@
 
 - **문서 속 코드 경로는 나누기 전 이름이다**(`backend/src/…` · `frontend/apps/academy-web/…` · `frontend/apps/manager-app/…`).
   작업 공간 기준으로는 `backend/backend/src/…` · `web/…` · `mobile/apps/manager-app/…` 로 읽는다. `archive/` 는 기록이라 고치지 않는다
+  - git 밖 산출물도 같은 식이다 — 화면 확인 스크린샷 `frontend/report/…` → `report/frontend/…` · 부하 측정 원본 `backend/load/results/` → `backend/backend/load/results/` · 백엔드 보고서 `backend/report/` → `backend/backend/report/` · 사람용 렌더 `docs/infra/OPERATIONS_PLAN.html` → `docs/backend/infra/`
 - **코드 저장소에 남긴 것** — `README.md` · `CLAUDE.md` · `AGENTS.md`(도구가 디렉터리로 찾는다) · 앱·패키지의 `README` · `CHANGELOG`(npm·pub 표준 위치) ·
   web 의 `design-system/**`(원격 킷 사본, 읽기 전용).
 - **`docs/planning/.api_parts/`** 는 `API_SPEC.html` 을 조립하는 빌드 작업 폴더다 — 문서가 아니라 도구라 그대로 둔다.

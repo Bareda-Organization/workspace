@@ -34,16 +34,19 @@ sudo usermod -aG docker $USER   # 다시 로그인해야 적용
 
 ## 3. 코드와 비밀값 옮기기
 
-⚠ GitHub 의 `main` 은 push 한 시점까지만 반영돼 있다 — 2026-10-01 R46 마무리(마무리 전체 실행 통과 뒤) push 가 마지막이고, 그 뒤 커밋은 push 전일 수 있다(push 는 사용자 확인 후 — `git log origin/main -1` 과 `git log -1` 을 견줘 확인). **둘이 다르면 GitHub 이 아니라 Mac 에서 받는다.**
+스테이징에 필요한 저장소는 `backend` · `web` 둘이다(compose 가 형제 폴더 `../web` 을 빌드한다) — 같은 폴더 아래 나란히 받는다.
+
+⚠ GitHub 의 `main` 은 push 한 시점까지만 반영돼 있다 — Mac 에서 저장소마다 `git -C <저장소> log origin/main -1` 과 `git -C <저장소> log -1` 을 견줘 확인한다. **둘이 다르면 GitHub 이 아니라 Mac 에서 받는다** — 주소를 `ssh://<mac 사용자>@<mac IP>/Users/mskim/Desktop/PJ/baraeda/<저장소>` 로 바꾸고, Mac 의 시스템 설정 → 일반 → 공유 → "원격 로그인" 을 켠다.
 
 ```bash
-# Mac: 시스템 설정 → 일반 → 공유 → "원격 로그인" 켜기. 그다음 집 PC 에서
-git clone ssh://<mac 사용자>@<mac IP>/Users/mskim/Desktop/PJ/School-Bus
-cd School-Bus
+mkdir baraeda && cd baraeda
+git clone https://github.com/Bareda-Organization/backend.git
+git clone https://github.com/Bareda-Organization/web.git
+cd backend
 
 # git 에 없는 비밀값 파일 2개 (네이버 API 키 · 웹 지도 키)
-scp <mac 사용자>@<mac IP>:Desktop/PJ/School-Bus/backend/.env backend/.env
-scp <mac 사용자>@<mac IP>:Desktop/PJ/School-Bus/frontend/apps/academy-web/.env.local frontend/apps/academy-web/.env.local
+scp <mac 사용자>@<mac IP>:Desktop/PJ/baraeda/backend/backend/.env backend/.env
+scp <mac 사용자>@<mac IP>:Desktop/PJ/baraeda/web/.env.local ../web/.env.local
 ```
 
 ## 4. Cloudflare Tunnel
@@ -61,7 +64,7 @@ NCP 콘솔 → Maps → 애플리케이션 수정. **안 하면 지도가 401 �
 
 ## 6. `.env` 작성 후 기동
 
-저장소 루트(`School-Bus/.env`, git 무시 대상)에 쓴다.
+backend 저장소 루트(`baraeda/backend/.env`, git 무시 대상)에 쓴다.
 
 ```bash
 # 시드 계정 전부가 쓸 비밀번호의 BCrypt 해시
@@ -92,17 +95,17 @@ docker compose ps                 # 6개 전부 running
 Mac 에서 빌드한다(두 앱 모두).
 
 ```bash
-cd frontend/apps/parent-app      # 매니저 앱은 manager-app
+cd mobile/apps/parent-app        # 매니저 앱은 manager-app (Mac 의 작업 공간 baraeda/ 에서)
 flutter build apk --release \
   --dart-define=API_BASE_URL=https://bus.<도메인>/api/v1 \
   --dart-define=NAVER_MAP_CLIENT_ID=<웹 .env.local 과 같은 ID>
-scp build/app/outputs/flutter-apk/app-release.apk <집 PC>:School-Bus/downloads/parent.apk
+scp build/app/outputs/flutter-apk/app-release.apk <집 PC>:baraeda/backend/downloads/parent.apk
 ```
 
 - ⚠ **`/api/v1` 까지 붙인다.** 빠뜨리면 모든 요청이 404
 - 크기 — 학부모 125MB · 매니저 132MB(모든 CPU 종류를 한 파일에 담은 크기). 줄이려면 `--split-per-abi` 후 `app-arm64-v8a-release.apk` 만 올린다
 - 파일만 바꾸면 되고 서버 재시작은 필요 없다
-- **테스트 시나리오** — `docs/TEST_SCENARIOS.html`(git 추적 밖)을 같은 폴더에 올린다: `scp docs/TEST_SCENARIOS.html <집 PC>:School-Bus/downloads/` → 팀원은 `https://bus.<도메인>/download/TEST_SCENARIOS.html`. ⚠ 문서의 서버 주소 자리(`bus.<도메인>`)를 실제 도메인으로 바꿔서 올린다
+- **테스트 시나리오** — `docs/TEST_SCENARIOS.html`(git 추적 밖)을 같은 폴더에 올린다: `scp docs/TEST_SCENARIOS.html <집 PC>:baraeda/backend/downloads/` → 팀원은 `https://bus.<도메인>/download/TEST_SCENARIOS.html`. ⚠ 문서의 서버 주소 자리(`bus.<도메인>`)를 실제 도메인으로 바꿔서 올린다
 - **QR** — PC Chrome 에서 `https://bus.<도메인>/download/` 을 열고 주소창의 공유 → **QR 코드 만들기**. 팀원은 찍고 → `parent.apk` 또는 `manager.apk` → "출처를 알 수 없는 앱 설치" 허용 → 설치
 
 ## 8. 초기화
@@ -117,7 +120,7 @@ scp build/app/outputs/flutter-apk/app-release.apk <집 PC>:School-Bus/downloads/
 
 ```bash
 crontab -e
-0 5 * * * cd $HOME/School-Bus && docker compose restart backend
+0 5 * * * cd $HOME/baraeda/backend && docker compose restart backend
 ```
 
 - ⚠ **모든 팀원의 데이터가 함께 되돌아간다** — 다른 사람이 테스트 중이면 먼저 알린다

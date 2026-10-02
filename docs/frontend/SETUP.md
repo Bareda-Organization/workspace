@@ -18,11 +18,12 @@
 
 ## 2. 클론
 
-저장소가 3개다(2026-10-02 분리) — **같은 폴더 아래 나란히** 받는다. 서로의 파일을 상대 경로(`../backend` · `../web`)로 읽는다.
+저장소가 4개다(2026-10-02 분리) — 문서 저장소 `workspace` 를 받고, **그 안에** 코드 저장소 셋을 나란히 받는다. 서로의 파일을 상대 경로(`../docs` · `../web`)로 읽는다 — `workspace` 가 없으면 web·backend 의 사양 대조 시험이 실패한다.
 
 ```bash
-mkdir baraeda && cd baraeda
-git clone https://github.com/Bareda-Organization/backend.git   # 백엔드 · 인프라 · 세 저장소 공통 사양 docs/
+git clone https://github.com/Bareda-Organization/workspace.git baraeda   # 사양·설계 문서 docs/ · Claude 설정
+cd baraeda
+git clone https://github.com/Bareda-Organization/backend.git   # 백엔드 · 인프라
 git clone https://github.com/Bareda-Organization/web.git       # 관계자 웹(Next.js · Vercel)
 git clone https://github.com/Bareda-Organization/mobile.git    # 앱 2종 + 공용 패키지(Flutter)
 cd backend
