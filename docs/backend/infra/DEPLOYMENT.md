@@ -749,7 +749,7 @@ $C start backend
 ---
 
 
-### 7.4 postgres 주 버전 상향 — 18 → 19 처럼 주 버전이 바뀔 때 (BR-377)
+### 7.4 postgres 주 버전 상향 — 18 → 19 처럼 주 버전이 바뀔 때
 
 **언제 쓰나.** 같은 주 버전 안의 갱신(18.6 → 18.7)은 Dependabot 이 PR 을 만들고 §5 배포로 이미지 태그만 올린다. **주 버전이 바뀔 때는 Dependabot 이 PR 을 만들지 않으므로**(`.github/dependabot.yml` 의 ignore, BR-330) 사람이 이 절로 한다. 주 버전만 올려 배포하면 새 이미지가 `/var/lib/postgresql/<새 버전>/docker` 를 빈 디렉터리로 만들어 **빈 DB 로 뜬다** — 옛 데이터(`<옛 버전>/docker`)는 같은 볼륨에 그대로 남아 있다(`RuntimeImageParityTest`).
 
