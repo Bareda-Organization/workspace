@@ -150,6 +150,8 @@ aws iam add-role-to-instance-profile \
   --instance-profile-name school-bus-ec2-role --role-name school-bus-ec2-role
 ```
 
+`DeleteObject` 는 일부러 주지 않는다 — 그래서 사진 백업은 임시 이름(`photos/.partial/`)에 올린 뒤 `aws s3 mv` 가 아니라 `cp` 로 최종 이름에 둔다(BR-331). 임시 객체는 아래 수명주기 규칙이 지운다.
+
 `SsmParameterDecrypt` 를 `*` 로 둔 이유 — 기본 AWS 관리형 SSM 키(`alias/aws/ssm`)는 IAM 정책 리소스에 별칭으로 안전하게 좁히기 어렵다. 자체 KMS 키를 쓴다면 해당 키 ARN 으로 좁힌다.
 
 **`CloudWatchLogsWrite` 는 생략 불가.** `docker-compose.prod.yml` 이 9개 서비스 전부에 `driver: awslogs` + `awslogs-create-group: "true"` 를 건다. Docker 는 로깅 드라이버를 **컨테이너 프로세스 시작 전에** 초기화하고 awslogs 는 그 시점에 `CreateLogGroup`·`CreateLogStream` 을 동기 호출하므로, 권한이 없으면 `failed to initialize logging driver: AccessDeniedException` 으로 **컨테이너 기동 자체가 실패**한다(postgres 부터 막혀 최초 배포가 통째로 실패). 두 관리형 정책(`AmazonSSMManagedInstanceCore`·`AmazonEC2ContainerRegistryReadOnly`) 어느 쪽도 `logs:*` 를 주지 않는다. 리소스 끝의 `*` 는 로그그룹(`:log-group:/school-bus/demo`)과 그 안의 스트림(`:log-group:/school-bus/demo:log-stream:*`)을 함께 덮기 위한 것 — 떼면 `CreateLogStream` 이 거부된다. 로그그룹명은 compose 의 `awslogs-group` 값과 일치해야 한다. CloudWatch 수집 자체를 쓰지 않겠다면 compose 의 `x-logging` 앵커와 각 서비스의 `logging: *cloudwatch` 줄을 빼는 쪽이 맞다.
@@ -277,6 +279,8 @@ JSON
 aws s3api put-bucket-lifecycle-configuration --bucket <백업버킷> \
   --lifecycle-configuration file://backup-lifecycle.json
 ```
+
+**권장 추가 규칙** — `{"ID":"expire-partial-photo-backups-1d","Filter":{"Prefix":"photos/.partial/"},"Status":"Enabled","Expiration":{"Days":1}}`. `photos/.partial/` 은 사진 백업이 올리는 중인 임시 객체다 — 이 규칙이 없으면 위 7일 규칙이 치운다(그동안 사진 묶음이 두 벌 저장된다).
 
 배포용 버킷은 `infra/`·`docker-compose.prod.yml` 을 담는 통로(`.github/workflows/deploy-backend.yml` 의 "배포 파일 S3 동기화" 스텝), 백업용 버킷은 `infra/scripts/backup-db.sh` 가 매일 올리는 `pg_dump` 결과(`db/`)와 학생 사진 묶음(`photos/`) 저장소다. 두 접두사에 각각 7일 수명주기를 건다.
 
@@ -582,7 +586,7 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 
 - **배포 워크플로(`deploy-backend.yml`)의 시험 단계도 같은 준비를 한다** — workspace 저장소에서 `API_SPEC.md` 를 sparse checkout 해 `API_SPEC_PATH` 로 주고 `-PciQuiet` 로 돈다(2026-10-03 BR-304 — 저장소 분리 뒤 `ci.yml` 만 고쳐져 배포 시험이 늘 실패하던 것). `WorkflowGuardTest` 가 두 워크플로의 준비가 같은지 고정한다
 
-- 바뀐 모듈의 job 만 돈다(`dorny/paths-filter`). `ci.yml` 이 바뀌면 전부 돈다. 같은 PR 의 새 커밋은 앞선 실행을 취소한다
+- 백엔드 코드(`backend/**`)나 시험이 읽는 입력(`infra/**` · `docker-compose*.yml` · `.github/**`)이 바뀔 때 백엔드 시험이 돈다(`dorny/paths-filter` — 제3자 액션이라 커밋 SHA 로 고정, `WorkflowGuardTest` 가 거르기 목록과 시험이 읽는 입력을 대조한다). 같은 job 앞단에서 경보 규칙 시험(promtool — 운영 Prometheus 와 같은 이미지)이 먼저 돈다. `ci.yml` 이 바뀌면 전부 돈다. 같은 PR 의 새 커밋은 앞선 실행을 취소한다
 - 로컬 재현: `scripts/verify.sh`(전부) · `scripts/verify.sh web flutter`(골라서). 백엔드는 `backend/scripts/test.sh` 가 전용 DB 를 만들고 지움 — `verify.sh` 는 웹·백엔드를 CI 와 같이 **`TZ=UTC`** 로 돌리고 백엔드에는 `-PciQuiet` 도 준다
 - **러너는 UTC · Linux 이고 개발 기계는 한국 시간대 · macOS 다 — "로컬은 통과 · CI 만 실패" 의 원인이 된 세 가지**(`Ruling 720`~`723`, 2026-10-01 첫 push 에서 8건). ①**시간대** — 시험이 기대값을 기기 시간대로 계산하면(`toLocaleTimeString` 에 `timeZone` 없음) UTC 에서 화면(서울 고정)과 어긋난다. 기대값은 서울 시각 문자열로 박는다 · 오프셋 없는 날짜시각을 `new Date()` 에 그대로 넘기지 않는다(기기 시간대로 읽힌다 — 웹 `formatClockTime` 이 이 입력을 서울로 읽게 고쳤다). ②**시각 정밀도** — Linux 의 `OffsetDateTime.now()` 는 나노초 · macOS 는 마이크로초 · `timestamptz` 는 마이크로초라, DB 에 저장했다 읽은 값을 `isEqualTo` 로 비교하는 시험은 **Linux 에서만 실패**한다. 시험에서 그런 시각을 만들 때 `.truncatedTo(ChronoUnit.MICROS)` 를 붙인다(macOS 에서는 이 결함이 안 드러난다). ③**로그 수준** — `-PciQuiet` 이 루트 로그를 WARN 으로 낮추므로 INFO 로그를 읽는 시험은 **자기 로거의 수준을 직접 켜고 복원**한다(앞선 컨텍스트가 같은 JVM 에 남긴 수준에도 달려 단독 실행은 통과 · 전체 실행은 실패하는 형태가 된다)
 - **로그 정책 — 저장소가 공개라 Actions 로그도 공개다.** 비밀값 없이 돈다(네이버 키 불필요 — `build.gradle` 이 지오코딩·경로·장소검색을 stub 으로 고정). 백엔드는 `-PciQuiet` 으로 로그 수준을 WARN 으로 낮추고 결과 XML 에서 stdout·stderr 를 뺀다 — 실패 때 남는 것은 시험 이름·실패 요약뿐. `deploy-backend.yml` 도 실패 시 backend 컨테이너 로그 120줄을 찍지 않고 `deploy.sh` 가 쓴 실패 사유 줄만 남긴다(로그는 EC2 에서 확인)
@@ -700,6 +704,8 @@ sudo aws s3 cp s3://<백업버킷>/photos/<날짜시각>.tar.gz - \
     exec -T backend tar xzf - -C /app/var
 ```
 
+복원에 쓰는 것은 `photos/<날짜시각>.tar.gz` 뿐이다. `photos/.partial/` 아래는 올리는 중이거나 실패한 임시 객체라 쓰지 않는다(`aws s3 ls …/photos/` 첫 줄에 `PRE .partial/` 이 보인다 · BR-331).
+
 같은 이름의 파일은 덮어쓰고 없는 파일은 되살린다(지우지는 않는다). 사진이 수 GB 를 넘으면 매번 전체를 올리는 방식을 `aws s3 sync` 로 바꾼다(`backup-db.sh` 주석).
 
 ### 7.3 인스턴스 사망 복구 — 목표 1시간
@@ -750,7 +756,7 @@ $C start backend
 | WebSocket 만 연결 실패(REST 는 정상) | `WS_ALLOWED_ORIGIN_PATTERNS` 값과 nginx `/ws/` 블록 Upgrade 헤더 확인 | 패턴 또는 nginx 설정 수정 후 `proxy` 컨테이너 재기동 | 수정한 패턴·설정 값 |
 | 배차·시뮬레이션 `503 MAP_ROUTE_UNAVAILABLE` · 확정 노선에 `fallback_used=true` 다수 | NCP 키 유효성(`.env` 의 `NAVER_DIRECTIONS_KEY_ID`·`NAVER_DIRECTIONS_KEY`) · NCP 콘솔의 Directions 일일 한도 | 키 재발급 후 SSM 갱신·재배포. 대체 공급자는 없다(`Ruling 551`) — 복구될 때까지 직선거리 근사로 계속 확정된다 | 재발급 사유·시각 |
 | 컨테이너 반복 종료 | `free -h` 로 메모리, `docker stats`, 스왑 활성 여부 확인. backend 면 `docker inspect -f '{{.RestartCount}}' <컨테이너>` 와 `docker compose logs backend \| grep OutOfMemoryError`(§11.6 — JVM 이 OOM 이면 스스로 끝나 재시작된다) | 스왑 추가 또는 인스턴스 사양 상향. OOM 반복이면 힙 사용이 늘어난 원인(최근 변경 · 폴링 부하)을 먼저 본다 — 힙 덤프는 남지 않는다(§11.6) | 종료 시점·메모리 수치 |
-| 인증서 만료 | `docker compose logs certbot`, 80 포트 개방 여부 확인 | certbot 갱신 재시도, 방화벽 규칙 수정 | 갱신 결과 |
+| 인증서 만료(경보 `CertbotRenewStale` — 갱신 성공 시각이 2일 넘게 없음 · 지표 없음 포함 — 가 먼저 울린다) | `docker compose logs certbot`, 80 포트 개방 여부 확인 | certbot 갱신 재시도, 방화벽 규칙 수정 | 갱신 결과 |
 | Swagger UI 401 · 기동 실패 | §2.12 절차 확인 | EC2 에서 `.htpasswd` 재생성 후 `proxy` 컨테이너 재기동 | 재생성 시각 |
 | 배포가 `== 3-1.` 단계에서 멈춤(`nginx -t` 실패 · `Ruling 648`) | 배포 로그의 `nginx: [emerg] … default.conf:<줄>` — 줄 번호는 `infra/proxy/nginx.prod.conf` 의 줄이다. `host not found in upstream "backend:8080"` 이면 설정이 아니라 backend 가 안 떠 있는 것 — `docker compose ps backend` | 설정 오류는 그 줄을 고쳐 커밋하고 다시 배포한다(§5.3). proxy 는 다시 시작하지 않아 **옛 설정으로 응답 중**이라 API 는 살아 있다 | 실패 로그 줄 · 고친 줄 |
 | 지도 API 장애(노선 계산 ③단계 영향) | `resilience4j_circuitbreaker_state{name="geocoding"\|"mapRoute"}` 값 확인(관측 목표 8) | 자동 폴백 — 직선거리 근사로 배차 유지, 화면에 폴백 사실 표시, 배치는 계속 진행. 서킷 닫히면 다음 회차부터 정상, 이미 배포된 노선은 재계산 제외 | 폴백 지속 시간 |
@@ -836,7 +842,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 
 ### 11.2 경보 규칙
 
-규칙은 `infra/observability/prometheus/alerts.yml` 이고, 조건식·`for` 는 `alerts.test.yml`(promtool 단위 시험)이 가짜 시계열로 검사한다. 규칙을 고친 배포는 `deploy.sh` 가 Prometheus 를 **다시 시작**해 반영한다 — 규칙 파일 하나를 바인드 마운트한 컨테이너는 파일이 교체돼도 옛 파일을 계속 보고, 다시 시작하지 않으면 옛 규칙으로 평가한다(2026-10-01 로컬에서 실측. 지표는 볼륨에 남는다). `TECH_DECISIONS §13.4` 표와 행 단위로 대응한다.
+규칙은 `infra/observability/prometheus/alerts.yml` 이고, 조건식·`for` 는 `alerts.test.yml`(promtool 단위 시험)이 가짜 시계열로 검사한다 — CI(`ci.yml`)가 운영과 같은 이미지의 promtool 로 매 실행마다 돌고, `OpsSettingsGuardTest` 는 모든 규칙에 사례가 있는지 본다. 규칙을 고친 배포는 `deploy.sh` 가 Prometheus 를 **다시 시작**해 반영한다 — 규칙 파일 하나를 바인드 마운트한 컨테이너는 파일이 교체돼도 옛 파일을 계속 보고, 다시 시작하지 않으면 옛 규칙으로 평가한다(2026-10-01 로컬에서 실측. 지표는 볼륨에 남는다). `TECH_DECISIONS §13.4` 표와 행 단위로 대응한다.
 
 | 경보 | 조건 | 등급 | `TECH_DECISIONS §13.4` 행 |
 |---|---|---|---|
@@ -984,6 +990,8 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 | staging | **1,000** | 팀원 체험 서버(동시 접속 수십 명) · 힙이 JVM 기본(호스트 메모리의 1/4) |
 | local · load | 기본 8,192(명시 없음) | 부하 측정이 한계를 재야 한다 — `TomcatThreadPoolConfigTest` 가 이 프로파일 문서에 상한이 없음을 고정 |
 
+프록시(nginx) 한도 — `worker_connections 16384`(워커당) = 상한 4,000 × 2(클라이언트 쪽 + backend 쪽)의 2배 · `worker_rlimit_nofile 32768` · compose `ulimits.nofile 65536`(`infra/proxy/nginx.main.prod.conf`, `Ruling 794`). 상한을 올리면 같이 올린다(`OpsSettingsGuardTest`). 개발 오버레이·스테이징 프록시는 기본값이다.
+
 **근거 계산** — 09-09 부하 측정 §4 표(`backend/report/2026-09-09-부하-한계-측정.md`, git 추적 밖)에서 직접 계산
 
 - 세션당 힙 약 **0.13MB** — 500세션 339MB · 6,000세션 1,063MB 의 기울기 (1,063 − 339) ÷ 5,500. 세션 0 으로 외삽한 기준 힙 약 274MB
@@ -998,7 +1006,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 3. **이미 맺어진 연결(세션 · 진행 중 요청)은 영향이 없다** — 막히는 것은 새 연결뿐이라 서버는 OOM 으로 죽지 않는다. 연결이 끊겨 자리가 나면 대기 중이던 연결부터 받는다. 클라이언트는 포기 없이 30초 상한 백오프로 재시도하므로(`API_SPEC §7.2`) 자리가 나면 이어서 붙는다
 4. **WebSocket 도 같은 수에 든다** — 업그레이드는 새 연결이 아니라 같은 소켓을 계속 쓰고(`AbstractProtocol` 이 같은 `SocketWrapperBase` 를 업그레이드 처리기에 넘김), 수는 소켓이 닫힐 때(`SocketWrapperBase.close`)만 줄어든다 → 세션이 끊길 때까지 점유. REST 요청도 같은 한도 안에서 센다
 5. 프록시(nginx)가 backend 로 여는 연결은 요청마다 닫힌다(`upstream backend_pool` 에 `keepalive` 없음) → 연결 수 ≈ WebSocket 세션 수 + 진행 중 HTTP 요청(요청 스레드 100 이하)
-6. **서버는 거절을 기록하지 않는다** — 앱이 그 연결을 본 적이 없다. 그래서 상한 도달 전에 `StompSessionsNearCap`(3,000 = 상한의 75% · 5분 유지 · `job="backend"` 만)이 울린다
+6. **서버는 거절을 기록하지 않는다** — 앱이 그 연결을 본 적이 없다. 그래서 상한 도달 전에 `StompSessionsNearCap`(3,000 = 상한의 75% · 5분 유지 · `job="backend"` 만)이 울린다. 프록시 연결 한도는 이 상한보다 먼저 닿지 않게 잡혀 있다(위 문단). nginx 오류 로그의 `worker_connections are not enough` 를 세는 CloudWatch 지표 필터 경보는 아직 없다(콘솔 설정)
 7. **헬스·지표는 관리 포트라 상한 밖이다**(§11.8) — 신규 접속·로그인은 응답이 없어도 컨테이너 헬스체크·Prometheus 스크레이프는 계속 응답한다. 대응은 이 절 끝 "울렸을 때 판단" 과 §11.8
 
 **끊긴 연결이 상한을 채우지 않는다** (`Ruling 693`·`694`) — 소리 없이 사라진 클라이언트(전원·망 끊김)의 세션은 하트비트를 협상했으면 무수신 30초, 하트비트를 껐거나 `CONNECT` 를 안 보냈으면 무수신 60초(`app.ws.idle-timeout-ms`, Tomcat 읽기 유휴 점검)에 서버가 닫아 연결 수에서 빠진다(점검 주기 10초라 30~40초 · 60~70초). 정리 경로 4가지와 실서버 시험은 `docs/backend/ARCHITECTURE.md §10.4`. **하트비트를 끄는 클라이언트는 60초마다 아무 프레임이든 보내야 한다** — 서버가 방송을 계속 써도 클라이언트 프레임이 없으면 닫는다. 이 값(60초)은 모든 프로파일 공통이며 `TomcatThreadPoolConfigTest` 가 프로파일이 덮지 않음을 고정한다
@@ -1027,7 +1035,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 
 ### 11.9 보존 정리 — `refresh_token` 크기 · 정리 시간 (`Ruling 742`)
 
-재발급마다 `refresh_token` 행이 1개 늘고(이전 행은 폐기 표시) 만료·폐기 30일 뒤 야간 보존 정리(00:15 KST · 5,000행씩 반복)가 지운다. 정상 상태의 크기는 **하루 발급 수 × 30** 이다 — 운영 가정(토큰 15분 · 세션 2,000 · 하루 12시간 접속 · 갈아타기 14분마다)에서 하루 약 10.3만 행 · 약 310만 행이며 **측정 전 추정**이다(R46 누수 검토 R-4). 크기와 정리 시간은 아래 지표로 본다 — 운영에는 postgres-exporter 가 없어(§11) 테이블 행 수 지표가 없다.
+재발급마다 `refresh_token` 행이 1개 늘고(이전 행은 폐기 표시) 만료·폐기 30일 뒤 야간 보존 정리(00:15 KST · 5,000행씩 반복)가 지운다. 정상 상태의 크기는 **하루 발급 수 × 30** 이다 — 운영 가정(토큰 15분 · 세션 2,000 · 하루 12시간 접속 · 갈아타기 14분마다)에서 하루 약 10.3만 행 · 약 310만 행이며 **측정 전 추정**이다(R46 누수 검토 R-4). 크기와 정리 시간은 아래 지표로 본다 — 운영에는 postgres-exporter 가 없어(§11) 테이블 행 수 지표가 없다. 값은 Grafana '3. 데이터 계층' 의 'refresh_token 남은 행 수' 패널에서 7일 이상 범위로 본다. 경보는 운영 발급량을 재서 임계를 정한 뒤 더한다(BR-350 — 패널만, 경보 보류).
 
 | 보는 것 | 지표(PromQL) | 판독 |
 |---|---|---|

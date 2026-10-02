@@ -13,7 +13,7 @@
 |---|---|
 | 공통 | Git · Docker Desktop(Compose v2, 실행 중) |
 | 백엔드 | Java 25 — `backend/build.gradle` 의 toolchain 고정값 |
-| 관계자 웹 | Node.js 24(web 저장소 `Dockerfile` 의 `node:24-alpine` · Vercel 24.x · `Ruling 780`) · npm |
+| 관계자 웹 | Node.js 24(web 저장소 `.nvmrc` · `package.json` `engines.node` 24.x · `Dockerfile` 의 `node:24-alpine` · Vercel 24.x · `Ruling 780` — 네 곳 일치는 `nodeVersionPin.test.ts` 가 지킨다) · npm |
 | 앱 2종 | Flutter 3.47.6(각 `pubspec.yaml` 의 Dart `^3.13.5`) · iOS 는 Xcode |
 
 ## 2. 클론

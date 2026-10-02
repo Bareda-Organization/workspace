@@ -740,6 +740,7 @@ org.springframework.boot:spring-boot-testcontainers
 
 - **데이터 디스크 분리**: DB·사진·지표·인증서(Docker named volume 전부)를 루트 디스크와 다른 EBS 에 둔다(종료 때 삭제되지 않음). 인스턴스가 사라져도 디스크를 새 인스턴스에 붙여 복구한다(`DEPLOYMENT §7.3` 경로 A)
 - **백업 실패 감지**: 크론 로그는 아무도 읽지 않는다 — `backup-db.sh` 가 S3 업로드 뒤에만 쓰는 성공 시각을 node-exporter 가 내보내고 경보(`BackupDbStale` 2시간 · `BackupPhotosStale` 26시간)가 오래됨·부재를 본다(§13.4)
+- **인증서 갱신 실패 감지**: certbot 컨테이너의 `renew-loop.sh` 가 갱신 성공 때마다 시각을 node-exporter textfile 지표로 쓰고 경보 `CertbotRenewStale` 이 오래됨·부재를 본다(§13.4 · BR-334)
 - **복구 시간(RTO)**: 절차는 `DEPLOYMENT §7.3`. 약 40분은 **추정**이며 첫 연습에서 실측한다
 
 복구 훈련을 한 번은 한다. **백업이 있다는 사실과 복구가 된다는 사실은 다르다.** 첫 배포 직후 1회, 걸린 시간을 `DEPLOYMENT §7.1` 에 기록한다.
@@ -814,6 +815,8 @@ org.springframework.boot:spring-boot-testcontainers
 | 호스트 루트 디스크 사용률 80% 초과 (10분 유지) | 경고 | 디스크가 차면 postgres 쓰기가 실패해 전면 정지 — 루트(OS·이미지·로그)와 데이터 디스크(DB·사진·Prometheus 지표·인증서, `Ruling 500`)를 **따로** 감시한다(`Ruling 782` — node-exporter 기본 제외 규칙이 데이터 디스크를 버려 재정의) |
 | DB 백업 성공 시각이 2시간 넘게 갱신되지 않음(또는 지표 부재) | **즉시** | 매시 백업이 두 번 연속 실패하면 목표 유실 1시간(§12.3)을 못 지킨다. 크론 실패는 로그에만 남아 지표가 유일한 감지 수단(R46 ops2, `Ruling 500`) |
 | 사진 백업 성공 시각이 26시간 넘게 갱신되지 않음(또는 지표 부재) | 경고 | 사진은 매일 백업 — 하루를 넘겨 빠지는 것을 본다(`Ruling 500`) |
+| 일일 회차 생성(`daily-run-generator`)이 1시간 안에 실패(`DailyRunGenerationFailing`) · 마지막 성공이 25시간 넘게 없음(`DailyRunGenerationStalled`) | **즉시** | 내일 회차가 안 생기면 다음 날 운행 전체가 불가 — 로그만으로는 아무도 모른다(BR-333 · `Ruling 794`) |
+| 인증서 갱신 성공 시각이 2일 넘게 없음 또는 지표 부재(`CertbotRenewStale`) | **즉시** | 갱신 실패는 만료 당일 전체 중단으로 드러난다 — `renew-loop.sh` 가 갱신 성공 시각을 textfile 지표로 낸다(BR-334 · `Ruling 794`) |
 | 백엔드 스크레이프 실패(`up == 0`) 또는 대상이 목록에서 사라짐, 1분 유지 | **즉시** | 백엔드가 죽으면 위 백엔드 지표 규칙이 전부 값이 없어 조용해진다 — 이 규칙이 그 침묵을 대신 알린다(`R46-FIXOPS` `Ruling 640`) |
 | 요청의 5% 초과가 5xx(actuator·`/healthz` 제외 · 분당 6건 이상) 2분 유지 | **즉시** | 서비스가 응답은 하지만 실패하는 상태 — 위치·승하차 요청이 오류(`Ruling 640`) |
 | DB 연결 대기(`hikaricp_connections_pending > 0`) 1분 유지 | 경고 | 연결 풀 고갈의 전조 — 마르면 3초 뒤 500(`Ruling 640`) |

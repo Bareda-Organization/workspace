@@ -148,6 +148,8 @@ List<RunRider> findFinalizedByRunIdAndStopId(@Param("runId") Long runId,
 **왜 상수 목록인가** — 그냥 파라미터로만 열어 두면 *"확정된 상태 3종"* 이라는 **뜻이 호출부로 새어 나간다.**
 이름 붙인 상수가 그 뜻을 붙잡아 두면서 문자열도 짧아진다.
 
+**예외 — 부분 인덱스 조건과 일치해야 하는 상태**(`Ruling 793` · BR-347) — 새 쿼리라도 enum 리터럴을 허용한다(`status = 'moving'` · `'idle'` · `<> 'finished'`). 파라미터로 받으면 일반(generic) 계획이 부분 인덱스를 못 쓴다(`Ruling 673`·`701`, ERD §5.3). 이 예외의 쿼리는 `PartialIndexQueryPlanTest` 가 SQL 의 리터럴 존재와 일반 계획의 인덱스 선택을 고정한다 — 해당 쿼리: `RunRepository` 의 `STALE_MOVING` 3종 · `findMovingFromServiceDate` · `countConfirmFailedByAcademy` · `countDelayedByAcademy`.
+
 ⚠ **이미 글자로 박혀 있는 것은 고치지 않는다** (2026-09-19 사용자 지시 — *"지금까지 한 건 놔두고 앞으로만"*).
 대상은 `RunRiderRepository` 의 3건뿐이 아니라 **2026-09-19 이전 작성된 5개 파일의 쿼리 7개**(2026-09-26
 재계수 — `AcademyStaffRepository`(BR-126)·4곳(BR-172)이 이미 빠져나가 6개 파일 8개에서 줄었다) —
