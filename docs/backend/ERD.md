@@ -871,7 +871,7 @@ erDiagram
 | `sent_by_account_id` | bigint | NN | 발신 동승자 계정 |
 | `minutes` | integer | NN | 지연 예상 분(5분 단위) |
 | `reason` | varchar(20) | NN | `traffic` · `weather` · `vehicle_check` · `prev_stop_wait`. CHECK |
-| `message` | varchar(500) | | 프리셋 문구를 수정한 값. 미전달 시 null — 자동 생성 문구는 응답에만 실림 (2026-09-17 타입 정정 — 옛 표기 `text`, 실제는 `V9__add_delay_notice.sql:14` 의 `varchar(500)`) |
+| `message` | varchar(500) | | 프리셋 문구를 수정한 값. 미전달 시 null — 자동 생성 문구는 응답에만 실림 (2026-09-17 타입 정정 — 옛 표기 `text`, 실제는 `V1__init_schema.sql` `delay_notice` 의 `varchar(500)`) |
 | `sent_at` | timestamptz | NN | 발신 시각 |
 
 **존재 이유** — 같은 회차에서 직전 발신과 `minutes`·`reason`·`message` 를 비교해 중복(`409 DELAY_DUPLICATE`)을 판정하려면 발신 이력이 필요. `notification_log.body` 는 문구만 담아 판정 근거로 부적합. **근거** Ruling 253 · API_SPEC §4.9 · PRD §10.1 I · FEATURE_SPEC X-05
@@ -1114,7 +1114,7 @@ erDiagram
 | `waypoint(run_id)` | 회차의 경유 지점 목록 (RTE-10) (BR-258) |
 | `signup_request(account_id, requested_at desc)` | 계정별 최근 가입 신청 1건 — 가입 상태 조회·재신청 (AUTH-10) (BR-258) |
 | `link_code(code)` | 자녀 연결 코드 조회 (S-05) — 코드는 앱이 유일하게 뽑고 **UNIQUE 는 걸지 않는다**(만료 코드와 겹칠 수 있음). 조회만 빠르게 (BR-258) |
-| `notification_log(created_at)` | **보존 정리 배치의 컷오프 조회**(전 학원의 컷오프 이전 행, `Ruling 243`) — 기존 복합 인덱스는 선행 컬럼이 달라 쓰이지 않는다. `V8__add_retention_indexes.sql` (BR-259). `run_position` 의 컷오프 인덱스(`ix_run_position_retention_cutoff`)는 **삭제**했다 — 만료를 행 DELETE 가 아니라 일 단위 파티션 DROP 으로 하므로(`Ruling 670`, §7.3) 컷오프로 훑을 일이 없다(옛 정렬 키 `Ruling 631` 도 함께 사라짐) |
+| `notification_log(created_at)` | **보존 정리 배치의 컷오프 조회**(전 학원의 컷오프 이전 행, `Ruling 243`) — 기존 복합 인덱스는 선행 컬럼이 달라 쓰이지 않는다. `V1__init_schema.sql` 끝 보존 인덱스 묶음 (BR-259 · 2026-10-03 V8 을 V1 에 합침). `run_position` 의 컷오프 인덱스(`ix_run_position_retention_cutoff`)는 **삭제**했다 — 만료를 행 DELETE 가 아니라 일 단위 파티션 DROP 으로 하므로(`Ruling 670`, §7.3) 컷오프로 훑을 일이 없다(옛 정렬 키 `Ruling 631` 도 함께 사라짐) |
 | `refresh_token(revoked_at)` partial `WHERE revoked_at IS NOT NULL` · `refresh_token(expires_at)` partial `WHERE revoked_at IS NULL` | 보존 정리의 토큰 삭제 — 폐기된 토큰은 `revoked_at`, 아직 폐기되지 않은 토큰은 `expires_at` 을 컷오프와 견준다. 두 부분 인덱스로 조건을 나눈다 (BR-259) |
 | `link_code(expires_at)` | 보존 정리의 만료된 연결 코드 삭제 (BR-259) |
 
