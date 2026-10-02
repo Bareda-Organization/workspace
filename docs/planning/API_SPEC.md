@@ -383,7 +383,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `academy.name` · `academy.region` · `academy.code` | string | ● | 신청 학원 |
 | `requested_at` | datetime | ● | 신청 일시 |
 | `reject_reason` | string | ○ | `rejected` 일 때만 |
-| `academy_contact` | string | ● | 학원 문의처 |
+| `academy_contact` | string | ◐ | 학원 문의처 — 학원이 대표 연락처를 등록하지 않았으면 **키는 있고 값이 `null`**(§2.5 `academy.contact` 와 같다 · `Ruling 781`). 화면은 null 이면 "등록된 문의처 없음" 처럼 대체 문구 |
 
 **에러** — §1.11 공통 항목 외 고유 에러 부재. `pending` · `rejected` 허용 경로라 `403 AUTH_PENDING` 미발생 (§1.4).
 

@@ -1224,6 +1224,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 772 | `very_good_analysis` 11(`#10`) 4곳 적용(`baraeda_ui` 7 → 11) — 새 규칙 위반 573 → 0 · `dart fix` 의 틀린 결과 2건(`unawaited` 제거가 문법 오류 · `sqlite3: any` 삽입) 폐기 · `async_return_with_no_await` 15곳 `await` 추가 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.35` |
 | 773 | iOS 배포 대상 13.0 → 15.0(3.47 도구가 자동 이전 · 기준선 코드도 현재 Xcode 에서 시뮬레이터 빌드 불가) · `--no-codesign` 산출물은 권한(entitlements)이 없어 Keychain 읽기가 실패 → 앱이 오류 화면(3.44.8 에서도 동일 · 회귀 아님) — 화면 확인은 서명 빌드로 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.35` |
 | 780 | 웹 런타임 Node 22 → 24(사용자 결정 · Vercel 24.x 에 맞춤) — `Ruling 727` 의 `node` 22 유지 · `@types/node` 22 를 대체 | 본문 §8.96 |
+| 781 | 가입 상태 응답 `academy_contact` null 허용 — 클라이언트 대체 문구(BR-301 · `Ruling 460` 과 같은 규칙) | 본문 §8.96 |
 
 
 ## 8.73 ⚖ `R46-BE` — 성능 개선(감사 제외) + 바로 고칠 것 (2026-10-01 · 분기점 `ea37ba6c` · 번호대 410~419 · 백엔드 갈래)
@@ -1930,3 +1931,4 @@ R46 끝에 남긴 사용자 결정 5건 중 사용자가 1·2·3·5 를 추천�
 | Ruling | 판정 | 근거 |
 |:-:|---|---|
 | **780** | **웹 런타임 Node 22 → 24 (사용자 결정 *"24로 맞춰줘"*).** `Ruling 727` 의 `node` 22 유지를 대체 — web `Dockerfile` `node:24.21.0-alpine` · `ci.yml` `node-version: 24` · `@types/node` `^24.19.1` · `dependabot.yml` 주석. LTS 만 쓴다는 727 의 원칙은 그대로(24 는 LTS) | Vercel `web-dev` 가 24.x 로 만들어져 Dockerfile·CI(22)와 갈렸음 — 운영 웹은 Vercel 이 돌리므로 그쪽에 맞춤. 검증: `node:24.21.0-alpine` 안에서 `scripts/verify.sh` 통과(시험 145 파일 · 901건 · `tsc` · lint) · `docker build` 통과 |
+| **781** | **가입 상태 응답의 `academy_contact` 는 null 허용(BR-301 · 2026-10-03 변경분 검사 R07-04, 조율자 판정 — 사용자 "다음 작업해줘" 위임).** 학원 연락처는 등록 때 선택(§6.2 ○)이라 `GET /auth/signup-status` 가 `null` 을 실을 수 있는데 §2.3 은 필수(●)였고 앱 2종·웹이 문자열로만 읽어 승인 대기 화면이 실패했다. 연락처를 필수로 바꾸는 대신 **§2.5·§2.10 과 같게 "키는 있고 값은 null"** 로 맞추고 클라이언트가 대체 문구를 보인다 — 이미 등록된 학원 데이터·관리자 등록 흐름을 바꾸지 않는다 | 학원 등록에 연락처를 필수로 만들면 기존 학원·웹 폼·§6.2 를 함께 바꿔야 하고, 같은 값을 로그인·`/me` 는 이미 null 허용으로 정했다(`Ruling 460`) |
