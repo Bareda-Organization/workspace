@@ -18,6 +18,7 @@
 | `docs/frontend/` | **프론트 공통** — 프론트 계획(`IMPLEMENTATION_PLAN`) · 셋업(`SETUP`) | 웹·앱 둘 다 해당 |
 | `docs/frontend/web/` | **웹** — `CONVENTIONS_REACT` | web 저장소에만 해당 |
 | `docs/frontend/mobile/` | **앱** — `CONVENTIONS_FLUTTER` | mobile 저장소에만 해당 |
+| `docs/qa/` | **QA** — 사람이 보며 하는 시험의 시나리오와 그 데이터 지도(`QA_SCENARIOS.md` ↔ backend `db/qa-seed`) | 그 Mock 데이터로 무엇을 어떻게 확인하는가 |
 | `docs/archive/` | **끝난** 기능별 계획·설계 (`plans/` · `specs/` · `sdd/` 목표 표·판정문) · 끝난 계획서 라운드·Phase 기록(`rounds/`, 원문 그대로) | 이력이지 지시가 아니다 |
 | `docs/render/` | **사람용 렌더** — HTML · PDF · PNG. ⚠ **파생본이라 git 추적 밖** | `.md` 를 고쳐도 자동 동기화 부재 |
 
@@ -105,7 +106,7 @@ grep -n '🔸' docs/planning/FEATURE_SPEC.md docs/planning/PRD.md docs/planning/
 | 문서 | 담는 것 |
 |---|---|
 | **[infra/DEPLOYMENT.md](backend/infra/DEPLOYMENT.md)** | 운영 배포 절차(EC2 1대 + `docker-compose.prod.yml`) · 백업·복구(`DEPLOYMENT §7`) · 운영 관측·경보(`DEPLOYMENT §11`) · 관계자 웹 Vercel 배포(`DEPLOYMENT §12`, `Ruling 481`) · 운영 규칙(`DEPLOYMENT §13`) · 외부 연동 준비물(`DEPLOYMENT §14`). 설계 근거는 [archive/specs/2026-08-10-mvp-배포-design.md](archive/specs/2026-08-10-mvp-배포-design.md) |
-| `TEST_SCENARIOS.html` | 팀원 테스트 시나리오(사람용 · git 추적 밖) — 역할 6종 체크리스트 74항목 · 초기화 뒤 시간표 · 알려진 문제 K1~K12. 스테이징 `/download/` 로 배포 |
+| **[qa/QA_SCENARIOS.md](qa/QA_SCENARIOS.md)** | QA 시나리오 — 부천 Mock 데이터(backend `db/qa-seed`)의 계정 · 데이터 지도 · 초기화 뒤 시간표 · 역할별 시나리오. 2026-10-03 옛 `TEST_SCENARIOS.html`(9-30 판)을 대체 |
 | **[infra/STAGING.md](backend/infra/STAGING.md)** | 팀원 체험용 서버 — 집 PC + Cloudflare Tunnel + `docker-compose.staging.yml` · Android APK QR 설치(`Ruling 363`) · 운영(AWS) 변경 중 스테이징에 해당하지 않는 것(`STAGING §10`) |
 | `infra/OPERATIONS_PLAN.html` | 운영 계획(사람용 렌더) |
 

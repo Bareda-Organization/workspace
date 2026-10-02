@@ -91,35 +91,21 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/v3/api-docs   # 2
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - 로그인 응답(`data` 안)의 `access_token` 값을 우측 상단 **Authorize** 에 넣음. `Bearer ` 접두사 없이 토큰 값만 — 인증 스킴이 HTTP bearer 로 등록돼 있어 헤더는 자동으로 붙음
 
-## 5. 로그인 계정 (Flyway 로컬 시드)
+## 5. 로그인 계정 — QA Mock(로컬 기본) · 시험 시드(fixture)
 
-- 로그인 값은 **이메일이 아니라 `login_id`**. 비밀번호는 전부 `password`(로컬 전용. 배포·스테이징은 별도 값)
+- 로그인 값은 **이메일이 아니라 `login_id`**. 비밀번호는 전부 `password`(로컬 · 스테이징 기본. demo 는 별도 값)
 - 요청: `POST /auth/login`(베이스 경로 `/api/v1` 생략 — `API_SPEC §1.1` 표기) · 본문 `{"login_id":"staffA","password":"password"}` · 헤더 `X-Client-Type: app | web`(웹은 refresh 토큰을 쿠키로, 앱은 본문으로 받음 — `API_SPEC §1.2.1`)
-- 연속 5회 실패 시 계정이 `blocked`(`driverBlocked` 시드가 이 상태)
+- 연속 5회 실패 시 계정이 `blocked`
 
-`backend/src/main/resources/db/migration-local/V2__seed_data.sql`(계정 20개)의 학원 A(`바래다학원 A`)·B·C:
+**시드는 두 벌이고 섞지 않는다(2026-10-03 분리).**
 
-| 역할 | 학원 A | 학원 B | 학원 C(운영정지) |
+| 시드 | 위치(backend) | 언제 깔리나 | 쓰임 |
 |---|---|---|---|
-| 시스템 관리자(`system_admin`) | `sysadmin`(소속 학원 없음) | | |
-| 학원 관리자(`staff`) | `staffA` | `staffB` | `staffC` |
-| 학부모(`parent`) | `parentA1` · `parentA2` · `parentA3` | `parentB1` | |
-| 학생(`student`) | `studentA4` | `studentB1` | |
-| 기사(`driver`) | `driverA1` · `driverA2` | `driverB1` | |
-| 동승자(`escort`) | `escortA1` · `escortA2` | `escortB1` | |
+| **QA Mock** | `db/qa-seed/` | `local`(기본) · `staging` · `demo` — 재기동 · `POST /dev/reset` 마다 | 사람이 보며 하는 시험. 경기 부천 · 학원 3곳 · 학생 152명 · 지난 7일 이력 · 초기화 시각 기준 오늘 회차. **계정 표와 시나리오는 [`docs/qa/QA_SCENARIOS.md`](../qa/QA_SCENARIOS.md)** |
+| **시험 시드** | `db/fixture/`(옛 `migration-local`) | 시험 JVM · `local,fixture` 프로파일 | 자동 시험 · **웹·앱 실서버 계약 시험** · 부하 측정. 계정은 `sysadmin` · `staffA` · `parentA1` 등 20개와 데모 선단 `driverD3`~`escortD5` — `backend/src/main/java/src/backend/global/common/SeedFixtures.java` |
 
-승인·차단 상태 시연용(모두 학원 A): `staffPending` · `parentPending`(승인 대기) · `studentRejected`(가입 거절) · `driverBlocked`(차단).
-
-`db/migration-local/V13__demo_fleet.sql`(학원 A 소속 6개): 기사 `driverD3` · `driverD4` · `driverD5` · 동승자 `escortD3` · `escortD4` · `escortD5`.
-
-`db/migration-demo/V14__demo_scale.sql`(학원 10곳 · 학생 600명 규모): `local` 프로파일에서만 적재됨(테스트 DB 는 제외). 계정 규칙:
-
-| 역할 | 로그인 값 |
-|---|---|
-| 학원 관리자 | `staff01` ~ `staff10` |
-| 기사 | `driver011` ~ (학원 번호 2자리 + 호차 1~3) |
-| 동승자 | `escort011` ~ |
-| 학부모 | `parent01001`(학원 01 의 학생 001) ~ `parent10060` |
+- ⚠ **실서버 계약 시험은 시험 시드로 띄운 서버에 돌린다** — QA Mock 서버에 돌리면 계약 시험이 붙드는 계정·회차 id 가 없어 깨진다. 컨테이너 모드는 `BACKEND_PROFILES=local,fixture`(웹 `scripts/test-contract.sh` 가 준다), IDE 실행은 `SPRING_PROFILES_ACTIVE=local,fixture ./gradlew bootRun`
+- 옛 데모 규모 시드(`migration-demo` V14, 학원 10곳 · 학생 600명 · `staff01`~)는 2026-10-03 삭제
 
 ## 6. 데이터를 시드 상태로 되돌리기
 

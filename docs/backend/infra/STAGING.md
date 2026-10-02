@@ -105,7 +105,7 @@ scp build/app/outputs/flutter-apk/app-release.apk <집 PC>:baraeda/backend/downl
 - ⚠ **`/api/v1` 까지 붙인다.** 빠뜨리면 모든 요청이 404
 - 크기 — 학부모 125MB · 매니저 132MB(모든 CPU 종류를 한 파일에 담은 크기). 줄이려면 `--split-per-abi` 후 `app-arm64-v8a-release.apk` 만 올린다
 - 파일만 바꾸면 되고 서버 재시작은 필요 없다
-- **테스트 시나리오** — `docs/TEST_SCENARIOS.html`(git 추적 밖)을 같은 폴더에 올린다: `scp docs/TEST_SCENARIOS.html <집 PC>:baraeda/backend/downloads/` → 팀원은 `https://bus.<도메인>/download/TEST_SCENARIOS.html`. ⚠ 문서의 서버 주소 자리(`bus.<도메인>`)를 실제 도메인으로 바꿔서 올린다
+- **테스트 시나리오** — [`docs/qa/QA_SCENARIOS.md`](../../qa/QA_SCENARIOS.md)(git 추적 · 2026-10-03 옛 `TEST_SCENARIOS.html` 대체). 스테이징 데이터가 그 문서의 부천 QA Mock 이다. 팀원에게는 저장소 링크로 주거나 사람용 렌더를 만들어 이 폴더에 올린다
 - **QR** — PC Chrome 에서 `https://bus.<도메인>/download/` 을 열고 주소창의 공유 → **QR 코드 만들기**. 팀원은 찍고 → `parent.apk` 또는 `manager.apk` → "출처를 알 수 없는 앱 설치" 허용 → 설치
 
 ## 8. 초기화
