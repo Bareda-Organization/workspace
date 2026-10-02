@@ -1223,3 +1223,5 @@ class FirebasePushTokenSource implements PushTokenSource {
 ```
 
 `onMessage` 를 알림 목록 갱신에 잇는 곳은 학부모 앱 홈의 주기 갱신(`Ruling 431` 90초)과 같은 자리다 — `ref.invalidate(...)` 한 줄이며, 이어 붙이면 주기를 더 늘릴 수 있다. `google-services.json` · `GoogleService-Info.plist` 가 없는 빌드에서 `Firebase.initializeApp()` 이 실패하므로, 파일이 준비되기 전에는 의존성도 넣지 않는다(`Ruling 510`).
+
+- **문자 업체 구현체는 연결·읽기 시간 상한(예: 3초)을 둔다** — 문자 발송이 복구 트랜잭션 안에서 돌아(§2.9 원자성) 업체가 멈추면 그만큼 DB 연결을 쥔다. `SmsSender` 계약 주석에 같은 내용(BR-308).
