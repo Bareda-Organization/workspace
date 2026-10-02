@@ -577,7 +577,7 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 | job | 실행 내용 | 제외 |
 |---|---|---|
 | `backend` | compose 의 postgres(`max_connections=300`)를 띄우고 전용 DB 를 만든 뒤 `./gradlew test -PtestDbUrl=… -PciQuiet`. Redis 는 시험이 Testcontainers 로 붙임 | `@Tag("live")` 실 네이버 API 시험 |
-| `web` | `scripts/verify.sh web` — `next typegen` · `tsc --noEmit` · `lint` · `vitest`(Node 22) | 파일명 `*realBackend*.test.ts`(실서버 계약 시험) |
+| `web` | `scripts/verify.sh web` — `next typegen` · `tsc --noEmit` · `lint` · `vitest`(Node 24) | 파일명 `*realBackend*.test.ts`(실서버 계약 시험) |
 | `flutter` | `scripts/verify.sh flutter` — 4개 패키지의 `pub get` · `build_runner`(있는 곳) · `analyze` · `test`(3.47.6) | `@Tags(['real_backend'])` 시험 |
 
 - 바뀐 모듈의 job 만 돈다(`dorny/paths-filter`). `ci.yml` 이 바뀌면 전부 돈다. 같은 PR 의 새 커밋은 앞선 실행을 취소한다
@@ -1079,7 +1079,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 | Framework Preset | Next.js |
 | Root Directory | 기본값(저장소 루트) |
 | Install / Build Command | 기본(`npm ci` / `npm run build`) |
-| Node.js Version | 22.x (`Dockerfile` 과 같은 계열) |
+| Node.js Version | 24.x (`Dockerfile` 과 같은 계열 · `Ruling 780`) |
 | Production Branch | `main` |
 
 **환경변수(Production)** — `NEXT_PUBLIC_*` 는 런타임이 아니라 **빌드 때 번들에 박힌다**. 바꾸면 재배포해야 반영된다.

@@ -1193,7 +1193,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 724 | 운행일이 지난 `moving` 회차를 메인 관리자가 끝내는 API·화면(사용자 결정 1) | 본문 §8.95 · 구현 §8.92 |
 | 725 | vitest 5.x(사용자 결정 2) | 본문 §8.95 · 구현 `docs/frontend/IMPLEMENTATION_PLAN §5.34` |
 | 726 | Dependabot PR 을 로컬에서 직접 올려 영역별 전체 검사로 판정(사용자 결정 3) | 본문 §8.95 |
-| 727 | 런타임 이미지는 LTS 만 — `#8` 거절 · `@types/node` 22 | 본문 §8.95 |
+| 727 | 런타임 이미지는 LTS 만 — `#8` 거절 · `@types/node` 22(node 주 버전은 `Ruling 780` 이 24 로 대체) | 본문 §8.95 |
 | 728 | 누수 검토 P3·후속 범위 · 기존 사진 일괄 축소·SSE 재평가 하지 않음(사용자 결정 5) | 본문 §8.95 · 구현 §8.93 |
 | 729 | postgres 18 첫 배포 전 조건부 채택 | 본문 §8.95 · 조건 충족 §8.94 `Ruling 764` |
 | 730 | 끝나지 않은 이동 중 회차 강제 종료 권한을 `RUN_FORCE_CONFIRM` 재사용이 아니라 새 권한 `RUN_FORCE_FINISH`(메인 관리자) 로 분리 — 확정은 idle 회차를 앞으로 보내고 종료는 남은 탑승자를 처리 없이 닫는 별개 동작. 목록 조회는 읽기라 `MONITOR_ALL` | 본문 §8.92 |
@@ -1223,6 +1223,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 771 | Flutter 3.44.8 → 3.47.6(Dart `^3.13.5`) · `Ruling 762` 해소 — `pubspec.yaml` 4곳 · 패키지 2곳 `flutter` 하한 · `ci.yml` · 문서 3곳. SDK 만 올린 상태에서 4곳 `pub get` 해석 · analyze 0 · 시험 수 동일(115·265·455·324) · 3.47 의 `pub get` 이 `analysis_options.yaml` 에 `build/**` exclude 를 자동 추가 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.35` |
 | 772 | `very_good_analysis` 11(`#10`) 4곳 적용(`baraeda_ui` 7 → 11) — 새 규칙 위반 573 → 0 · `dart fix` 의 틀린 결과 2건(`unawaited` 제거가 문법 오류 · `sqlite3: any` 삽입) 폐기 · `async_return_with_no_await` 15곳 `await` 추가 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.35` |
 | 773 | iOS 배포 대상 13.0 → 15.0(3.47 도구가 자동 이전 · 기준선 코드도 현재 Xcode 에서 시뮬레이터 빌드 불가) · `--no-codesign` 산출물은 권한(entitlements)이 없어 Keychain 읽기가 실패 → 앱이 오류 화면(3.44.8 에서도 동일 · 회귀 아님) — 화면 확인은 서명 빌드로 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.35` |
+| 780 | 웹 런타임 Node 22 → 24(사용자 결정 · Vercel 24.x 에 맞춤) — `Ruling 727` 의 `node` 22 유지 · `@types/node` 22 를 대체 | 본문 §8.96 |
 
 
 ## 8.73 ⚖ `R46-BE` — 성능 개선(감사 제외) + 바로 고칠 것 (2026-10-01 · 분기점 `ea37ba6c` · 번호대 410~419 · 백엔드 갈래)
@@ -1922,3 +1923,10 @@ R46 끝에 남긴 사용자 결정 5건 중 사용자가 1·2·3·5 를 추천�
 | **727** | **런타임 이미지는 LTS 만 — `#8` 거절.** `eclipse-temurin` 25 유지(툴체인 25 고정 · 26 은 비 LTS) · `node` 22 유지(운영 웹은 Vercel — `Ruling 481`) · `@types/node` 주 버전도 런타임 22 에 맞춤 | 런타임 주 버전은 LTS 주기에 맞춰 따로 정함 |
 | **728** | **(사용자 결정 5) 누수 검토 P3·후속 범위** — R-1·R-2·R-3·R-4 · `AccountRecoveryFlowTest:184` 공허 통과 · 비상 접수 화면 단말 시각 · WebP 축소. **하지 않는 것**: ①기존 저장 사진 일괄 축소 ②SSE 재평가(`Ruling 617`) ③경보 재알림 4시간 변경 | ①축소 도입(`R46-KFIXBE`) 이전 사진이 남은 영속 환경 부재 — 운영·데모 미배포 · 스테이징은 DB 가 메모리 ②재평가 조건(인스턴스 2대 · 동시 연결 약 5,000 · FCM 도입 등) 미충족 · 구현은 `IMPLEMENTATION_PLAN §8.93` · `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
 | **729** | **postgres 18 은 첫 배포 전에 올림(조건부)** — compose · CI · Testcontainers 가 같은 주 버전 · 18 이미지의 데이터 경로 변경 반영 · 18 위 백엔드 전체 통과가 조건 | 영속 데이터가 없는 지금이 주 버전을 올리는 가장 싼 시점(배포 뒤엔 `pg_upgrade`·덤프 복원) · 조건 충족 `Ruling 764` |
+
+
+## 8.96 ⚖ 저장소 분리 뒤 정리 (2026-10-02 · 사용자 지시 · 번호대 780~)
+
+| Ruling | 판정 | 근거 |
+|:-:|---|---|
+| **780** | **웹 런타임 Node 22 → 24 (사용자 결정 *"24로 맞춰줘"*).** `Ruling 727` 의 `node` 22 유지를 대체 — web `Dockerfile` `node:24.21.0-alpine` · `ci.yml` `node-version: 24` · `@types/node` `^24.19.1` · `dependabot.yml` 주석. LTS 만 쓴다는 727 의 원칙은 그대로(24 는 LTS) | Vercel `web-dev` 가 24.x 로 만들어져 Dockerfile·CI(22)와 갈렸음 — 운영 웹은 Vercel 이 돌리므로 그쪽에 맞춤. 검증: `node:24.21.0-alpine` 안에서 `scripts/verify.sh` 통과(시험 145 파일 · 901건 · `tsc` · lint) · `docker build` 통과 |
