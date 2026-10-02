@@ -580,6 +580,8 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 | `web` | `scripts/verify.sh web` — `next typegen` · `tsc --noEmit` · `lint` · `vitest`(Node 24) | 파일명 `*realBackend*.test.ts`(실서버 계약 시험) |
 | `flutter` | `scripts/verify.sh flutter` — 4개 패키지의 `pub get` · `build_runner`(있는 곳) · `analyze` · `test`(3.47.6) | `@Tags(['real_backend'])` 시험 |
 
+- **배포 워크플로(`deploy-backend.yml`)의 시험 단계도 같은 준비를 한다** — workspace 저장소에서 `API_SPEC.md` 를 sparse checkout 해 `API_SPEC_PATH` 로 주고 `-PciQuiet` 로 돈다(2026-10-03 BR-304 — 저장소 분리 뒤 `ci.yml` 만 고쳐져 배포 시험이 늘 실패하던 것). `WorkflowGuardTest` 가 두 워크플로의 준비가 같은지 고정한다
+
 - 바뀐 모듈의 job 만 돈다(`dorny/paths-filter`). `ci.yml` 이 바뀌면 전부 돈다. 같은 PR 의 새 커밋은 앞선 실행을 취소한다
 - 로컬 재현: `scripts/verify.sh`(전부) · `scripts/verify.sh web flutter`(골라서). 백엔드는 `backend/scripts/test.sh` 가 전용 DB 를 만들고 지움 — `verify.sh` 는 웹·백엔드를 CI 와 같이 **`TZ=UTC`** 로 돌리고 백엔드에는 `-PciQuiet` 도 준다
 - **러너는 UTC · Linux 이고 개발 기계는 한국 시간대 · macOS 다 — "로컬은 통과 · CI 만 실패" 의 원인이 된 세 가지**(`Ruling 720`~`723`, 2026-10-01 첫 push 에서 8건). ①**시간대** — 시험이 기대값을 기기 시간대로 계산하면(`toLocaleTimeString` 에 `timeZone` 없음) UTC 에서 화면(서울 고정)과 어긋난다. 기대값은 서울 시각 문자열로 박는다 · 오프셋 없는 날짜시각을 `new Date()` 에 그대로 넘기지 않는다(기기 시간대로 읽힌다 — 웹 `formatClockTime` 이 이 입력을 서울로 읽게 고쳤다). ②**시각 정밀도** — Linux 의 `OffsetDateTime.now()` 는 나노초 · macOS 는 마이크로초 · `timestamptz` 는 마이크로초라, DB 에 저장했다 읽은 값을 `isEqualTo` 로 비교하는 시험은 **Linux 에서만 실패**한다. 시험에서 그런 시각을 만들 때 `.truncatedTo(ChronoUnit.MICROS)` 를 붙인다(macOS 에서는 이 결함이 안 드러난다). ③**로그 수준** — `-PciQuiet` 이 루트 로그를 WARN 으로 낮추므로 INFO 로그를 읽는 시험은 **자기 로거의 수준을 직접 켜고 복원**한다(앞선 컨텍스트가 같은 JVM 에 남긴 수준에도 달려 단독 실행은 통과 · 전체 실행은 실패하는 형태가 된다)
@@ -758,7 +760,7 @@ $C start backend
 | 배치 밀림(확정 지연) | `schoolbus_run_confirmation_lag_seconds` 값 확인(관측 목표 8 — 값이 계속 늘면 워커 수·인스턴스 증설 신호) | 도래분은 다음 틱으로 자동 이월. 지속되면 워커 수 증설, 그다음 인스턴스(§3) | 지연 수치 추이 |
 | 확정 실패한 회차(그 회차만 노선 부재) | Prometheus `RunUnconfirmed` 경보(§11 · 확정 시각을 5분 넘긴 idle 회차 > 0 이 1분 유지) · `schoolbus_run_confirmation_retry_failures_total` 값 확인(관측 목표 8) | `idle` 복귀 후 자동 재시도. 이 경보가 **1차 방어**다 — 경보 수신 값(§11.3)이 SSM 에 있으면 텔레그램·이메일로 오고, 없으면 Prometheus `/alerts` 를 직접 봐야 하며 외부 감시(`/healthz`)는 서버 사망만 알린다. 아래 행으로 이어짐 | 실패 회차 id·연속 실패 횟수 |
 | 확정이 계속 실패하는 회차(경보 이후) | 관제 화면의 회차 `consecutive_failures`(`API_SPEC §6.14` 대상 식별) | **강제 확정**: 메인 관리자 웹 '회차 강제 확정' 화면 또는 `POST /admin/runs/{runId}/force-confirm`(`API_SPEC §6.14`, `Ruling 254`) — 폴백(직선거리) 계산으로 배포한다. 사유(`reason`)가 필수이고 `audit_log` 에 누가·언제·왜·폴백 여부가 남는다 | 강제 확정 사유·회차 id(`audit_log` 의 `detail.action=run.force_confirm`) |
-| 디스크 80% 경보(`HostDiskAlmostFull`) | `df -h /` · `docker system df` · 사진 볼륨 크기(`docker compose exec backend du -sh /app/var/photos`) | 안 쓰는 이미지 정리(`docker image prune -af --filter until=72h`) · 로그 · 사진 백업 확인. 부족하면 EBS 볼륨 확장(`DEPLOYMENT.md §2.4` — 디스크 30GB 는 산정 근거가 없는 값) | 사용률·정리한 항목 |
+| 디스크 80% 경보(`HostDiskAlmostFull`) | `df -h / /var/lib/docker/volumes` · `docker system df` · 사진 볼륨 크기(`docker compose exec backend du -sh /app/var/photos`) | 안 쓰는 이미지 정리(`docker image prune -af --filter until=72h`) · 로그 · 사진 백업 확인. 부족하면 EBS 볼륨 확장(`DEPLOYMENT.md §2.4` — 디스크 30GB 는 산정 근거가 없는 값) | 사용률·정리한 항목 |
 | 자동 거절이 잘못 나감 | `change_request` 상태와 자동 거절 이력 확인 | 되돌리기 수단 부재 — 관계자가 ①구간 경로로 다시 처리 | 자동 거절 이력 그대로 보존 |
 | 하원 종료 보류가 안 풀림 | 미하차 학생 목록 확인 | 동승자에게 처리 요청. 강제 종료 경로는 두지 않음(미하차 상태로 회차를 끝내는 경로가 생기면 `RUN-06` 우회 가능 — 종료 보류는 결함이 아니라 아직 안 내린 아이가 있다는 신호) | 처리 요청 시각·대상 학생 |
 | 운행 시작 ±10분 창을 놓침 | 해당 없음 — `X-01`(Ruling 202)로 창을 ±10분으로 확장, 예외 절차 자체를 폐지 | 없음(정상 처리 경로로 흡수) | 없음 |
@@ -843,7 +845,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 | `RunPositionLost` | `schoolbus_run_position_lost > 0` 이 1분 유지 | 경고 | 3행 |
 | `StaleMovingRun` | `schoolbus_run_moving_stale > 0` 이 30분 유지 — 운행일이 어제보다 이른데 끝나지 않은(`moving`) 회차 | 경고 | (표 밖 — 근접 판정 · 위치 유실 · 노선 잠금이 그 회차를 더는 집지 않아(`Ruling 701`) 이 경보가 유일한 신호다. 같은 경보는 4시간마다 다시 알린다. **메인 관리자 콘솔 "끝나지 않은 회차" 화면(`API_SPEC §6.16`)이 이 경보가 센 바로 그 회차를 보이고 거기서 닫는다**(`Ruling 724`)) |
 | `PushDeliveryFailing` | 최근 10분 안에 `schoolbus_notification_push_failures_total` 증가 | 경고 | 5행 |
-| `HostDiskAlmostFull` | 루트 디스크 사용률 80% 초과가 10분 유지 | 경고 | (표 밖 — 디스크가 차면 postgres 쓰기가 실패해 전면 정지) |
+| `HostDiskAlmostFull` | 루트(`/`) 또는 데이터 디스크(`/var/lib/docker/volumes`)의 사용률 80% 초과가 10분 유지 — 알림의 마운트 지점으로 어느 디스크인지 구분(`Ruling 782`) | 경고 | (표 밖 — 디스크가 차면 postgres 쓰기가 실패해 전면 정지) |
 | `BackupDbStale` | DB 백업 성공 시각이 2시간 넘게 갱신되지 않거나 지표가 아예 없음(5분 유지) | 즉시(critical) | (표 밖 — 매시 백업 중 두 번 연속 실패하면 RPO 1시간을 못 지킨다, `Ruling 500`) |
 | `BackupPhotosStale` | 사진 백업 성공 시각이 26시간 넘게 갱신되지 않거나 지표가 없음 | 경고 | (표 밖) |
 | `BackendDown` | `up{job="backend"} == 0` 이거나 `up` 시계열이 없음(스크레이프 대상이 목록에서 사라짐)이 1분 유지 | 즉시(critical) | (표 밖 — 백엔드가 죽으면 위 백엔드 지표 경보가 값이 없어 **전부 조용해진다**) |
