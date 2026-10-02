@@ -114,7 +114,7 @@ apps/academy-web/src/
 └── types/                   전역 타입
 ```
 
-기능 이름은 `docs/FEATURE_SPEC` 의 도메인을 따른다 —
+기능 이름은 `docs/planning/FEATURE_SPEC` 의 도메인을 따른다 —
 `auth` · `run` · `route` · `student` · `manager` · `bus` · `schedule` · `approval` ·
 `notification` · `emergency` · `report` · `admin` · `onboarding`(새 학원 시작 체크리스트 — 다섯 목록의 개수만 읽어 다른 기능을 import 하지 않는다, R46-WEBF).
 

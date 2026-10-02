@@ -1,6 +1,6 @@
 # 바래다 (BARAEDA) — PRD
 
-학원 통학버스 운행·학생 등하원 관리 플랫폼의 **제품 요구 정의서**. 배경·목표·시나리오 · 확정 정책의 **채택 이유** · 우선순위 · 비기능 요구 · 성공 지표를 담음. 기능 단위 정의는 [FEATURE_SPEC.md](./FEATURE_SPEC.md) 에 종속.
+학원 통학버스 운행·학생 등하원 관리 플랫폼의 **제품 요구 정의서**. 배경·목표·시나리오 · 확정 정책의 **채택 이유** · 우선순위 · 비기능 요구 · 성공 지표를 담음. 기능 단위 정의는 [FEATURE_SPEC.md](FEATURE_SPEC.md) 에 종속.
 
 | 항목 | 내용 |
 |---|---|
@@ -12,7 +12,7 @@
 | 서비스명 | "바래다"는 워킹 타이틀 |
 | 브랜드 한 줄 | "잘 탔고, 잘 내렸습니다." |
 
-**자매 문서** — [FEATURE_SPEC.md](./FEATURE_SPEC.md) · [USER_FLOWS.md](./USER_FLOWS.md) · [API_SPEC.md](./API_SPEC.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [ERD.md](./ERD.md) · [TECH_DECISIONS.md](./TECH_DECISIONS.md)
+**자매 문서** — [FEATURE_SPEC.md](FEATURE_SPEC.md) · [USER_FLOWS.md](USER_FLOWS.md) · [API_SPEC.md](API_SPEC.md) · [ARCHITECTURE.md](../backend/ARCHITECTURE.md) · [ERD.md](../backend/ERD.md) · [TECH_DECISIONS.md](../backend/TECH_DECISIONS.md)
 
 ---
 
@@ -27,7 +27,7 @@
 
 **정책 서술의 분업** — FEATURE_SPEC 은 규칙이 **무엇인지**를 확정하고, 이 문서는 그 규칙을 **왜 택했는지**만 적음. 규칙 전문은 FEATURE_SPEC 이 단일 소스이며 여기서는 한 줄 요약 + 근거만 기술.
 
-설계 문서 3종은 이 4종에서 **유도된** 것이며 사양이 아니다 — [ARCHITECTURE.md](./ARCHITECTURE.md)(모듈·인가·파이프라인·배치) · [ERD.md](./ERD.md)(테이블·제약·인덱스) · [TECH_DECISIONS.md](./TECH_DECISIONS.md)(기술 선택·운영·장애 대응). 사양과 어긋나면 **이 4종이 기준**.
+설계 문서 3종은 이 4종에서 **유도된** 것이며 사양이 아니다 — [ARCHITECTURE.md](../backend/ARCHITECTURE.md)(모듈·인가·파이프라인·배치) · [ERD.md](../backend/ERD.md)(테이블·제약·인덱스) · [TECH_DECISIONS.md](../backend/TECH_DECISIONS.md)(기술 선택·운영·장애 대응). 사양과 어긋나면 **이 4종이 기준**.
 
 ---
 
@@ -66,7 +66,7 @@
 
 ### 2.2 사용자 6종
 
-학부모 · 학생 · 버스기사 · 동승자 · 학원 관계자(학원당 1명) · 메인 관리자. **역할별 가입 경로·승인 주체 표는 [FEATURE_SPEC §1.2](./FEATURE_SPEC.md) 가 정의처** — 이 문서는 중복 기재하지 않음.
+학부모 · 학생 · 버스기사 · 동승자 · 학원 관계자(학원당 1명) · 메인 관리자. **역할별 가입 경로·승인 주체 표는 [FEATURE_SPEC §1.2](FEATURE_SPEC.md) 가 정의처** — 이 문서는 중복 기재하지 않음.
 
 ### 2.3 승인 주체가 두 갈래인 이유
 
@@ -221,7 +221,7 @@
 
 ### 6.5 정책 상수
 
-**정의처는 [FEATURE_SPEC §2.1](./FEATURE_SPEC.md)** — 13개 항목(확정 30분 전 · ②구간 회차당 1회 · 운행 시작 ±10분 · 미승차 대기 3분 · 위치 송신 2초 · 승하차 반영 5초 · 알림 보관 14일 · 로그인 차단 5회 · 관계자 1명 · 지연 5분 단위 · 비상 알림 취소 1분 · 근접 알림 직선 300m · 외부 내비 승하차지 4곳). 값을 이 문서에 중복 기재하지 않음 — 두 곳에 두면 한쪽만 갱신되어 어긋남.
+**정의처는 [FEATURE_SPEC §2.1](FEATURE_SPEC.md)** — 13개 항목(확정 30분 전 · ②구간 회차당 1회 · 운행 시작 ±10분 · 미승차 대기 3분 · 위치 송신 2초 · 승하차 반영 5초 · 알림 보관 14일 · 로그인 차단 5회 · 관계자 1명 · 지연 5분 단위 · 비상 알림 취소 1분 · 근접 알림 직선 300m · 외부 내비 승하차지 4곳). 값을 이 문서에 중복 기재하지 않음 — 두 곳에 두면 한쪽만 갱신되어 어긋남.
 
 ---
 
@@ -494,9 +494,9 @@ FUNCTIONAL_SPEC §12 흡수분. **신규 정책과 충돌한 4건은 정정** �
 
 | 문서 | 위치 | 역할 |
 |---|---|---|
-| 기능정의서 | [FEATURE_SPEC.md](./FEATURE_SPEC.md) | 공통 규칙 · 엔티티 · 상태머신 · 기능 정의 · 권한 (기반 문서) |
-| 유저플로우 | [USER_FLOWS.md](./USER_FLOWS.md) | 역할별 조작 순서 · 분기 · 알림 매트릭스 |
-| API 명세서 | [API_SPEC.md](./API_SPEC.md) | 엔드포인트 계약 · WebSocket · 에러 코드 |
+| 기능정의서 | [FEATURE_SPEC.md](FEATURE_SPEC.md) | 공통 규칙 · 엔티티 · 상태머신 · 기능 정의 · 권한 (기반 문서) |
+| 유저플로우 | [USER_FLOWS.md](USER_FLOWS.md) | 역할별 조작 순서 · 분기 · 알림 매트릭스 |
+| API 명세서 | [API_SPEC.md](API_SPEC.md) | 엔드포인트 계약 · WebSocket · 에러 코드 |
 | 신규 기획 원본 (v2.1) | ⚠ **저장소에 부재** — `238eb2f5`(2026-08-24 방향 전환)에서 삭제 | 이 문서가 그 내용을 흡수했다. 원문이 필요하면 `git show '238eb2f5~1:docs/brainstorming/'` |
 | 구 기획 원본 | ⚠ **저장소에 부재** — `FUNCTIONAL_SPEC.md` · `FEATURE_LIST.md` · `USER_FLOWS.md` 셋 다 같은 커밋에서 삭제 | 구 기획 흡수분의 출처 — 정책값은 낡음. `git show '238eb2f5~1:docs/brainstorming/FUNCTIONAL_SPEC.md'` |
 

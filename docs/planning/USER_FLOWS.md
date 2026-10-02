@@ -1,6 +1,6 @@
 # 바래다 (BARAEDA) — 유저플로우
 
-역할별 **시간축 조작 순서**와 각 단계의 **상태 변화 · 분기 · 차단 조건**을 담은 문서. 기능 정의는 [FEATURE_SPEC.md](./FEATURE_SPEC.md) 에 종속되며, 이 문서는 그 기능이 **누가 · 언제 · 어떤 순서로** 발생하는지만 기술.
+역할별 **시간축 조작 순서**와 각 단계의 **상태 변화 · 분기 · 차단 조건**을 담은 문서. 기능 정의는 [FEATURE_SPEC.md](FEATURE_SPEC.md) 에 종속되며, 이 문서는 그 기능이 **누가 · 언제 · 어떤 순서로** 발생하는지만 기술.
 
 | 항목 | 내용 |
 |---|---|
@@ -10,7 +10,7 @@
 | 기준 | FEATURE_SPEC.md v1.0 · 바래다 유저플로우 v2.1 · PRD v2.1 · API명세서 v2.1 (2026-08-24) |
 | 흡수 원본 | USER_FLOWS v0.2 · FUNCTIONAL_SPEC v0.2 · FEATURE_LIST v1.1 (구 기획) |
 
-**자매 문서** — [FEATURE_SPEC.md](./FEATURE_SPEC.md) · [PRD.md](./PRD.md) · [API_SPEC.md](./API_SPEC.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [ERD.md](./ERD.md) · [TECH_DECISIONS.md](./TECH_DECISIONS.md)
+**자매 문서** — [FEATURE_SPEC.md](FEATURE_SPEC.md) · [PRD.md](PRD.md) · [API_SPEC.md](API_SPEC.md) · [ARCHITECTURE.md](../backend/ARCHITECTURE.md) · [ERD.md](../backend/ERD.md) · [TECH_DECISIONS.md](../backend/TECH_DECISIONS.md)
 
 ---
 

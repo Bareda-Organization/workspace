@@ -19,7 +19,7 @@
 | **작업 범위** | **`backend/` + `frontend/`.** 2026-08-25 에는 백엔드 전용이었으나 2026-09-10 사용자 결정으로 프론트가 범위 안으로 돌아왔다(Ruling 255 영구 범위 밖을 뒤집음) |
 | **사양·설계의 정본** | **`docs/` 사양·설계.** 진입점은 [`docs/README.md`](../docs/README.md) — 여기서 시작한다 |
 | **구현 추적** | 백엔드 [`docs/IMPLEMENTATION_PLAN.md`](../docs/IMPLEMENTATION_PLAN.md) **§8 진행 추적 표가 단일 창구.** 프론트는 [`docs/frontend/IMPLEMENTATION_PLAN.md`](../docs/frontend/IMPLEMENTATION_PLAN.md). 진행 상태를 다른 문서에 적지 않는다. 끝난 Phase·라운드 기록은 `docs/archive/rounds/`(원문 그대로 · 파일별 절 범위는 그 폴더 `README.md`)로 옮겼고, Ruling 번호는 백엔드 계획서 §11 색인에서 기록 위치를 찾는다 |
-| **코드 컨벤션** | 백엔드 `docs/backend/CODE_CONVENTIONS.md` · 프론트 `docs/frontend/CONVENTIONS_REACT.md`(관계자 웹, Next.js) · `docs/frontend/CONVENTIONS_FLUTTER.md`(학부모·학생 앱, 매니저 앱) |
+| **코드 컨벤션** | 백엔드 `docs/backend/CODE_CONVENTIONS.md` · 프론트 `docs/frontend/web/CONVENTIONS_REACT.md`(관계자 웹, Next.js) · `docs/frontend/mobile/CONVENTIONS_FLUTTER.md`(학부모·학생 앱, 매니저 앱) |
 
 - 제품 3개 — 관계자 웹(Next.js) · 학부모·학생 앱(Flutter) · 매니저 앱(Flutter). 앱 하나가 로그인 결과의 역할로 갈라진다(학부모↔학생, 기사↔동승자)
 - `docs/IMPLEMENTATION_PLAN.md` 의 Phase F1~F4 `➖` 표기는 **옛 Flutter 계획**에 대한 것이라 그대로 둔다 — 프론트 창구는 `docs/frontend/IMPLEMENTATION_PLAN.md`
@@ -256,15 +256,15 @@ flutter test --dart-define=API_BASE_URL=http://localhost:<포트>/api/v1
 
 | 문서 | 성격 | 드리프트 시 영향 |
 |---|---|---|
-| `docs/API_SPEC.md` | 엔드포인트 계약의 정의처 | **가장 높음** — 필드·부수효과가 틀리면 구현이 계약과 갈린다 |
-| `docs/FEATURE_SPEC.md` | 공통 규칙·상태머신·권한의 정의처 | 규칙 판정이 호출 지점마다 갈린다 |
+| `docs/planning/API_SPEC.md` | 엔드포인트 계약의 정의처 | **가장 높음** — 필드·부수효과가 틀리면 구현이 계약과 갈린다 |
+| `docs/planning/FEATURE_SPEC.md` | 공통 규칙·상태머신·권한의 정의처 | 규칙 판정이 호출 지점마다 갈린다 |
 | `docs/IMPLEMENTATION_PLAN.md` | 구현 순서·진행 추적 단일 창구 | 완료/미완 표기가 실제와 어긋난다 |
 | `docs/backend/CODE_CONVENTIONS.md` | 코드 컨벤션 원본 | `convention-auditor`가 틀린 근거로 지적한다 |
 
 - **대조 범위는 `backend/` 와 `frontend/` 전부다**(2026-09-10 프론트 재개 뒤). ~~프론트는 착수 대상 밖이라 `frontend/docs/` 3종은 드리프트 지적 대상이 아니다~~ — 그 경로는 2026-09-20 부재, 프론트 규칙 원본은 `docs/frontend/*.md` 이고 낡으면 지적 대상이다.
 - **기준선 수치는 부재.** 옛 기준선이던 Swagger `"00. MVP 사용 API"` 태그 17개는 **2026-08-24 방향 전환으로 무효**(태그 체계 자체가 폐기). 새 기준선은 Phase 1 이후 `IMPLEMENTATION_PLAN` §2.3 의 테이블 수와 §3.3 의 대조 테스트 3종이 대신한다.
 - **`docs/backend/*.html`은 대조 대상이 아니다.** `CODE_CONVENTIONS.html` 등은 `CODE_CONVENTIONS.md`의 사람용 렌더이며 **원칙만 동기화하고 자동 동기화하지 않는다**(의도된 설계). HTML이 Markdown과 다르다는 지적은 올리지 않는다.
-- **`docs/source/학원 통학버스 통합관리 시스템.docx` 는 기획 원본(불변)** 이라 코드와 어긋나는 게 정상이다. 대조 대상이 아니다. (`projectInfo.md` 는 2026-08-24 삭제)
+- **`docs/planning/source/학원 통학버스 통합관리 시스템.docx` 는 기획 원본(불변)** 이라 코드와 어긋나는 게 정상이다. 대조 대상이 아니다. (`projectInfo.md` 는 2026-08-24 삭제)
 - 주기·기본값은 `backend/src/main/resources/application.yml`을 **직접 읽어** 대조한다(미커밋 수정분이 자주 있다).
 - 결과는 `backend/report/YYYY-MM-DD-주제.md`로 남긴다. **문서와 코드 어느 쪽도 고치지 않는다.**
 

@@ -9,7 +9,7 @@
 | 기준 | ARCHITECTURE v1.0 · ERD v1.0 · 사양 4종 v1.0 |
 | 성격 | **결정 기록.** 구현 착수 시 판단이 갈릴 지점을 미리 고정 |
 
-**자매 문서** — [FEATURE_SPEC.md](./FEATURE_SPEC.md) · [PRD.md](./PRD.md) · [USER_FLOWS.md](./USER_FLOWS.md) · [API_SPEC.md](./API_SPEC.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [ERD.md](./ERD.md)
+**자매 문서** — [FEATURE_SPEC.md](../planning/FEATURE_SPEC.md) · [PRD.md](../planning/PRD.md) · [USER_FLOWS.md](../planning/USER_FLOWS.md) · [API_SPEC.md](../planning/API_SPEC.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ERD.md](ERD.md)
 
 ## 0. 이 문서가 있는 이유
 
@@ -97,7 +97,7 @@ Spring Security 는 기능이 넓어 "쓴다"만으로는 범위가 안 잡힌�
 
 ### 2.2 RBAC 구현
 
-**결정:** 권한 상수 카탈로그([FEATURE_SPEC §6.2](./FEATURE_SPEC.md))를 코드 enum 으로 두고 `@PreAuthorize` 가 그 상수를 검사한다. DB 권한 테이블·Spring Security ACL 을 쓰지 않는다.
+**결정:** 권한 상수 카탈로그([FEATURE_SPEC §6.2](../planning/FEATURE_SPEC.md))를 코드 enum 으로 두고 `@PreAuthorize` 가 그 상수를 검사한다. DB 권한 테이블·Spring Security ACL 을 쓰지 않는다.
 
 ```java
 public enum Permission {
@@ -151,7 +151,7 @@ static final Map&lt;Role, Set&lt;Permission&gt;&gt; ROLE_PERMISSIONS = Map.of(
 
 ## 2.4 토큰 전송 — access 는 헤더, refresh 는 클라이언트별로 가른다
 
-**결정:** access 토큰은 앱·웹 모두 `Authorization: Bearer` 헤더로 전송한다. refresh 토큰만 전달 수단을 가르며, 앱은 응답 본문 + 기기 보안 저장소, 웹은 `HttpOnly` 쿠키다. 계약은 [API_SPEC §1.2.1](./API_SPEC.md), 정책 본문은 [FEATURE_SPEC C-14](./FEATURE_SPEC.md), 채택 이유는 [PRD §6.4](./PRD.md).
+**결정:** access 토큰은 앱·웹 모두 `Authorization: Bearer` 헤더로 전송한다. refresh 토큰만 전달 수단을 가르며, 앱은 응답 본문 + 기기 보안 저장소, 웹은 `HttpOnly` 쿠키다. 계약은 [API_SPEC §1.2.1](../planning/API_SPEC.md), 정책 본문은 [FEATURE_SPEC C-14](../planning/FEATURE_SPEC.md), 채택 이유는 [PRD §6.4](../planning/PRD.md).
 
 ### 2.4.1 HttpOnly 가 앱에서 하는 일이 없는 이유
 

@@ -1,7 +1,7 @@
 # Flutter 코드 컨벤션
 
 작성 2026-09-10. 적용 대상 — `apps/parent-app` · `apps/manager-app` · `packages/baraeda_ui`.
-React 쪽 규칙은 `docs/frontend/CONVENTIONS_REACT.md` 이며 **두 문서는 서로를 대체하지 않음.**
+React 쪽 규칙은 `docs/frontend/web/CONVENTIONS_REACT.md` 이며 **두 문서는 서로를 대체하지 않음.**
 
 기본은 [Effective Dart](https://dart.dev/effective-dart) 를 그대로 따르고,
 이 문서는 **Effective Dart 가 정하지 않는 것**(구조 · 상태 관리 · 네이밍 세부 · 이 프로젝트 규칙)만 규정.
@@ -46,7 +46,7 @@ lib/
 (`auth` · `home` · `live_map` · `route` · `schedule` · `settings` /
 `auth` · `home` · `drive_mode` · `roster` · `delay` · `route_map` · `run_end` · `emergency` · `offline_queue`).
 
-⚠ **`docs/FEATURE_SPEC` 의 도메인 이름을 쓰지 않는다** (2026-09-10 정정).
+⚠ **`docs/planning/FEATURE_SPEC` 의 도메인 이름을 쓰지 않는다** (2026-09-10 정정).
 화면 하나가 도메인 경계를 넘나드는 자리가 실재한다 — 매니저 앱의 명단 화면은
 승차·하차·승인을 한 화면에서 다룬다. 도메인으로 쪼개면 **화면과 폴더가 1:1 로 안 붙어**
 어느 폴더를 열어야 하는지 알 수 없게 된다. 웹(`CONVENTIONS_REACT.md`)은 반대로 도메인 이름을 쓰는데,

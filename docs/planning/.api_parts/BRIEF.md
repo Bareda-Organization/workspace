@@ -2,7 +2,7 @@
 
 **저장소** `/Users/mskim/Desktop/PJ/School-Bus` (모든 경로는 절대 경로로 `cat`/Read 한다. `find` 로 찾지 말고, 접힌 출력을 근거로 "없다" 고 결론 내지 마라).
 **정본** `/Users/mskim/Desktop/PJ/School-Bus/docs/API_SPEC.md` (v1.0). 기능 정의·도메인 소속은 `/Users/mskim/Desktop/PJ/School-Bus/docs/FEATURE_SPEC.md §4`.
-**산출물** 각 좌석은 지정된 **한 파일**(`docs/.api_parts/partN.html`)에 **본문 조각만** 쓴다. `<html>`·`<head>`·`<style>`·`<script>`·`<body>` 를 넣지 마라 — 껍데기는 조율자가 `shell_head.html`·`shell_tail.html` 로 이미 만들었고 CSS 클래스는 거기 정의돼 있다(열어서 클래스명을 확인하라).
+**산출물** 각 좌석은 지정된 **한 파일**(`docs/planning/.api_parts/partN.html`)에 **본문 조각만** 쓴다. `<html>`·`<head>`·`<style>`·`<script>`·`<body>` 를 넣지 마라 — 껍데기는 조율자가 `shell_head.html`·`shell_tail.html` 로 이미 만들었고 CSS 클래스는 거기 정의돼 있다(열어서 클래스명을 확인하라).
 **git 을 건드리지 마라.** `docs/` 는 git 무시 대상이라 add·commit 이 필요 없고, 다른 세션이 이 저장소에서 작업 중이다. 작업 트리·인덱스·HEAD·브랜치를 바꾸지 마라. 서브에이전트를 띄우지 마라.
 **파일 쓰기가 도구에서 거부되면 전문을 메시지로 보내라.** 조율자가 저장한다.
 

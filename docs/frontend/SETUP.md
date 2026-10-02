@@ -3,9 +3,9 @@
 백엔드를 로컬에서 띄우고 관계자 웹(Next.js)과 앱 2종(Flutter)을 그 백엔드에 붙이는 절차. 기준 커밋 `0b8aa3e0`(2026-09-30) · 2026-10-01 R46 변경(Redis 칸 나누기 · `FIXTURE_DB` · 시뮬레이터 끄기)을 분기점 `66a139f1` 에서 코드와 대조해 반영.
 
 - 제품 구성·라운드 추적: `docs/frontend/IMPLEMENTATION_PLAN.md`
-- 코드 규칙: web 저장소 `docs/CONVENTIONS_REACT.md` · mobile 저장소 `docs/CONVENTIONS_FLUTTER.md`
-- 엔드포인트 계약: `docs/API_SPEC.md`
-- 배포·스테이징: `docs/infra/DEPLOYMENT.md` · `docs/infra/STAGING.md`
+- 코드 규칙: web 저장소 `docs/frontend/web/CONVENTIONS_REACT.md` · mobile 저장소 `docs/frontend/mobile/CONVENTIONS_FLUTTER.md`
+- 엔드포인트 계약: `docs/planning/API_SPEC.md`
+- 배포·스테이징: `docs/backend/infra/DEPLOYMENT.md` · `docs/backend/infra/STAGING.md`
 
 ## 1. 준비물
 
@@ -211,7 +211,7 @@ flutter analyze
 flutter test --exclude-tags real_backend   # 단위·위젯. 실서버 계약 시험(@Tags(['real_backend']))은 제외 — CI 와 같은 명령
 ```
 
-- 한 번에 전부(백엔드 + 웹 + Flutter 4곳): 저장소 루트에서 `scripts/verify.sh`. 골라서는 `scripts/verify.sh web flutter`. CI(`.github/workflows/ci.yml`)가 같은 검사를 돎(`docs/infra/DEPLOYMENT.md §5.1`)
+- 한 번에 전부(백엔드 + 웹 + Flutter 4곳): 저장소 루트에서 `scripts/verify.sh`. 골라서는 `scripts/verify.sh web flutter`. CI(`.github/workflows/ci.yml`)가 같은 검사를 돎(`docs/backend/infra/DEPLOYMENT.md §5.1`)
 - `--exclude-tags` 는 패키지의 `dart_test.yaml` 에 태그 선언이 있어야 걸러짐(선언이 없으면 아무것도 안 걸러지는 빈 플래그). 실서버 계약 시험 파일 머리에는 `@Tags(['real_backend'])` 가 붙어 있어야 함
 
 - 실서버 계약 시험은 `flutter test --tags real_backend --dart-define=API_BASE_URL=http://localhost:<전용포트>/api/v1` 로 돌림. 주소를 주지 않으면 스스로 실패함(`test/support/real_backend_target.dart`). **공유 DB(`schoolbus`)가 아닌 전용 DB 로 띄운 백엔드**에만 겨눔 — 이 시험은 실행하면서 DB 의 행을 바꿈
@@ -252,7 +252,7 @@ flutter test --exclude-tags real_backend   # 단위·위젯. 실서버 계약 �
    - `prod` · `demo` · `staging` 은 기본값이 없어 미지정 시 허용 출처가 0개
 5. **실시간 위치 스트림**: `/ws/location`(STOMP over WebSocket, 접두사 `/api/v1` 없음). 허용 출처는 REST 와 별개인 `app.ws.allowed-origin-patterns`(환경변수 `WS_ALLOWED_ORIGIN_PATTERNS`) — `local` 기본값은 `*`(모든 출처), `prod` · `demo` · `staging` 은 기본값이 없어 미지정 시 기동 실패. Origin 헤더를 보내지 않는 네이티브 앱은 이 제한과 무관
 6. **버스 위치 시뮬레이터**: 위치는 기사 단말이 올리는 값이고 서버는 2분만 유효한 값으로 봄 — 아무도 올리지 않으면 지도가 비어 있음. `local` 프로파일은 `DemoRunSimulator` 가 기동 15초 뒤부터 기사 단말 자리를 대신해 시드 회차를 출발시키고 위치를 2초마다 올림. 끄려면 `--app.demo.enabled=false`(기본 `true` — `local` 프로파일에서만 존재)
-7. **계약 문서**: 엔드포인트 목록·요청·응답·오류 코드는 `docs/API_SPEC.md`. 실제 스키마는 Swagger UI 가 가장 최신
+7. **계약 문서**: 엔드포인트 목록·요청·응답·오류 코드는 `docs/planning/API_SPEC.md`. 실제 스키마는 Swagger UI 가 가장 최신
 
 ## 10. 문제 해결
 

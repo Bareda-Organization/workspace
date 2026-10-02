@@ -10,7 +10,7 @@
 | 기준 | 바래다 기능정의서 v2.1 · PRD v2.1 · 유저플로우 v2.1 · API명세서 v2.1 (2026-08-24) |
 | 서비스명 | "바래다"는 워킹 타이틀 |
 
-**자매 문서** — [PRD.md](./PRD.md) · [USER_FLOWS.md](./USER_FLOWS.md) · [API_SPEC.md](./API_SPEC.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [ERD.md](./ERD.md) · [TECH_DECISIONS.md](./TECH_DECISIONS.md)
+**자매 문서** — [PRD.md](PRD.md) · [USER_FLOWS.md](USER_FLOWS.md) · [API_SPEC.md](API_SPEC.md) · [ARCHITECTURE.md](../backend/ARCHITECTURE.md) · [ERD.md](../backend/ERD.md) · [TECH_DECISIONS.md](../backend/TECH_DECISIONS.md)
 
 ## 0. 문서 경계 · 표기 규칙
 
@@ -21,7 +21,7 @@
 | `USER_FLOWS.md` | 역할별 조작 순서, 분기·차단, 알림 매트릭스 | 기능 정의 원문 |
 | `API_SPEC.md` | 엔드포인트 계약, WebSocket, 에러 코드 | 채택 이유, 화면 흐름 |
 
-설계 문서 2종은 이 4종에서 **유도된** 것이며 사양이 아니다 — [ARCHITECTURE.md](./ARCHITECTURE.md)(모듈 경계 · 인가 · 노선 계산 파이프라인 · 시간 기반 배치) · [ERD.md](./ERD.md)(테이블 · 제약 · 인덱스). 사양과 어긋나면 **이 4종이 기준**.
+설계 문서 2종은 이 4종에서 **유도된** 것이며 사양이 아니다 — [ARCHITECTURE.md](../backend/ARCHITECTURE.md)(모듈 경계 · 인가 · 노선 계산 파이프라인 · 시간 기반 배치) · [ERD.md](../backend/ERD.md)(테이블 · 제약 · 인덱스). 사양과 어긋나면 **이 4종이 기준**.
 
 ---
 
@@ -31,7 +31,7 @@
 
 ### 1.1 제품 4종
 
-학부모·학생 앱(390) · 매니저 앱(390, 운행모드 항상 다크) · 관계자 웹(1440) · 메인 관리자 콘솔(1440). **제품별 사용자·핵심 과업 표는 [PRD §2.1](./PRD.md) 이 정의처** — 이 문서는 중복 기재하지 않음.
+학부모·학생 앱(390) · 매니저 앱(390, 운행모드 항상 다크) · 관계자 웹(1440) · 메인 관리자 콘솔(1440). **제품별 사용자·핵심 과업 표는 [PRD §2.1](PRD.md) 이 정의처** — 이 문서는 중복 기재하지 않음.
 
 ### 1.2 사용자 6종
 
@@ -122,7 +122,7 @@
 
 ### 3.2 엔티티
 
-**개념 단위 목록.** 물리 테이블은 연결·이력·설정 테이블이 더해져 **42개**이며(2026-09-03 — `shedlock` 스케줄러 분산 락 테이블 포함, `V4`. 2026-09-05 `delay_notice`·`run_transfer` 신설. 2026-09-22 Ruling 324 로 `link_request` 삭제 — 2026-10-01 DDL `CREATE TABLE` 42문과 `ERD.md` 소계로 대조) 컬럼·제약·인덱스를 포함한 정본은 [ERD.md](./ERD.md). 아래에 없고 ERD 에만 있는 것 — `academy_setting`(학원별 임계값) · `refresh_token` · `route_stop`·`run_stop`(정차 순서를 고정 노선/회차별로 분리) · `route_version`(배포 버전) · `waypoint`(경유 지점) · `rider_status_history`(되돌리기 이력) · `no_show_contact`(연락 시도) · `notification_setting` · `emergency_alert`(비상 알림 · EXC-04) · `verification_code`(복구 인증 코드 · AUTH-08) · `device_token`(푸시 단말 · NTF-12) · `run_forced_addition`(강제 추가 대기 · RTE-06, Phase 8 신설).
+**개념 단위 목록.** 물리 테이블은 연결·이력·설정 테이블이 더해져 **42개**이며(2026-09-03 — `shedlock` 스케줄러 분산 락 테이블 포함, `V4`. 2026-09-05 `delay_notice`·`run_transfer` 신설. 2026-09-22 Ruling 324 로 `link_request` 삭제 — 2026-10-01 DDL `CREATE TABLE` 42문과 `ERD.md` 소계로 대조) 컬럼·제약·인덱스를 포함한 정본은 [ERD.md](../backend/ERD.md). 아래에 없고 ERD 에만 있는 것 — `academy_setting`(학원별 임계값) · `refresh_token` · `route_stop`·`run_stop`(정차 순서를 고정 노선/회차별로 분리) · `route_version`(배포 버전) · `waypoint`(경유 지점) · `rider_status_history`(되돌리기 이력) · `no_show_contact`(연락 시도) · `notification_setting` · `emergency_alert`(비상 알림 · EXC-04) · `verification_code`(복구 인증 코드 · AUTH-08) · `device_token`(푸시 단말 · NTF-12) · `run_forced_addition`(강제 추가 대기 · RTE-06, Phase 8 신설).
 
 | 엔티티 | 설명 |
 |---|---|
@@ -1065,4 +1065,4 @@ ID 체계를 늘리라는 뜻이 아니고, 이 동작은 권한 카탈로그 + 
 | ~~X-09~~ | `run_position` 보유 기간 | **해소 — 2026-09-04 사용자 확정 90일 (Ruling 243).** 보존 정리 컷오프 — `notification_log` 14일 · `run_position` **90일** · `refresh_token` 만료·폐기 후 30일 · `link_code` 만료 즉시(Ruling 324 로 `link_request` 삭제) · 퇴원 학생 개인정보 **퇴원 90일 뒤 익명화**(2026-10-01 `Ruling 480 ②`·`520` — 행은 남기고 개인 필드를 파기) · `audit_log` **2년**(2026-10-01 `Ruling 445` — 무기한에서 변경. 근거는 개인정보 안전성 확보조치 기준의 접속기록 보관(1년 이상 · 대규모·민감정보 2년 이상)이며 조율 시점의 기억 기준이라 **L-06~08 법률 검토에서 문구·적용 대상을 재확인**). 값은 코드 상수 `RetentionPolicy` 한 곳(`TECH_DECISIONS §12.2`). 실사용 전환 시 L-06~08 법정 검토에서 재조정 여지만 존치 |
 | ~~Y~~ | 강제 확정 콘솔 개입 API 정본 미기재 | **해소 — 2026-09-04 `API_SPEC §6.14 POST /admin/runs/{runId}/force-confirm` 등재(Ruling 254) · 메인 관리자 웹 '회차 강제 확정' 화면 구현. 이 행은 2026-09-30 에야 닫힘 표기(표가 낡아 있었음).** 원문 — 2026-09-03 신설 (Ruling 244). `TECH_DECISIONS §14.3` 이 요구하는 강제 확정(폴백 계산으로 배포 · 누가·언제·왜·폴백 여부 기록)의 경로·권한·응답이 `API_SPEC` 에 부재. Phase 14 런북(`DEPLOYMENT.md §8`)은 "현재 수단 없음 — Y 판정 대기" 로 기재하고 엔드포인트를 만들지 않음. 정본에 먼저 적고 소단위로 배정 |
 
-우선순위 상·중·보류로 나뉘는 나머지 오픈 이슈(지도 SDK 선정, 법률 검토, 지오코딩 API 등)는 [PRD.md](./PRD.md) 참조.
+우선순위 상·중·보류로 나뉘는 나머지 오픈 이슈(지도 SDK 선정, 법률 검토, 지오코딩 API 등)는 [PRD.md](PRD.md) 참조.

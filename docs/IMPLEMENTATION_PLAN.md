@@ -10,7 +10,7 @@
 | 성격 | **구현 추적의 단일 창구.** 사양·설계의 복제 부재, 규칙 ID 참조만 |
 | 대상 코드 | `backend/` (Spring Boot 4.1.1 · Java 25) — **`frontend/` (Flutter) 는 2026-08-25 사용자 확정으로 착수 대상 밖** (Phase F1~F4 절 · §8) |
 
-**자매 문서** — [FEATURE_SPEC.md](./FEATURE_SPEC.md) · [PRD.md](./PRD.md) · [USER_FLOWS.md](./USER_FLOWS.md) · [API_SPEC.md](./API_SPEC.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [ERD.md](./ERD.md) · [TECH_DECISIONS.md](./TECH_DECISIONS.md)
+**자매 문서** — [FEATURE_SPEC.md](planning/FEATURE_SPEC.md) · [PRD.md](planning/PRD.md) · [USER_FLOWS.md](planning/USER_FLOWS.md) · [API_SPEC.md](planning/API_SPEC.md) · [ARCHITECTURE.md](backend/ARCHITECTURE.md) · [ERD.md](backend/ERD.md) · [TECH_DECISIONS.md](backend/TECH_DECISIONS.md)
 
 ---
 
@@ -245,7 +245,7 @@
 
 ### 4.6 기능 단위 TDD 사이클 — 작업의 최소 단위
 
-**기능 ID 1개 = 사이클 1회.** 기능 ID 의 정의처는 [FEATURE_SPEC §4](./FEATURE_SPEC.md) 의 인덱스 102개이며, 이 문서가 기능을 새로 만들지 않는다.
+**기능 ID 1개 = 사이클 1회.** 기능 ID 의 정의처는 [FEATURE_SPEC §4](planning/FEATURE_SPEC.md) 의 인덱스 102개이며, 이 문서가 기능을 새로 만들지 않는다.
 
 사이클을 마치지 않은 기능은 **구현했다고 보지 않는다.** 컨트롤러가 200 을 반환하는 사실은 사이클의 어느 단계도 통과시키지 못한다.
 
@@ -887,7 +887,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 314 | 기능간 import 금지는 이 저장소에서 이미 지켜지지 않는 규칙이다. T2 의 선택을 수용한다 | be-rounds-r15-r21 §8.23 |
 | 315 | (언급) 6.8 은 그 학원의 오늘 회차를 상태와 무관하게 전부 돌려준다 | be-rounds-r15-r21 §8.26 |
 | 316 | NCP Directions 15 는 경유지별 구간 값을 준다. 코드 주석의 "NCP 가 구간 값을 | be-rounds-r15-r21 §8.28 |
-| 317 | docs/frontend/CONVENTIONS_REACT.md 의 기능 간 import 금지는 계층 예외를 명시한다. | be-rounds-r15-r21 §8.28 |
+| 317 | docs/frontend/web/CONVENTIONS_REACT.md 의 기능 간 import 금지는 계층 예외를 명시한다. | be-rounds-r15-r21 §8.28 |
 | 318 | 구간변경 승인의 "예상 소요시간" 은 노선 전체 시간이다(출발지→마지막 정차지). | be-rounds-r15-r21 §8.29 |
 | 319 | 전후 경로는 좌우 두 지도로 나란히 보여준다. 한 지도에 겹치지 않는다 | be-rounds-r15-r21 §8.29 |
 | 320 | ⭐ 경로 폴백의 근본 원인 | be-rounds-r15-r21 §8.30 |
@@ -1113,27 +1113,27 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 587 | 사양 5항의 시험 환산 + 위치 송신 모델을 앱과 같은 고정 주기로 — 응답 뒤 쉼 모델이 달성률을 인위적으로 낮춤 | 본문 §8.84 |
 | 588 | 통과 판정 — 관리자 50 은 4회차 통과 · 200·300·400 통과(컷의 8배 · 예상 25 의 16배) · 500 이상은 판정 보류 | 본문 §8.84 |
 | 589 | 포화 지점 — 위치 수신 포화는 이동 거의 없음 · 09-09 붕괴 두 조건은 통과하나 R46 단독 귀속 불가 · 관계자 폴링 포화 후보(연결 풀 10) | 본문 §8.84 |
-| 610 | 퇴원 파기 때 보호자↔자녀 연결(`guardian_student`)도 삭제 — 파기 뒤 `보호자 → guardian_student → student(익명) → run_rider → stop(주소·좌표)` 로 집 주소가 복원되던 경로를 끊음(사용자 결정 · 검토 `schema` A-4) · 보호자 본인 보존 기간은 열린 항목 | 본문 §8.86 · `docs/ERD.md §7.1` |
-| 613 | 노선 정차지 수 상한 50 — 등록·수정·정차지 저장·최적화 고정 정차지 4곳 DTO `@Size` + 서비스 검증 → 422 (사용자 결정 2026-10-01) | 본문 §8.85 · `docs/API_SPEC.md §5.9` |
-| 614 | `run_rider.boarded_at` · `alighted_at` 삭제 — 읽는 곳 0 · 되돌리기 뒤 값이 틀림 · 같은 시각이 `rider_status_history.changed_at` 에 있음(사용자 결정 · 검토 `schema` A-3). 같은 갈래가 `run_rider.note`(A-2)도 삭제 | 본문 §8.86 · `docs/ERD.md §3` |
+| 610 | 퇴원 파기 때 보호자↔자녀 연결(`guardian_student`)도 삭제 — 파기 뒤 `보호자 → guardian_student → student(익명) → run_rider → stop(주소·좌표)` 로 집 주소가 복원되던 경로를 끊음(사용자 결정 · 검토 `schema` A-4) · 보호자 본인 보존 기간은 열린 항목 | 본문 §8.86 · `docs/backend/ERD.md §7.1` |
+| 613 | 노선 정차지 수 상한 50 — 등록·수정·정차지 저장·최적화 고정 정차지 4곳 DTO `@Size` + 서비스 검증 → 422 (사용자 결정 2026-10-01) | 본문 §8.85 · `docs/planning/API_SPEC.md §5.9` |
+| 614 | `run_rider.boarded_at` · `alighted_at` 삭제 — 읽는 곳 0 · 되돌리기 뒤 값이 틀림 · 같은 시각이 `rider_status_history.changed_at` 에 있음(사용자 결정 · 검토 `schema` A-3). 같은 갈래가 `run_rider.note`(A-2)도 삭제 | 본문 §8.86 · `docs/backend/ERD.md §3` |
 | 615 | 배포 때 nginx 설정 자동 반영 — 프록시 재시작으로 1~2초 끊김 허용, 단 새 설정을 일회용 컨테이너로 `nginx -t` 검사해 통과할 때만 재시작 · 실패하면 배포 중단 (사용자 결정 · 이행은 `Ruling 648·649`) | 본문 §8.87 (결정 원문은 사용자 지시 — 문서에는 이 행이 기록) |
 | 616 | 매니저 앱 오프라인 큐 — 비상 신고는 영구 실패 상한(5xx 10회·30분)에서 빼고 성공하거나 사용자가 지울 때까지 재시도(뒤 승하차 행은 막지 않음) · 비상 화면에 *"전송 실패 — 계속 다시 보내는 중 · 급하면 학원에 전화"* 표시 · 서버 접수 화면은 앱이 누른 시각을 보이지 않음(서버 몫으로 보고) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
 | 617 | 실시간 전송은 STOMP over WebSocket 유지 · 인스턴스 증설 결정 때 SSE 재평가(사용자가 뒤집을 수 있음) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
 | 618 | "나중" 항목 중 SSE 를 뺀 나머지를 진행(사용자 결정 2026-10-01) — L2 위치 SQL 합치기 · L5 근접 판정 묶음 · 관리자 주의 회차 집계 인덱스(검토 `idx`) · L11 Tomcat 스레드 명시 · **B-1 `run_position` 날짜 범위 파티션(이 테이블에 한해 `Ruling 243` 을 뒤집음)** · B-4 학원 경계 복합 FK · C-14 토큰 무중단 갱신. SSE 전환(`Ruling 617`)만 제외 | `.claude/r46/DECISIONS.md`(무시 파일 — 결정 원문) · 이행: 백엔드 본문 §8.88(`670`~`677`) · 토큰 갱신(C-14)은 실시간 갈래 몫 |
-| 619 | 동시 연결 상한 명시 + 접근 경보(사용자 질문 *"WebSocket 세션 정보를 서버가 저장·관리하나 · OOM 걱정"* 에서 조율자 결정 2026-10-01) — Tomcat `max-connections` 를 기본 8,192 에서 prod·demo 4,000 · staging 1,000 으로 명시하고 STOMP 세션 3,000 초과 경보 | `.claude/r46/DECISIONS.md`(무시 파일 — 결정 원문) · 이행: 본문 §8.89(`690`~`692`) · `docs/infra/DEPLOYMENT.md §11.7` |
-| 620 | DB 자원 오류(풀 고갈·연결 끊김·잠금 대기 초과·쿼리 취소)는 `503 SERVER_BUSY` + `Retry-After: 3` · 스택 없는 `warn` 한 줄 | 본문 §8.85 · `docs/API_SPEC.md §1.11` |
+| 619 | 동시 연결 상한 명시 + 접근 경보(사용자 질문 *"WebSocket 세션 정보를 서버가 저장·관리하나 · OOM 걱정"* 에서 조율자 결정 2026-10-01) — Tomcat `max-connections` 를 기본 8,192 에서 prod·demo 4,000 · staging 1,000 으로 명시하고 STOMP 세션 3,000 초과 경보 | `.claude/r46/DECISIONS.md`(무시 파일 — 결정 원문) · 이행: 본문 §8.89(`690`~`692`) · `docs/backend/infra/DEPLOYMENT.md §11.7` |
+| 620 | DB 자원 오류(풀 고갈·연결 끊김·잠금 대기 초과·쿼리 취소)는 `503 SERVER_BUSY` + `Retry-After: 3` · 스택 없는 `warn` 한 줄 | 본문 §8.85 · `docs/planning/API_SPEC.md §1.11` |
 | 621 | prod·demo DB 시간 상한 — 누수 감지 5초 · `lock_timeout 5s` · `idle_in_transaction_session_timeout 30s`(`statement_timeout` 은 안 건다) | 본문 §8.85 |
-| 622 | 알림 적재는 한 문장 묶음(`appendAll`) + 같은 `dedup_key` 는 예외 없이 건너뜀 — `DUPLICATE_NOTIFICATION` 삭제 · 운행 시작 적재 SQL 문장 수 수신자 수와 무관 | 본문 §8.85 · `docs/TECH_DECISIONS.md §7.2` |
-| 623 | FCM 보호 — 서킷 `fcm` · 요청 시간 4초 · 비상 전용 발송 실행기 · 접근 토큰 락 없이 미리 갱신 | 본문 §8.85 · `docs/TECH_DECISIONS.md §7.2` |
-| 624 | 근접·출발 판정도 Redis 장애 때 `run_position` 최신 행으로 판정(건너뛰면 도착 임박 알림 영구 누락) | 본문 §8.85 · `docs/TECH_DECISIONS.md` Redis 장애 행 |
+| 622 | 알림 적재는 한 문장 묶음(`appendAll`) + 같은 `dedup_key` 는 예외 없이 건너뜀 — `DUPLICATE_NOTIFICATION` 삭제 · 운행 시작 적재 SQL 문장 수 수신자 수와 무관 | 본문 §8.85 · `docs/backend/TECH_DECISIONS.md §7.2` |
+| 623 | FCM 보호 — 서킷 `fcm` · 요청 시간 4초 · 비상 전용 발송 실행기 · 접근 토큰 락 없이 미리 갱신 | 본문 §8.85 · `docs/backend/TECH_DECISIONS.md §7.2` |
+| 624 | 근접·출발 판정도 Redis 장애 때 `run_position` 최신 행으로 판정(건너뛰면 도착 임박 알림 영구 누락) | 본문 §8.85 · `docs/backend/TECH_DECISIONS.md` Redis 장애 행 |
 | 625 | Redis 장애 로그는 호출 위치당 분당 1건만 스택과 함께(`RateLimitedWarn`) | 본문 §8.85 |
 | 626 | 퇴원 학생 파기 묶음 200명(삭제 묶음 5,000 과 분리) | 본문 §8.85 |
 | 627 | 트랜잭션 경계 정리 — 위치 수신 발행을 트랜잭션 밖으로 · 비상 신고 Redis 읽기 앞으로 · BCrypt 5곳 밖으로 · 배치 변경 통지 실행기 위임 | 본문 §8.85 |
 | 630 | 인덱스 정비 — 계정 복구 경로 `account(phone)` · `verification_code(phone, created_at desc)`(순차 스캔 4회 → 인덱스) · 중복 `ix_run_bus_date` 삭제 · FK 선행 `run(schedule_id)` · `run_stop(waypoint_id)` 부분 · `run_position` 표 단위 autovacuum | 본문 §8.86 |
 | 631 | 보존 정리 정렬 키를 컷오프 인덱스 키(`recorded_at`)로 · 확정 배치 인덱스를 `(service_date, confirm_at)` 미취소 idle 부분 인덱스로(힙 확인 3,000 → 0 행) | 본문 §8.86 |
-| 632 | 감사·접속 이력 기본 조회 기간 = `to`(없으면 지금)로부터 30일 · 계정별 접속 이력의 해제 행 부분 인덱스 `audit_log(target_id) WHERE action='unblock'` | 본문 §8.86 · `docs/API_SPEC.md §6.13` |
-| 633 | 같은 학생의 대기(`staged`) 이동 신청은 DB 부분 UNIQUE 인덱스가 하나만 받고 위반은 `409 TRANSFER_ALREADY_STAGED` | 본문 §8.86 · `docs/ERD.md §5.1` |
-| 634 | CHECK 7곳(`rider_status_history` 상태 2 · `requested_role` · `recipient_role` · `raised_by_role` · `window_segment` · `applied_segment`) + `run_stop` 도착지 버전당 1행 UNIQUE 인덱스 | 본문 §8.86 · `docs/ERD.md §5.2` |
+| 632 | 감사·접속 이력 기본 조회 기간 = `to`(없으면 지금)로부터 30일 · 계정별 접속 이력의 해제 행 부분 인덱스 `audit_log(target_id) WHERE action='unblock'` | 본문 §8.86 · `docs/planning/API_SPEC.md §6.13` |
+| 633 | 같은 학생의 대기(`staged`) 이동 신청은 DB 부분 UNIQUE 인덱스가 하나만 받고 위반은 `409 TRANSFER_ALREADY_STAGED` | 본문 §8.86 · `docs/backend/ERD.md §5.1` |
+| 634 | CHECK 7곳(`rider_status_history` 상태 2 · `requested_role` · `recipient_role` · `raised_by_role` · `window_segment` · `applied_segment`) + `run_stop` 도착지 버전당 1행 UNIQUE 인덱스 | 본문 §8.86 · `docs/backend/ERD.md §5.2` |
 | 635 | 문서 정정 — 파티셔닝 서술(기술 결정 문서의 파티셔닝 절 · FK 미설정 이유)을 `Ruling 243`(파티션 안 함 · 행 단위 DELETE)에 맞춤 | 본문 §8.86 |
 | 640 | 가용성 경보 6종 — 백엔드 다운(`up==0 or absent`) · 5xx 비율 · DB 연결 대기 · 서킷 닫힘 여부 · 스케줄러 정지 · 보존 정리 정지. 부하 시험은 스크레이프 `job` 라벨로 구분 | 본문 §8.87 |
 | 641 | OOM 이면 JVM 이 프로세스를 끝낸다(`ExitOnOutOfMemoryError`) — 힙 덤프는 개인정보·디스크 때문에 넣지 않는다 | 본문 §8.87 |
@@ -1152,35 +1152,35 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 654 | 오프라인 대기열 카드 폭 — 문구가 짧은 카드만 줄어 가운데에 뜨던 것(`Ruling 592` 와 같은 갈래, 화면 확인에서 발견) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.30` |
 | 660 | 웹 숨은 탭의 비상 경로 — stompjs Worker 하트비트 · 비상 폴링 숨은 탭 30초 유지 · 재연결 직후 REST 1회 보충을 `useRealtimeChannel` 공용 콜백(`onReconnected`)으로(비상·승인·관제) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
 | 661 | 학부모 앱 실시간 연결은 지도가 열려 있는 동안만 · 로그아웃·세션 만료 때 닫음(계정 전환 뒤 옛 권한 구독 방지) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
-| 662 | 시간 제한 값 — 웹 소켓 버림·연결 10초·GET 15초 · Flutter 연결 10초·핑 10초 · 위치 POST 4초/5초 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` · `docs/API_SPEC.md §7.2` |
+| 662 | 시간 제한 값 — 웹 소켓 버림·연결 10초·GET 15초 · Flutter 연결 10초·핑 10초 · 위치 POST 4초/5초 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` · `docs/planning/API_SPEC.md §7.2` |
 | 663 | 학부모 지도 스피너는 첫 진입만 · 재연결 스냅샷이 더 새로우면 WS 좌표 교체 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
 | 664 | `gaveUp` 상태·화면 처리는 지우지 않고 남김 · `MonitoringPage` "하트비트 10초 감지" 주석 정정 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
-| 665 | 망 복귀(학부모 오프라인→도달 · 매니저 위치 전송 성공)·복귀 직후 서버 무송신 20초 초과 연결 강제 재연결 · 연결 시도 번호표 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` · `docs/API_SPEC.md §7.2` |
+| 665 | 망 복귀(학부모 오프라인→도달 · 매니저 위치 전송 성공)·복귀 직후 서버 무송신 20초 초과 연결 강제 재연결 · 연결 시도 번호표 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` · `docs/planning/API_SPEC.md §7.2` |
 | 666 | 연결 끊김 문구 한 벌(웹·Flutter 같은 제목) · 웹 `(staff)`·`(admin)` 레이아웃 연결 띠 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
 | 667 | 웹 감사·접속 이력 — 시작일을 비우면 최근 30일 안내(`Ruling 632` 후속) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
-| 668 | `API_SPEC §7.2` 연결 감시·재연결 규약 표 신설(하트비트 10초·무송신 20초·백오프 1→30초·지터 30%·연결 한도 10초) | `docs/API_SPEC.md §7.2` · `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
-| 670 | `run_position` 일(한국 시간 자정) 단위 `RANGE (recorded_at)` 파티션 — PK `(id, recorded_at)` · **기본 파티션 필수** · 앱이 기동 직후+매일 7일 앞까지 미리 만들기(ShedLock) · 만료는 **파티션 DROP**(컷오프가 걸친 날은 남아 실제 보관 90일 이상 91일 미만) · 컷오프 인덱스·행 DELETE·표 단위 autovacuum 삭제 | 본문 §8.88 · `docs/ERD.md §3.4·§5.3·§7.3` · `docs/TECH_DECISIONS.md §9.3` |
+| 668 | `API_SPEC §7.2` 연결 감시·재연결 규약 표 신설(하트비트 10초·무송신 20초·백오프 1→30초·지터 30%·연결 한도 10초) | `docs/planning/API_SPEC.md §7.2` · `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
+| 670 | `run_position` 일(한국 시간 자정) 단위 `RANGE (recorded_at)` 파티션 — PK `(id, recorded_at)` · **기본 파티션 필수** · 앱이 기동 직후+매일 7일 앞까지 미리 만들기(ShedLock) · 만료는 **파티션 DROP**(컷오프가 걸친 날은 남아 실제 보관 90일 이상 91일 미만) · 컷오프 인덱스·행 DELETE·표 단위 autovacuum 삭제 | 본문 §8.88 · `docs/backend/ERD.md §3.4·§5.3·§7.3` · `docs/backend/TECH_DECISIONS.md §9.3` |
 | 671 | 위치 수신 SQL 8 → 5(첫 도착 전 7 → 5) — 인가 `exists` 1 · 확정 노선+정차+이름 조인 1 · 방송 수신자 학생 id 투영. 캐시 없음(무효화 지점 0) | 본문 §8.88 |
 | 672 | 근접·출발 판정 묶음 — 위치는 회차 묶음당 Redis `MGET` 1회 · 회차당 읽기 트랜잭션 1개 · 선점은 판정별 트랜잭션(예외 격리 유지). `Ruling 624` 의 DB 대체는 묶음당 1쿼리로 | 본문 §8.88 |
-| 673 | 관리자 "주의 필요 회차" 집계 — `run(service_date)` 미완료·미취소 부분 인덱스 + 상태 enum 리터럴(일반 계획에서도 인덱스) | 본문 §8.88 · `docs/ERD.md §5.3` |
-| 674 | Tomcat 요청 스레드 = DB 연결 풀의 5배 — prod·demo 100 · staging 50 · `accept-count` 100 | 본문 §8.88 · `docs/TECH_DECISIONS.md §12.2.1` |
-| 675 | 학원 경계 복합 FK 11쌍(부모 `UNIQUE (id, academy_id)`) · `academy_id` 없는 자식(`run_rider`·`route_stop`·`run_stop`)은 점검 쿼리·시험 | 본문 §8.88 · `docs/ERD.md §4.1·§5.1` |
+| 673 | 관리자 "주의 필요 회차" 집계 — `run(service_date)` 미완료·미취소 부분 인덱스 + 상태 enum 리터럴(일반 계획에서도 인덱스) | 본문 §8.88 · `docs/backend/ERD.md §5.3` |
+| 674 | Tomcat 요청 스레드 = DB 연결 풀의 5배 — prod·demo 100 · staging 50 · `accept-count` 100 | 본문 §8.88 · `docs/backend/TECH_DECISIONS.md §12.2.1` |
+| 675 | 학원 경계 복합 FK 11쌍(부모 `UNIQUE (id, academy_id)`) · `academy_id` 없는 자식(`run_rider`·`route_stop`·`run_stop`)은 점검 쿼리·시험 | 본문 §8.88 · `docs/backend/ERD.md §4.1·§5.1` |
 | 676 | 부하 시드 학원 경계 오염 원인 수정 — 위치용 회차를 학생이 속한 학원마다 심고 같은 학원 학생만 붙임 | 본문 §8.88 · `docs/backend/LOAD_TESTING.md` |
-| 677 | `ErrorCode` 열거 ↔ 에러 코드 사전 양방향 일치 시험 · `SERVER_BUSY` 행 등재 | 본문 §8.88 · `docs/API_SPEC.md §8.7` |
-| 680 | 실시간 연결은 접근 토큰 만료 60초 전에 두 번째 연결로 갈아탄다(재발급 → 새 토큰으로 두 번째 연결 → 구독 이전 → 확인 대기 → 옛 연결 종료) · 연결 상태는 `connected` 그대로 · 재발급·새 연결 실패 시 옛 연결을 두고 기존 `TOKEN_EXPIRED` 경로 · 웹·Flutter 공용 클라이언트 둘 다(`Ruling 618` C-14 이행) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/API_SPEC.md §7.2` |
-| 681 | 갈아타기의 구독 확인 = 새 연결에 구독을 모두 건 뒤 거부 신호(`ERROR`·닫힘) 없이 1.5초(서버가 SUBSCRIBE 의 `RECEIPT` 를 보내지 않음 — 2026-10-01 실측) · 만료 시각 = 토큰 `exp` 클레임(로그인·재발급 응답에 만료 필드 없음 — 서버 변경 없음) · 갈아타기 간격 하한 5초 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/API_SPEC.md §7.2` |
-| 682 | 갈아타는 동안의 중복 방송 제거 = (구독 + 원문 본문)이 같으면 한 번만 전달 · 옛 연결을 닫은 뒤 5초 더 유지(방송 본문에 고유 식별자가 없고 STOMP `message-id` 는 세션마다 따로 붙음) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/API_SPEC.md §7.2` |
-| 690 | Tomcat `max-connections` 명시 — prod·demo 4,000 · staging 1,000 · local·load 는 기본 8,192 유지(부하 측정이 한계를 재야 함). 설정 시험이 값과 "local·load 에 상한 없음" 고정 | 본문 §8.89 · `docs/infra/DEPLOYMENT.md §11.7` |
-| 691 | `StompSessionsNearCap` 경보 — `schoolbus_stomp_sessions{job="backend"} > 3000`(상한 75%) 5분 유지 · 경고 · 임계 = prod 상한 × 3/4 관계를 `OpsSettingsGuardTest` 가 고정 | 본문 §8.89 · `docs/infra/DEPLOYMENT.md §11.2` |
-| 692 | 문서 정본 위치 — 운영 쪽(상한 값·근거·도달 동작·경보 대응)과 설계 쪽(세션이 서버 메모리에 남기는 것)을 가름 | 본문 §8.89 · `docs/infra/DEPLOYMENT.md §11.7` · `docs/ARCHITECTURE.md §10.4` |
-| 693 | 유령 세션 방지 — 클라이언트가 `app.ws.idle-timeout-ms`(60초 · yml 공통) 동안 프레임을 하나도 안 보낸 WebSocket 세션을 서버가 닫음(Tomcat 읽기 전용 유휴 속성). 표준 `maxSessionIdleTimeout`·`heart-beat:0` 거부는 버림 | 본문 §8.89 · `docs/ARCHITECTURE.md §10.4` |
-| 694 | 세션 정리 4경로(정상 종료 · 하트비트 30초 · 유휴 60초 · `CONNECT` 없음)를 실서버 시험 2개가 고정 · 정리 시간은 연결 규약 표의 서버 정리 행(미실측 → 실측) · "첫 메시지 60초" 점검은 새 연결 때만이라는 정정 | 본문 §8.89 · `docs/API_SPEC.md §7.2` |
-| 700 | 관계자 웹 경보음 삭제 — 소리(`AudioContext` 발신음)만 없애고 탭 제목 · 브라우저 알림 · 화면 띠는 유지 · 머리줄 토글 `[알림음]` → `[브라우저 알림]` · 저장 키 그대로 · 누수 K-5 해소 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` · `docs/USER_FLOWS.md`(비상 알림 수신 절) |
-| 701 | 끝나지 않은 이동 중 회차 처리 범위 — 근접 판정 · 위치 유실 집계 · 노선 잠금이 운행일 **어제 이후**(오늘 − 1일 · 자정 넘김 운행 고려)의 `moving` 회차만 처리 · `status` 를 JPQL 리터럴로 고정해 부분 인덱스 사용(14.6만 행 20.7ms → 0.033ms) · 자동 종료는 하지 않음 | 본문 §8.90 · `docs/ARCHITECTURE.md §9.6` |
-| 702 | `StaleMovingRun` — 운행일이 어제보다 이른 `moving` 회차 수 게이지 `schoolbus_run_moving_stale`(10분 주기) + 경보(`> 0` 30분 유지 · 경고) · 처리 절차는 DB 직접 갱신(관리자 경로 부재) | 본문 §8.90 · `docs/infra/DEPLOYMENT.md §11.2` |
-| 703 | 영구 실패 확정 재시도 간격 `30초 × 2^(실패−1)` 최대 10분(`run.confirm_retry_at` — 실행 시각 · 판정 시각 `confirm_at` 과 별개) · 설정 오류는 스택 없이 한 줄 · 노선 편성·수정·승하차지 저장과 학원 좌표 저장이 그 학원 실패 이력을 지움 | 본문 §8.90 · `docs/ERD.md` `run` · `docs/ARCHITECTURE.md §9.4` |
-| 704 | 학생 사진 응답을 파일 스트림(`Resource`)으로 · `Cache-Control: private, max-age=86400` + 파일명 `ETag` · `If-None-Match` 일치 시 304(접근 확인 뒤) | 본문 §8.90 · `docs/API_SPEC.md §5.11.1` |
-| 705 | 업로드 사진을 긴 변 512px 로 축소(`ImageIO` · 새 의존성 0) — 못 읽는 형식·이미 작음·4천만 화소 초과(압축 폭탄 방어)·거울상 EXIF 는 원본 · EXIF 회전 3·6·8 은 돌려서 축소 · 기존 저장 파일은 그대로 | 본문 §8.90 · `docs/API_SPEC.md §5.11.1` |
+| 677 | `ErrorCode` 열거 ↔ 에러 코드 사전 양방향 일치 시험 · `SERVER_BUSY` 행 등재 | 본문 §8.88 · `docs/planning/API_SPEC.md §8.7` |
+| 680 | 실시간 연결은 접근 토큰 만료 60초 전에 두 번째 연결로 갈아탄다(재발급 → 새 토큰으로 두 번째 연결 → 구독 이전 → 확인 대기 → 옛 연결 종료) · 연결 상태는 `connected` 그대로 · 재발급·새 연결 실패 시 옛 연결을 두고 기존 `TOKEN_EXPIRED` 경로 · 웹·Flutter 공용 클라이언트 둘 다(`Ruling 618` C-14 이행) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
+| 681 | 갈아타기의 구독 확인 = 새 연결에 구독을 모두 건 뒤 거부 신호(`ERROR`·닫힘) 없이 1.5초(서버가 SUBSCRIBE 의 `RECEIPT` 를 보내지 않음 — 2026-10-01 실측) · 만료 시각 = 토큰 `exp` 클레임(로그인·재발급 응답에 만료 필드 없음 — 서버 변경 없음) · 갈아타기 간격 하한 5초 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
+| 682 | 갈아타는 동안의 중복 방송 제거 = (구독 + 원문 본문)이 같으면 한 번만 전달 · 옛 연결을 닫은 뒤 5초 더 유지(방송 본문에 고유 식별자가 없고 STOMP `message-id` 는 세션마다 따로 붙음) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
+| 690 | Tomcat `max-connections` 명시 — prod·demo 4,000 · staging 1,000 · local·load 는 기본 8,192 유지(부하 측정이 한계를 재야 함). 설정 시험이 값과 "local·load 에 상한 없음" 고정 | 본문 §8.89 · `docs/backend/infra/DEPLOYMENT.md §11.7` |
+| 691 | `StompSessionsNearCap` 경보 — `schoolbus_stomp_sessions{job="backend"} > 3000`(상한 75%) 5분 유지 · 경고 · 임계 = prod 상한 × 3/4 관계를 `OpsSettingsGuardTest` 가 고정 | 본문 §8.89 · `docs/backend/infra/DEPLOYMENT.md §11.2` |
+| 692 | 문서 정본 위치 — 운영 쪽(상한 값·근거·도달 동작·경보 대응)과 설계 쪽(세션이 서버 메모리에 남기는 것)을 가름 | 본문 §8.89 · `docs/backend/infra/DEPLOYMENT.md §11.7` · `docs/backend/ARCHITECTURE.md §10.4` |
+| 693 | 유령 세션 방지 — 클라이언트가 `app.ws.idle-timeout-ms`(60초 · yml 공통) 동안 프레임을 하나도 안 보낸 WebSocket 세션을 서버가 닫음(Tomcat 읽기 전용 유휴 속성). 표준 `maxSessionIdleTimeout`·`heart-beat:0` 거부는 버림 | 본문 §8.89 · `docs/backend/ARCHITECTURE.md §10.4` |
+| 694 | 세션 정리 4경로(정상 종료 · 하트비트 30초 · 유휴 60초 · `CONNECT` 없음)를 실서버 시험 2개가 고정 · 정리 시간은 연결 규약 표의 서버 정리 행(미실측 → 실측) · "첫 메시지 60초" 점검은 새 연결 때만이라는 정정 | 본문 §8.89 · `docs/planning/API_SPEC.md §7.2` |
+| 700 | 관계자 웹 경보음 삭제 — 소리(`AudioContext` 발신음)만 없애고 탭 제목 · 브라우저 알림 · 화면 띠는 유지 · 머리줄 토글 `[알림음]` → `[브라우저 알림]` · 저장 키 그대로 · 누수 K-5 해소 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` · `docs/planning/USER_FLOWS.md`(비상 알림 수신 절) |
+| 701 | 끝나지 않은 이동 중 회차 처리 범위 — 근접 판정 · 위치 유실 집계 · 노선 잠금이 운행일 **어제 이후**(오늘 − 1일 · 자정 넘김 운행 고려)의 `moving` 회차만 처리 · `status` 를 JPQL 리터럴로 고정해 부분 인덱스 사용(14.6만 행 20.7ms → 0.033ms) · 자동 종료는 하지 않음 | 본문 §8.90 · `docs/backend/ARCHITECTURE.md §9.6` |
+| 702 | `StaleMovingRun` — 운행일이 어제보다 이른 `moving` 회차 수 게이지 `schoolbus_run_moving_stale`(10분 주기) + 경보(`> 0` 30분 유지 · 경고) · 처리 절차는 DB 직접 갱신(관리자 경로 부재) | 본문 §8.90 · `docs/backend/infra/DEPLOYMENT.md §11.2` |
+| 703 | 영구 실패 확정 재시도 간격 `30초 × 2^(실패−1)` 최대 10분(`run.confirm_retry_at` — 실행 시각 · 판정 시각 `confirm_at` 과 별개) · 설정 오류는 스택 없이 한 줄 · 노선 편성·수정·승하차지 저장과 학원 좌표 저장이 그 학원 실패 이력을 지움 | 본문 §8.90 · `docs/backend/ERD.md` `run` · `docs/backend/ARCHITECTURE.md §9.4` |
+| 704 | 학생 사진 응답을 파일 스트림(`Resource`)으로 · `Cache-Control: private, max-age=86400` + 파일명 `ETag` · `If-None-Match` 일치 시 304(접근 확인 뒤) | 본문 §8.90 · `docs/planning/API_SPEC.md §5.11.1` |
+| 705 | 업로드 사진을 긴 변 512px 로 축소(`ImageIO` · 새 의존성 0) — 못 읽는 형식·이미 작음·4천만 화소 초과(압축 폭탄 방어)·거울상 EXIF 는 원본 · EXIF 회전 3·6·8 은 돌려서 축소 · 기존 저장 파일은 그대로 | 본문 §8.90 · `docs/planning/API_SPEC.md §5.11.1` |
 | 710 | 매니저 앱 위치 스트림이 오류·종료되면 구독을 비우고 `_recheck()` 로 권한·서비스를 다시 확인해 재시작(K-4) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
 | 711 | `@stomp/stompjs` 하트비트 워커 Blob URL 미해제(K-7)는 그대로 둠 — 설치본·최신 베타 모두 같은 코드 · 141바이트/연결 · 우회 패치 금지 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
 | 712 | 지도 정리에서 지도 인스턴스 `destroy()` 호출(K-6) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
@@ -1189,7 +1189,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 720 | GitHub CI(UTC·Linux)에서만 난 웹 3건 판정 — 화면 시각은 PC 시간대와 무관하게 서울 기준(서버 응답이 오프셋을 포함한 ISO-8601)이라 제품 결함 아님 · `ChangeApprovalDetail` 시험 2건은 기대값을 PC 시간대로 계산한 시험 결함 → 서울 시각 리터럴로 · `formatClockTime`·`formatClockTimeWithSeconds` 가 오프셋 없는 `YYYY-MM-DDTHH:mm[:ss[.fff]]` 를 `formatDateTime` 처럼 서울 벽시계(`+09:00`)로 읽게 | 본문 §8.91 |
 | 721 | `RefreshTokenRepositoryTest` 3건 — Linux `OffsetDateTime.now()` 는 나노초 · macOS 는 마이크로초 · `timestamptz` 는 마이크로초라 저장 후 `isEqualTo` 가 CI 에서만 실패. 운영 쿼리는 시각 동치 비교가 없어 제품 결함 아님 → 시험 시각을 `truncatedTo(MICROS)` | 본문 §8.91 |
 | 722 | `FirstSystemAdminBootstrapTest`·`LoggingSmsSenderTest` — `-PciQuiet`(루트 로그 WARN)이 INFO 로그를 지워 로그를 검사하는 시험이 CI 에서만 실패. `-PciQuiet` 은 그대로 두고 두 시험이 **자기 로거의 INFO 를 직접 켜고 복원** | 본문 §8.91 |
-| 723 | 재발 방지 — `scripts/verify.sh` 가 웹·백엔드를 `TZ=UTC` 로 돌리고 백엔드에 `-PciQuiet` 도 줌(CI 와 같은 조건) · `clockTime.test.ts` 의 시간대 순회에 오프셋 없는 입력 추가 · macOS 는 나노초를 못 재현하므로 DB 왕복 시각은 시험에서 `truncatedTo(MICROS)` 를 붙이는 규칙을 `verify.sh` 머리말과 배포 문서의 CI 절에 기록 | 본문 §8.91 · `docs/infra/DEPLOYMENT.md §5.1` |
+| 723 | 재발 방지 — `scripts/verify.sh` 가 웹·백엔드를 `TZ=UTC` 로 돌리고 백엔드에 `-PciQuiet` 도 줌(CI 와 같은 조건) · `clockTime.test.ts` 의 시간대 순회에 오프셋 없는 입력 추가 · macOS 는 나노초를 못 재현하므로 DB 왕복 시각은 시험에서 `truncatedTo(MICROS)` 를 붙이는 규칙을 `verify.sh` 머리말과 배포 문서의 CI 절에 기록 | 본문 §8.91 · `docs/backend/infra/DEPLOYMENT.md §5.1` |
 | 724 | 운행일이 지난 `moving` 회차를 메인 관리자가 끝내는 API·화면(사용자 결정 1) | 본문 §8.95 · 구현 §8.92 |
 | 725 | vitest 5.x(사용자 결정 2) | 본문 §8.95 · 구현 `docs/frontend/IMPLEMENTATION_PLAN §5.34` |
 | 726 | Dependabot PR 을 로컬에서 직접 올려 영역별 전체 검사로 판정(사용자 결정 3) | 본문 §8.95 |
@@ -1201,14 +1201,14 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 732 | 일반 종료 후속 중 따르지 않는 것 — `RunEndedEvent`(알림 + `run_ended` 방송을 함께 일으킴) · 정차지 강제 출발 · 탑승자 하차 처리. 새 에러 코드 `RUN_NOT_STALE`(409) 1개, 이동 중 아님·취소는 기존 `RUN_NOT_MOVING`·`RUN_CANCELED` 재사용, 성공 응답 `200` | 본문 §8.92 · `API_SPEC §8` |
 | 733 | 관계자 웹 메인 관리자 콘솔 "끝나지 않은 회차" 화면 — 성공하면 대화상자를 닫고 행 제거 + 저장 알림(강제 확정처럼 결과 화면을 따로 두지 않음) · 학원 선택 필터 없음(서버가 전 학원 목록) | `docs/frontend/IMPLEMENTATION_PLAN.md` 에 별도 절 없음 — 본문 §8.92 |
 | 734 | 권한 상수 "33종" 표기는 낡은 값 — 직접 세어 코드 상수 35 · 표 35행(이번 추가분 포함)으로 정정(정본 `FEATURE_SPEC` 의 권한 카탈로그 절) | 본문 §8.92 |
-| 740 | 관리 포트 분리(R46 누수 검토 R-3) — prod·demo·staging 은 `management.server.port: 8081` 로 헬스·지표를 앱 커넥터(동시 연결 상한 `Ruling 690`)와 따로 연다 · 컨테이너 헬스체크·배포 스모크·Prometheus 스크레이프는 관리 포트 · 외부 감시 `/healthz` 는 헬스 그룹 `external` 로 **앱 포트**에 유지(상한 도달을 감시가 실패로 봄) · 호스트·nginx 에 관리 포트 미공개 · `Http5xxRatioHigh` 제외 목록에 `/healthz` 추가 | 본문 §8.93 · `docs/infra/DEPLOYMENT.md §11.8` |
-| 742 | `refresh_token` 크기·정리 시간(R-4) — 정리 시간은 스프링 기본 지표로 이미 보여 문서만, 크기는 안 보여 게이지 `schoolbus_refresh_token_rows` 1개(정리 직후 `count(*)` · 하루 1회) | 본문 §8.93 · `docs/infra/DEPLOYMENT.md §11.9` |
+| 740 | 관리 포트 분리(R46 누수 검토 R-3) — prod·demo·staging 은 `management.server.port: 8081` 로 헬스·지표를 앱 커넥터(동시 연결 상한 `Ruling 690`)와 따로 연다 · 컨테이너 헬스체크·배포 스모크·Prometheus 스크레이프는 관리 포트 · 외부 감시 `/healthz` 는 헬스 그룹 `external` 로 **앱 포트**에 유지(상한 도달을 감시가 실패로 봄) · 호스트·nginx 에 관리 포트 미공개 · `Http5xxRatioHigh` 제외 목록에 `/healthz` 추가 | 본문 §8.93 · `docs/backend/infra/DEPLOYMENT.md §11.8` |
+| 742 | `refresh_token` 크기·정리 시간(R-4) — 정리 시간은 스프링 기본 지표로 이미 보여 문서만, 크기는 안 보여 게이지 `schoolbus_refresh_token_rows` 1개(정리 직후 `count(*)` · 하루 1회) | 본문 §8.93 · `docs/backend/infra/DEPLOYMENT.md §11.9` |
 | 743 | `AccountRecoveryFlowTest` 로그 검사의 공허 통과 — 이 흐름에는 켤 INFO 로그가 원래 없어 가짜 발송기가 실제 `LoggingSmsSender` 에도 넘기고 그 로거만 INFO 로 켬 · 검사 전 "로그가 비어 있지 않다" 확인 | 본문 §8.93 |
-| 744 | 비상 목록(`§5.16`·`§6.11`)에 `occurred_at`(단말 기록 시각 · 참고값) 추가 — `Ruling 236` 의 "미노출" 을 이 필드에 한해 갱신 · 정렬·판정·취소 창·경과 초는 접수 시각 그대로 · 웹은 두 시각이 60초를 넘게 다를 때만 "단말 기록 HH:mm(참고)" | 본문 §8.93 · `docs/API_SPEC.md §5.16` |
-| 745 | WebP 업로드도 긴 변 512px 로 줄임 — 읽기 전용 디코더 `imageio-webp 3.15.2` 한 줄 · 결과는 JPEG(투명 배경이면 PNG) · 관계자 웹이 WebP 를 올릴 수 있어 허용 형식에서 빼지 않음 | 본문 §8.93 · `docs/API_SPEC.md §5.11` |
+| 744 | 비상 목록(`§5.16`·`§6.11`)에 `occurred_at`(단말 기록 시각 · 참고값) 추가 — `Ruling 236` 의 "미노출" 을 이 필드에 한해 갱신 · 정렬·판정·취소 창·경과 초는 접수 시각 그대로 · 웹은 두 시각이 60초를 넘게 다를 때만 "단말 기록 HH:mm(참고)" | 본문 §8.93 · `docs/planning/API_SPEC.md §5.16` |
+| 745 | WebP 업로드도 긴 변 512px 로 줄임 — 읽기 전용 디코더 `imageio-webp 3.15.2` 한 줄 · 결과는 JPEG(투명 배경이면 PNG) · 관계자 웹이 WebP 를 올릴 수 있어 허용 형식에서 빼지 않음 | 본문 §8.93 · `docs/planning/API_SPEC.md §5.11` |
 | 750 | 웹 실시간 클라이언트 `connect()` 가 연결 중·연결됨이면 무시(Dart 와 같은 가드) · `doConnect` 가 번호표를 올린 직후 쥐고 있던 연결을 `deactivate` — 재발급 대기 중 `connect()` 가 만든 연결이 덮여 고아가 되던 것(R-1) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
 | 751 | 갈아타는 두 번째 연결을 버릴 때 서버에 소켓이 남는다는 지적(R-2)은 Chrome 에서 재현 안 됨(지연 중계기 · 소켓 12개 전부 닫힘) → 코드 미변경 · `discardWebsocketOnCommFailure` 는 `deactivate()` 와 무관(stompjs 7.3.0) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
-| 752 | `vitest` 3.2.7 → 5.0.3 · `@types/node` 20 → 22 계열(peer) · 지도 시험의 `new` 가짜 클래스를 화살표 함수에서 `function` 으로(vitest 4 부터 `Reflect.construct`) · `npm audit` 2건 → 0건 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` · `docs/frontend/CONVENTIONS_REACT.md` 시험 절 |
+| 752 | `vitest` 3.2.7 → 5.0.3 · `@types/node` 20 → 22 계열(peer) · 지도 시험의 `new` 가짜 클래스를 화살표 함수에서 `function` 으로(vitest 4 부터 `Reflect.construct`) · `npm audit` 2건 → 0건 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` · `docs/frontend/web/CONVENTIONS_REACT.md` 시험 절 |
 | 753 | 웹 의존성 묶음 `#11` 12개 판정 — 9 채택 · `@types/node` 는 22 계열 · `eslint` 10 · `typescript` 7 거절(둘 다 lint 종료 2 — `eslint-plugin-react` 의 제거된 API · `typescript-eslint` 의 TS 7 미지원) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
 | 754 | `#2` brace-expansion 은 잠금 파일이 이미 1.1.21 이라 해당 없음 · `vitest.config.ts` → `.mts` + `import.meta.dirname`(vite 8 의 native 설정 로더 경고) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
 | 760 | Dependabot #7(gradle 9건) — Spring Boot 4.1.1 · jjwt 0.13.0 · springdoc 3.1.1 · shedlock 7.10.1(주 버전 · 코드 변경 0) · Gradle 9.8.0 채택. **resilience4j 는 PR 값(`-spring-boot3` 2.4.0) 거절** — 2.4.0 부터 이 아티팩트가 Spring Boot 4 기동을 거부(`IncompatibleSpringBootVersionException`)해 같은 2.4.0 의 `resilience4j-spring-boot4` 로 교체 | 본문 §8.94 |
@@ -1395,7 +1395,7 @@ R46 운영(`IMPLEMENTATION_PLAN §8.76`) 위에 사용자 결정(`Ruling 480`·`
 | # | 완료 조건 | 확인 수단 |
 |:-:|---|---|
 | 1 | 운영 compose·nginx 에 웹 컨테이너 0 · CORS·WS 출처 절차 · 교차 출처 인증 판정 | `DeploymentConfigGuardTest.prodServesNoWebFrontend` · `CorsCredentialsTest` · `DeployScriptGuardTest` 출처 3건 · 로컬 `:8400` 실측 |
-| 2 | 백업 매시 · 스냅샷 · 복구 절차 · 백업 실패 감지 · 문서 모순 0 | `BackupScriptGuardTest` 7 · `promtool test rules` · `grep 'RPO\|24시간\|PITR' docs/TECH_DECISIONS.md docs/infra/DEPLOYMENT.md` · 로컬 복원 실행 |
+| 2 | 백업 매시 · 스냅샷 · 복구 절차 · 백업 실패 감지 · 문서 모순 0 | `BackupScriptGuardTest` 7 · `promtool test rules` · `grep 'RPO\|24시간\|PITR' docs/backend/TECH_DECISIONS.md docs/backend/infra/DEPLOYMENT.md` · 로컬 복원 실행 |
 | 3 | Alertmanager 텔레그램·이메일 수신자 자리 · 값 없으면 비활성으로 기동 | `AlertmanagerRenderGuardTest` 12 · `amtool check-config` · 로컬 `-p r46ops2` 기동 |
 | 4 | 고친 시험 · 전체를 세는 시험 실패 0 | 결과 XML |
 | 5 | 사용자가 준비할 것 목록 | 보고 2항 |
@@ -1413,7 +1413,7 @@ R46 운영(`IMPLEMENTATION_PLAN §8.76`) 위에 사용자 결정(`Ruling 480`·`
 | Ruling | 판정 | 근거 |
 |:-:|---|---|
 | **510** | **푸시 클라이언트 자리(앱 2종).** 토큰 공급자 포트 `PushTokenSource`(`baraeda_core`) + 기본 구현 `PlaceholderPushTokenSource`(기기별 자리표시 토큰 `placeholder-<기기 식별자>`)를 둔다. **Firebase SDK(`firebase_messaging`)는 이번에 넣지 않는다** — `google-services.json` · `GoogleService-Info.plist` · 네이티브 빌드 설정을 계정 없이 검증할 수 없고, 의존성만 먼저 넣으면 검증 없이 최소 iOS 버전·Gradle 구성을 바꾼다. 구현체 스케치와 교체 지점은 `DEPLOYMENT §14`. **로그인 성공 직후 `AuthApi.login` 이 `POST /me/devices` 를 부른다**(자동 로그인은 `GET /me` 직후 · 같은 토큰은 한 번만) — 실패해도 로그인은 성공하고 다음 `/me` 가 다시 시도. **로그아웃은 `device_id` 를 싣는다**(`§2.7` — 서버가 그 기기 토큰 해지). 학부모·학생 앱 설정 스위치로 끈 기기는 저장해 다음 로그인·앱 실행이 다시 켜지 않는다(매니저 앱은 끄기 수단 부재 — 알림 on/off 권한이 없다). **버린 길** — 기본 공급자가 토큰을 주지 않는 방식(등록 생략): 로그인 뒤 등록 · 로그아웃 해지 서버 경로가 키 없는 스테이징에서 끝까지 도는지 볼 수 없고 설정 스위치가 시험 불가가 된다. 서버는 FCM 이 거부하는 자리표시 토큰의 행을 해지하므로(`Ruling 331`) 해가 없다 | 조사 `A #1` · `C #14` · `fe-rounds` §5.x "FCM 실토큰 등록" 이월 |
-| **511** | **관계자 웹 브라우저 푸시와 이메일 발송은 사양에 없어 만들지 않는다.** 웹 푸시 — 단말 등록(NTF-12)의 흐름은 앱 진입(`UF-X-09`)뿐이고, 관계자 웹의 비상 알림 수신(A-16)은 열린 화면의 실시간 수신 + 탭 제목 건수 + 사용자가 켠 브라우저 알림(`R46-WEB`, 프론트 `Ruling 420~422` · 소리는 `Ruling 700` 으로 삭제)으로 이미 정의돼 있다. 서버 `platform=web` 값은 CHECK 에 있으나 호출하는 기능이 없다 — 웹 푸시를 사양에 넣기로 정할 때(서비스 워커 · VAPID · 탭이 닫힌 뒤 수신) 별도 `Ruling`. 이메일 — 사양 4종 · 설계 문서에 이메일을 보내는 기능이 없다(`email` 은 프로필 필드뿐, `API_SPEC §6`·`§5`). 발송 포트를 만들지 않는다(YAGNI). 장애 경보 이메일은 Alertmanager(`Ruling 480`, 운영 갈래) 몫 | `grep -rIln 'serviceWorker\|firebase' frontend/apps/academy-web/src` 0건 · `grep -n '이메일\|email' docs/FEATURE_SPEC.md docs/PRD.md docs/USER_FLOWS.md` 에 발송 기능 0건 |
+| **511** | **관계자 웹 브라우저 푸시와 이메일 발송은 사양에 없어 만들지 않는다.** 웹 푸시 — 단말 등록(NTF-12)의 흐름은 앱 진입(`UF-X-09`)뿐이고, 관계자 웹의 비상 알림 수신(A-16)은 열린 화면의 실시간 수신 + 탭 제목 건수 + 사용자가 켠 브라우저 알림(`R46-WEB`, 프론트 `Ruling 420~422` · 소리는 `Ruling 700` 으로 삭제)으로 이미 정의돼 있다. 서버 `platform=web` 값은 CHECK 에 있으나 호출하는 기능이 없다 — 웹 푸시를 사양에 넣기로 정할 때(서비스 워커 · VAPID · 탭이 닫힌 뒤 수신) 별도 `Ruling`. 이메일 — 사양 4종 · 설계 문서에 이메일을 보내는 기능이 없다(`email` 은 프로필 필드뿐, `API_SPEC §6`·`§5`). 발송 포트를 만들지 않는다(YAGNI). 장애 경보 이메일은 Alertmanager(`Ruling 480`, 운영 갈래) 몫 | `grep -rIln 'serviceWorker\|firebase' frontend/apps/academy-web/src` 0건 · `grep -n '이메일\|email' docs/planning/FEATURE_SPEC.md docs/planning/PRD.md docs/planning/USER_FLOWS.md` 에 발송 기능 0건 |
 | **512** | **문자 발송 포트 `SmsSender`(`global/sms/spec`).** 구현 선택은 `app.sms.sender` 한 곳 — **값이 없으면 어떤 구현도 뜨지 않고** 전화번호 복구는 `503 RECOVERY_UNAVAILABLE` 그대로(`Ruling 329`). `logging` 은 개발용 `LoggingSmsSender`(번호 끝 4자리 · 본문 길이만 로그 · prod 에서 기동 실패). 값이 없을 때 로그 구현이 기본으로 뜨지 않는 이유는 `PushSender`(기본 로그)와 다르다 — 문자가 아무에게도 가지 않는데 복구가 열려 있으면 정상 사용자는 불능이고 공격자에겐 대입 경로가 된다(`Ruling 329` 와 같은 근거). **`notification/` 이 아니라 `global/` 에 둔 이유** — `NotificationModuleIsolationTest`(규칙 17: 다른 모듈은 `notification` 을 직접 부르지 않는다)가 막고, 복구는 발송 실패가 요청 트랜잭션을 되돌려야 하는 동기 호출이라 이벤트 구독 구조와 맞지 않는다. 업체 구현체는 업체가 정해진 뒤(`DEPLOYMENT §14`) | 시험 `LoggingSmsSenderTest` · `AuthControllerTest` 의 503 시험(발송기 없을 때) |
 | **513** | **전화번호 복구 재개 값(`API_SPEC §2.9` 재개 조건의 구현).** 코드 6자리 · 유효 5분 · 같은 번호 발급 60초 1회 · 24시간 5회(번호 기준 · `type` 무관 · `verification_code` 행 수) · 대조 5회(조건부 UPDATE, 틀려 `403` 이어도 횟수는 커밋) · 초과 `429 RECOVERY_RATE_LIMITED` 신설 · **임시 비밀번호·아이디는 문자로만**(응답 본문 부재) · 비밀번호 교체와 동시에 refresh 토큰 전량 무효화 · 문자 발송이 트랜잭션 마지막이라 실패하면 코드 발급·비밀번호 교체가 되돌려짐. **대상은 학부모·학생·기사·동승자** — 관계자·메인 관리자는 문자 한 통(SIM 탈취)으로 학원 전체 권한을 얻게 되므로 제외하고 메인 관리자 경로(`§6.7`)로 둔다(미등록 번호와 같은 `404`). 같은 번호 계정이 여럿이면 전부 초기화하고 한 통에 아이디별로 적는다. `phone` 입력은 20자 이하 — `verification_code.phone` 컬럼이 20자라 넘기면 코드 행 저장에서 500. **알려진 한계(사용자 판단 몫)** — 발급 때 미등록 번호가 `404` 라 번호의 가입 여부가 드러난다(`API_SPEC §2.9` 사양 그대로). 발송기를 켜기 전에 이 노출을 받아들일지 정한다 | 시험 `AccountRecoveryFlowTest` 9건 · 결함 심기 7종 |
 
@@ -1703,7 +1703,7 @@ R46 검토 `stab`(경보 · 로그 드라이버 · OOM · 종료 대기) · `idx
 |:-:|---|---|
 | **690** | **Tomcat `server.tomcat.max-connections` 명시** — prod·demo **4,000** · staging **1,000** · local·load 는 기본 8,192 유지(`application.yml`). `TomcatThreadPoolConfigTest` 가 세 프로파일의 값과 "공통·local·load 문서에는 상한 없음" 을 고정 | 09-09 표(500세션 339MB · 6,000세션 1,063MB)의 기울기 약 0.13MB/세션 · 기준 힙 약 274MB · 송신 버퍼 상한 64KB. 기본 8,192 의 최악 힙 ≈ 274 + (0.13 + 0.0625) × 8,192 ≈ **1.85GB** 로 운영 힙(컨테이너 3,072MB × 70% ≈ 2.15GB)의 86%, 4,000 은 ≈ **1.05GB**(49%). 4,000 은 목표 동시 세션 2,000 의 2배. 상한에 닿으면 OOM 이 아니라 새 연결이 거절된다(Tomcat 11.0.22 소스 확인 — 아래). local·load 에 두지 않는 이유는 부하 측정이 한계를 재야 해서 |
 | **691** | **`StompSessionsNearCap` 경보** — `schoolbus_stomp_sessions{job="backend"} > 3000` 이 5분 유지 · 경고 · `schoolbus-availability` 그룹. 임계 = prod 상한 × 3/4 관계를 `OpsSettingsGuardTest` 가 고정(상한만 바꾸면 실패) | 상한에 닿은 뒤에는 서버가 거절을 기록하지 않으므로(앱이 그 연결을 본 적이 없음) 4분의 1 이 남았을 때 알린다. `for` 5분은 서버 재시작 뒤 클라이언트가 한꺼번에 다시 붙는 순간 몰림을 거른다. `job="backend"` 는 이 그룹의 약속(부하 시험은 상한을 일부러 넘겨 한계를 잼). 지표 이름은 `StompSessionMetrics` 의 `schoolbus.stomp.sessions` 게이지이고 `MetricsExposureTest` 가 `/actuator/prometheus` 에서 `schoolbus_stomp_sessions` 를 확인 |
-| **692** | **문서 정본 위치** — 값·근거·도달 동작·경보 대응은 `docs/infra/DEPLOYMENT.md §11.7`, 세션이 서버 메모리에 남기는 것은 `docs/ARCHITECTURE.md §10.4`. 경보 표 행은 `DEPLOYMENT` 의 경보 규칙 절 | 운영자가 보는 것(값·울렸을 때 판단)과 설계가 서술하는 것(세션 상태·메모리 비용)을 가른다. 기존 `DEPLOYMENT` 에는 운영 값을 모은 표가 없어 새 절이 그 표를 겸함 |
+| **692** | **문서 정본 위치** — 값·근거·도달 동작·경보 대응은 `docs/backend/infra/DEPLOYMENT.md §11.7`, 세션이 서버 메모리에 남기는 것은 `docs/backend/ARCHITECTURE.md §10.4`. 경보 표 행은 `DEPLOYMENT` 의 경보 규칙 절 | 운영자가 보는 것(값·울렸을 때 판단)과 설계가 서술하는 것(세션 상태·메모리 비용)을 가른다. 기존 `DEPLOYMENT` 에는 운영 값을 모은 표가 없어 새 절이 그 표를 겸함 |
 
 **상한에 닿으면 (Tomcat 11.0.22 소스 `Acceptor` · `AbstractEndpoint` · `SocketWrapperBase` · `AbstractProtocol` 확인)** — ①`Acceptor` 가 소켓을 받기 전에 `countUpOrAwaitConnection` 에서 멈춘다 ②받지 못한 연결은 OS 의 TCP 대기열(`accept-count` 100)에 쌓이고 그것도 차면 OS 가 거절하거나 응답하지 않는다(클라이언트는 연결 거부 또는 시간 초과) ③이미 맺어진 연결은 영향 없음 · 자리가 나면 대기 중이던 연결부터 받음 ④**WebSocket 도 같은 수에 든다** — 업그레이드는 같은 소켓을 그대로 쓰고(`upgradeProtocol.getProcessor(wrapper, …)`) 수는 소켓이 닫힐 때(`SocketWrapperBase.close`)만 줄어든다 ⑤nginx 는 backend 로 요청마다 연결을 닫아(`keepalive` 없음) 연결 수 ≈ 세션 수 + 진행 중 HTTP 요청.
 
@@ -1718,7 +1718,7 @@ R46 검토 `stab`(경보 · 로그 드라이버 · OOM · 종료 대기) · `idx
 
 **재현되지 않았거나 지시와 다르게 판단한 것** — ①지시서 2항 "WebSocket 업그레이드 연결이 상한에 포함되는가" 는 소스로 **포함** 확정 ②09-09 측정 보고서의 필요 서버 사양 절은 "`max-connections` 기본 8,192 유지" 라 했다 — 그 시점 기록(무시 파일)이라 고치지 않고 이 판정이 뒤집는다 ③경보 임계 3,000 은 세션 수 기준이라 실제 연결 수(세션 + 진행 중 HTTP)가 상한에 닿는 지점은 그보다 조금 이르다(요청 스레드 100 이하) — 허용한 오차 ④**결함 심기 중 실수 1건** — 원복 도우미가 빈 문자열 치환을 거부해 demo 상한 줄이 지워진 채 후속 4건이 돌았다. 지운 줄을 손으로 복구하고 `HEAD` 와 동일함을 확인한 뒤 5건을 다시 돌렸다(결과는 재실행값).
 
-**후속(이 갈래 밖)** — ①측정 기계(10코어)·무트래픽 세션 기준 수치라 4 vCPU 재측정 전까지 잠정(`Ruling 351` 과 같은 단서) · 힙 최대값은 G1 이 회수를 미룬 쓰레기를 포함해 보수적 ②스테이징에는 Prometheus·Alertmanager 가 없어 `StompSessionsNearCap` 이 울리지 않는다(상한 1,000 만 적용) ③(해소 — 아래 후속 절) `DEPLOYMENT §11.2` 표에 `RunPositionPartitionStalled`(`ce46a424`)의 행이 없었다 ④수평 확장(WS 브로커 릴레이)을 하면 인스턴스마다 상한이 곱해지므로 `docs/ARCHITECTURE.md §9.5` 와 함께 값을 다시 계산한다.
+**후속(이 갈래 밖)** — ①측정 기계(10코어)·무트래픽 세션 기준 수치라 4 vCPU 재측정 전까지 잠정(`Ruling 351` 과 같은 단서) · 힙 최대값은 G1 이 회수를 미룬 쓰레기를 포함해 보수적 ②스테이징에는 Prometheus·Alertmanager 가 없어 `StompSessionsNearCap` 이 울리지 않는다(상한 1,000 만 적용) ③(해소 — 아래 후속 절) `DEPLOYMENT §11.2` 표에 `RunPositionPartitionStalled`(`ce46a424`)의 행이 없었다 ④수평 확장(WS 브로커 릴레이)을 하면 인스턴스마다 상한이 곱해지므로 `docs/backend/ARCHITECTURE.md §9.5` 와 함께 값을 다시 계산한다.
 
 ### R46-CONNCAP 후속 — 유령 세션 막기 (`Ruling 693` · `694`)
 

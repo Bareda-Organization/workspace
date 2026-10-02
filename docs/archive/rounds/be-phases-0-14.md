@@ -111,7 +111,7 @@
 
 ### 1.4 프론트엔드 처분 ➖ **범위 밖 · 저장소에서 삭제**
 
-⚠ **2026-09-10 사용자 결정으로 프론트엔드는 다시 범위 안이다 — Ruling 255 의 "프론트 영구 범위 밖" 을 뒤집었다.** 옛 `frontend/`(Flutter) 는 삭제한 그대로이고 지금의 `frontend/` 는 새로 만든 것이다(관계자 웹 Next.js · 앱 2종 Flutter). 작업 창구는 [`docs/frontend/IMPLEMENTATION_PLAN.md`](./frontend/IMPLEMENTATION_PLAN.md) 로 분리했고, 아래 Phase F1~F4 의 `➖` 는 옛 Flutter 계획에 대한 기록으로 그대로 둔다.
+⚠ **2026-09-10 사용자 결정으로 프론트엔드는 다시 범위 안이다 — Ruling 255 의 "프론트 영구 범위 밖" 을 뒤집었다.** 옛 `frontend/`(Flutter) 는 삭제한 그대로이고 지금의 `frontend/` 는 새로 만든 것이다(관계자 웹 Next.js · 앱 2종 Flutter). 작업 창구는 [`docs/frontend/IMPLEMENTATION_PLAN.md`](frontend/IMPLEMENTATION_PLAN.md) 로 분리했고, 아래 Phase F1~F4 의 `➖` 는 옛 Flutter 계획에 대한 기록으로 그대로 둔다.
 
 **2026-08-25 확정으로 착수 대상 밖 · 2026-09-04 Ruling 255 로 영구 범위 밖 · 2026-09-09 저장소에서 삭제.** `frontend/` 는 디스크·git 양쪽에 부재하며 프론트 배포 워크플로(`.github/workflows/deploy-web.yml`) · `docker-compose.yml` 의 `frontend` 서비스 · `infra/proxy/nginx.conf` 의 `/` 라우팅도 함께 제거. **이전 `main` 트리에 245파일이 그대로 보존**되므로 재개 시 `git show <이전 main 해시>:frontend/...` 로 꺼낸다.
 
@@ -957,7 +957,7 @@
 
 ### Phase F1~F4 — 프론트엔드 ➖ **범위 밖**
 
-⚠ **2026-09-10 사용자 결정으로 프론트엔드는 다시 범위 안이다 — Ruling 255 의 "프론트 영구 범위 밖" 을 뒤집었다.** 옛 `frontend/`(Flutter) 는 삭제한 그대로이고 지금의 `frontend/` 는 새로 만든 것이다(관계자 웹 Next.js · 앱 2종 Flutter). 작업 창구는 [`docs/frontend/IMPLEMENTATION_PLAN.md`](./frontend/IMPLEMENTATION_PLAN.md) 로 분리했고, 아래 Phase F1~F4 의 `➖` 는 옛 Flutter 계획에 대한 기록으로 그대로 둔다.
+⚠ **2026-09-10 사용자 결정으로 프론트엔드는 다시 범위 안이다 — Ruling 255 의 "프론트 영구 범위 밖" 을 뒤집었다.** 옛 `frontend/`(Flutter) 는 삭제한 그대로이고 지금의 `frontend/` 는 새로 만든 것이다(관계자 웹 Next.js · 앱 2종 Flutter). 작업 창구는 [`docs/frontend/IMPLEMENTATION_PLAN.md`](frontend/IMPLEMENTATION_PLAN.md) 로 분리했고, 아래 Phase F1~F4 의 `➖` 는 옛 Flutter 계획에 대한 기록으로 그대로 둔다.
 
 **2026-08-25 사용자 확정으로 착수 대상에서 제외.** 순서상 뒤라서가 아니라 **앞으로의 작업 범위를 백엔드로 한정한다는 결정** 때문이며, 백엔드 Phase 14 가 끝나도 자동으로 착수되지 않는다. **2026-09-04 사용자 재확정(Ruling 255) — 프론트엔드와 법정 요건은 앞으로 계속 고려하지 않는다.** 아래 "다시 범위에 들어올 때" 표는 기록으로만 존치. 프론트 전용 에이전트 2개(`ui-implementer` · `design-system-auditor`)도 같은 결정으로 삭제됨. 이 절과 §1.4 프론트엔드 처분은 **삭제하지 않고 보존** — 사양의 프론트 요구는 그대로 유효하고, 다시 범위에 들어올 때 이 내용을 그대로 쓴다. 상태 갱신 대상은 백엔드 Phase 0~14 뿐이며 F1~F4 는 `➖` 로 고정.
 

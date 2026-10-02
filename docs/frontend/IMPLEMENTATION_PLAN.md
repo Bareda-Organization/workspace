@@ -9,12 +9,12 @@
 
 | 무엇 | 어디 |
 |---|---|
-| 기능 정의 · 공통 규칙 · 상태머신 | `docs/FEATURE_SPEC.md` |
-| 우선순위 P0~P2 · 확정 정책 | `docs/PRD.md` §6·§7 |
-| 화면 전이 · 예외 경로 | `docs/USER_FLOWS.md` |
-| 엔드포인트 계약 · 에러 코드 | `docs/API_SPEC.md` |
+| 기능 정의 · 공통 규칙 · 상태머신 | `docs/planning/FEATURE_SPEC.md` |
+| 우선순위 P0~P2 · 확정 정책 | `docs/planning/PRD.md` §6·§7 |
+| 화면 전이 · 예외 경로 | `docs/planning/USER_FLOWS.md` |
+| 엔드포인트 계약 · 에러 코드 | `docs/planning/API_SPEC.md` |
 | 디자인 토큰 · 컴포넌트 · 화면 킷 | `frontend/design-system/` |
-| 코드 컨벤션 (React 한정) | `docs/frontend/CONVENTIONS_REACT.md` |
+| 코드 컨벤션 (React 한정) | `docs/frontend/web/CONVENTIONS_REACT.md` |
 
 **어긋나면 `docs/` 가 기준.** 디자인 시스템은 구 기획 PDF·유저플로우 이미지에서 만들어졌고
 `docs/` 재작성(2026-08-24) 이후 갱신 부재 — §4 참조.
@@ -389,7 +389,7 @@ frontend/
 ### 5.21.1 판정
 
 - **`Ruling 490` — 요일 다중 등록은 서버 일괄 API 없이 웹이 요일마다 기존 `POST` 를 차례로 부른다.** 노선(`POST /staff/routes`)·스케줄(`POST /staff/schedules`) 등록 폼은 요일 체크박스 7개(`WeekdayPicker`)이고 고른 요일마다 1건씩 만든다. 한 요일이 실패해도 멈추지 않고(`runPerWeekday`) 결과를 요일별로 돌려받아 **"4개 요일은 저장됐고 1개 요일은 저장하지 못했습니다 — 목요일 — 같은 차량·요일·방향의 편성이 이미 있습니다"** 처럼 실패한 요일과 사유만 보이고, 실패한 요일만 선택된 채 남아 다시 저장하면 그 요일만 다시 시도한다. 일괄 API 를 두지 않은 이유 — 서버가 "전부 성공 또는 전부 취소" 를 고르면 한 요일의 중복 때문에 나머지 4건까지 막히고, 요일은 최대 7건이라 왕복 비용이 작다. **복사**(`RouteCopyDialog` · `ScheduleCopyDialog`)는 같은 호출을 원본 값으로 한다. 노선 복사는 원본의 정차 순서(`stop_ids`)를 그대로 잇는다 — 정차지는 요일 사이에 공유되는 승하차지 기록이라 새로 만들지 않는다. 수정 폼은 요일 하나 그대로.
-- **`Ruling 491` — 본인 비밀번호 변경은 헤더 버튼 + 대화상자, 강제 변경 표식은 만들지 않는다. → 강제 변경은 `Ruling 540`·`544` 로 해소(2026-10-01 R46-FUFEAT — 서버 표식 + 웹·앱 강제 이동). 헤더 버튼·대화상자는 그대로 남아 강제 화면이 같은 대화상자를 쓴다.** 관계자·메인 관리자 두 레이아웃 머리줄에 `[비밀번호 변경]`(`POST /auth/password`, `changePassword`). 새 비밀번호 한글 24자(72바이트)·확인 입력 일치를 서버 호출 전에 검사하고, 현재 비밀번호가 틀리면(`401 INVALID_CREDENTIALS`) 그 사유만 보이고 로그아웃하지 않는다. 성공하면 서버가 refresh 토큰을 전부 무효화하므로 **"다시 로그인" 안내 → 로그아웃**. 임시 비밀번호 강제 변경 표식(`must_change_password` 류)은 서버에 없다(`grep -rIli 'mustChange\|must_change\|password_change_required' backend/src/main docs/API_SPEC.md` 0건) — 로그인 직후 변경 화면으로 보내는 흐름은 **만들지 않았다**. 만들려면 계정 컬럼 · 초기화 때 켜기 · 변경 때 끄기 · 로그인·`/me` 응답 필드가 필요한 보안 기능이라 사용자 확인 뒤 별도 갈래로 둔다(후속 후보).
+- **`Ruling 491` — 본인 비밀번호 변경은 헤더 버튼 + 대화상자, 강제 변경 표식은 만들지 않는다. → 강제 변경은 `Ruling 540`·`544` 로 해소(2026-10-01 R46-FUFEAT — 서버 표식 + 웹·앱 강제 이동). 헤더 버튼·대화상자는 그대로 남아 강제 화면이 같은 대화상자를 쓴다.** 관계자·메인 관리자 두 레이아웃 머리줄에 `[비밀번호 변경]`(`POST /auth/password`, `changePassword`). 새 비밀번호 한글 24자(72바이트)·확인 입력 일치를 서버 호출 전에 검사하고, 현재 비밀번호가 틀리면(`401 INVALID_CREDENTIALS`) 그 사유만 보이고 로그아웃하지 않는다. 성공하면 서버가 refresh 토큰을 전부 무효화하므로 **"다시 로그인" 안내 → 로그아웃**. 임시 비밀번호 강제 변경 표식(`must_change_password` 류)은 서버에 없다(`grep -rIli 'mustChange\|must_change\|password_change_required' backend/src/main docs/planning/API_SPEC.md` 0건) — 로그인 직후 변경 화면으로 보내는 흐름은 **만들지 않았다**. 만들려면 계정 컬럼 · 초기화 때 켜기 · 변경 때 끄기 · 로그인·`/me` 응답 필드가 필요한 보안 기능이라 사용자 확인 뒤 별도 갈래로 둔다(후속 후보).
 - **`Ruling 492` — 노선 변경 확인 표시는 확정·운행 중 회차의 배치된 사람에게만 그린다.** 서버 `ack_driver`·`ack_escort` 는 "현재 확정 노선 버전을 확인했는가" 이고 노선이 없는 대기(idle) 회차는 늘 거짓이라 의미가 없으며, 끝난 회차는 확인을 재촉할 이유가 없다. 대시보드 표(기사·동승 매니저 칸)와 금일 운행 상세 현재 위치 카드에 `확인`(초록) · `미확인`(빨강) 뱃지(`RouteAckMark`).
 - **`Ruling 493` — 첫날 체크리스트는 새 `onboarding` 기능이 다섯 목록을 직접 읽는다.** 기능끼리 import 하지 않는 규칙 때문에 차량·매니저·학생(`size=1`, `total_count`)·노선·스케줄(`size=100`) 다섯 목록 엔드포인트를 이 기능의 `api` 가 직접 부른다. 순서 **차량 → 매니저 → 학생 → 노선 → 스케줄**, 각 단계 완료 시 `완료(N)`, 다섯 단계를 다 끝내면 사라진다. **노선 없는 스케줄 경고**는 단계를 다 끝낸 뒤에도 남는다 — 차량·요일·방향이 같은 **활성 노선이 없는 활성 스케줄** 수(앞 100건 기준). 조회가 실패하면 대시보드를 막지 않고 그리지 않는다(보조 안내). 실서버에서 DB 직접 집계와 일치 확인(2건).
 - **`Ruling 494` — 비상 대응 조치 메모는 이번에 만들지 않는다. → `Ruling 541`·`545` 로 해소(2026-10-01 R46-FUFEAT — 컬럼 1 + 확인 요청 선택 본문 + 상세 표시).** `emergency_alert` 에 조치 내용을 담을 컬럼이 없고(`acked_by`·`acked_at` 뿐) 자유 문장은 개인정보 검토가 필요한 새 입력이다. 대신 **연락처 `tel:` 링크 + 복사 버튼**(`PhoneContact`)과 **배너 문구**("[확인]은 알림을 봤다는 표시이지 조치를 마쳤다는 뜻이 아닙니다. 누르면 이 띠가 사라지고 다른 관계자 화면에서도 확인됨으로 바뀝니다")만 반영. 조치 메모는 후속 후보(컬럼 1개 + 확인 요청 본문 선택 필드 + 상세 표시).
@@ -414,7 +414,7 @@ frontend/
 
 ## 5.22 ⚖ `R46-INTEG` — 푸시 토큰 공급자 · 로그인 뒤 단말 등록 · 로그아웃 해지 (2026-10-01 · 분기점 `6b22d2b2` `mskim98/r46-integ` · 판정 `Ruling 510·511`)
 
-- **사용자 결정** — `Ruling 483`(외부 연동은 자리만) · 조사 `A #1` · `C #14`. 서버·문자 쪽 판정과 목표 표는 `docs/IMPLEMENTATION_PLAN.md §8.80`. 준비물 표는 `docs/infra/DEPLOYMENT.md §14`
+- **사용자 결정** — `Ruling 483`(외부 연동은 자리만) · 조사 `A #1` · `C #14`. 서버·문자 쪽 판정과 목표 표는 `docs/IMPLEMENTATION_PLAN.md §8.80`. 준비물 표는 `docs/backend/infra/DEPLOYMENT.md §14`
 - **범위** — 공용 `baraeda_core`(새 파일 `push/` 4개 + `AuthApi` 연결) · 학부모·학생 앱(`di.dart` · 설정 스위치) · 매니저 앱(`di.dart`). 관계자 웹 변경 부재
 
 ### 5.22.1 판정
@@ -644,7 +644,7 @@ R46 전 갈래(§5.17~§5.27) 병합 뒤 화면 확인 전용 창. 관계자 웹
 
 ## 5.30 `R46-FIXRT` — 매니저 앱 오프라인 큐의 서버 장애 대응 · 실시간 재연결 · 관제 폴링 · 이벤트 재조회 묶기 (2026-10-01 · 기준 HEAD `e8ab1fe1` `mskim98/r46-fixrt` · 판정 `Ruling 650~654`)
 
-검토(`review-stab` S-9·S-5 · `review-load` L3·L4)가 짚은 장애 대응·실시간 연결·폴링 4건을 처리하는 창. 사용자 자리 비움 중이라 세부 선택은 창이 `Ruling` 으로 기록. 백엔드·스키마·인프라는 건드리지 않음(클라이언트 전용). 사양 문구는 `docs/USER_FLOWS.md` 의 UF-E-07 · UF-O-02 와 12.2 · 12.4 · 12.6 절에 반영.
+검토(`review-stab` S-9·S-5 · `review-load` L3·L4)가 짚은 장애 대응·실시간 연결·폴링 4건을 처리하는 창. 사용자 자리 비움 중이라 세부 선택은 창이 `Ruling` 으로 기록. 백엔드·스키마·인프라는 건드리지 않음(클라이언트 전용). 사양 문구는 `docs/planning/USER_FLOWS.md` 의 UF-E-07 · UF-O-02 와 12.2 · 12.4 · 12.6 절에 반영.
 
 ### 5.30.1 판정
 
@@ -677,7 +677,7 @@ R46 전 갈래(§5.17~§5.27) 병합 뒤 화면 확인 전용 창. 관계자 웹
 
 ## 5.31 `R46-FIXCONN` — 실시간 연결 감시 · 재연결 정리 (2026-10-01 · 기준 HEAD `be9d8cde` `mskim98/r46-fixconn` · 판정 `Ruling 616·617` + `660~668`)
 
-검토(`review-conn` C-1~C-14 · `review-transport` K-1~K-8)가 짚은 실시간 연결의 수명·감시·보충·표시를 지금 구조(STOMP over WebSocket) 안에서 정리하는 창. 사용자 자리 비움 중이라 세부 선택은 창이 `Ruling` 으로 기록. 백엔드는 건드리지 않음(클라이언트 전용). C-14(토큰 15분 재접속)·K-4·K-5·K-7·K-8 은 서버 범위·권고라 하지 않음. 연결 값 전체는 `docs/API_SPEC.md §7.2` 표.
+검토(`review-conn` C-1~C-14 · `review-transport` K-1~K-8)가 짚은 실시간 연결의 수명·감시·보충·표시를 지금 구조(STOMP over WebSocket) 안에서 정리하는 창. 사용자 자리 비움 중이라 세부 선택은 창이 `Ruling` 으로 기록. 백엔드는 건드리지 않음(클라이언트 전용). C-14(토큰 15분 재접속)·K-4·K-5·K-7·K-8 은 서버 범위·권고라 하지 않음. 연결 값 전체는 `docs/planning/API_SPEC.md §7.2` 표.
 
 ### 5.31.1 판정
 
@@ -708,7 +708,7 @@ R46 전 갈래(§5.17~§5.27) 병합 뒤 화면 확인 전용 창. 관계자 웹
 
 ## 5.32 `R46-LATERRT` — 실시간 연결 토큰 만료 전 무중단 갈아타기(C-14) · 웹 에러 코드 목록 맞추기 (2026-10-01 · 기준 HEAD `25e1bc2e` `mskim98/r46-laterrt` · 판정 `Ruling 618` 이행 + `680~682`)
 
-`Ruling 618`(사용자 "나중 항목에서 SSE 제외하고 작업 진행")의 프론트 몫. 서버 `StompSessionExpiry` 가 접근 토큰 만료 뒤 첫 방송을 `ERROR TOKEN_EXPIRED` 로 바꿔 세션을 닫으면 클라이언트가 재발급 뒤 새 소켓을 열던 구조라 15분마다 방송이 1~2초 끊기던 것을, **만료 전에 두 번째 연결로 갈아타** 없앤다. 서버는 건드리지 않음(클라이언트 전용). 연결 값 전체는 `docs/API_SPEC.md §7.2` 표.
+`Ruling 618`(사용자 "나중 항목에서 SSE 제외하고 작업 진행")의 프론트 몫. 서버 `StompSessionExpiry` 가 접근 토큰 만료 뒤 첫 방송을 `ERROR TOKEN_EXPIRED` 로 바꿔 세션을 닫으면 클라이언트가 재발급 뒤 새 소켓을 열던 구조라 15분마다 방송이 1~2초 끊기던 것을, **만료 전에 두 번째 연결로 갈아타** 없앤다. 서버는 건드리지 않음(클라이언트 전용). 연결 값 전체는 `docs/planning/API_SPEC.md §7.2` 표.
 
 ### 5.32.1 판정
 
@@ -844,7 +844,7 @@ R46 전 갈래(§5.17~§5.27) 병합 뒤 화면 확인 전용 창. 관계자 웹
    Mock 응답으로 대체한 항목이 있으면 그 목록을 보고에 적음
 3. **예외 경로** — `USER_FLOWS §12`(서버 실패 · 통신 두절 · 권한 차단)와 `API_SPEC §8` 에러 코드 중
    그 화면에 걸리는 것을 실제로 재현
-4. **컨벤션** — `docs/frontend/CONVENTIONS_REACT.md` 위반 0 (React 한정)
+4. **컨벤션** — `docs/frontend/web/CONVENTIONS_REACT.md` 위반 0 (React 한정)
 
 ---
 
@@ -945,7 +945,7 @@ Android `https://navermaps.github.io/android-map-sdk/guide-ko/1.html`
 |---|---|---|
 | Android 패키지 | `com.baraeda.parent_app` · `com.baraeda.manager_app` | 각 앱 `android/app/build.gradle` 의 `applicationId` |
 | iOS Bundle ID | `com.baraeda.parentApp` · `com.baraeda.managerApp` | `ios/Runner.xcodeproj/project.pbxproj` 의 `PRODUCT_BUNDLE_IDENTIFIER` |
-| 웹 서비스 URL | `http://localhost:3000` (운영 도메인 미정) | `academy-web` 개발 서버. 배포 도메인은 `docs/infra/DEPLOYMENT.md` 에서 아직 자리표시 |
+| 웹 서비스 URL | `http://localhost:3000` (운영 도메인 미정) | `academy-web` 개발 서버. 배포 도메인은 `docs/backend/infra/DEPLOYMENT.md` 에서 아직 자리표시 |
 
 - ⚠ **Android 는 밑줄(`parent_app`), iOS 는 대문자(`parentApp`) 로 갈린다.** 오타가 아니라 Flutter 기본 동작이다
   (iOS 번들 식별자에 밑줄을 못 쓴다). **양쪽을 있는 그대로** 등록한다

@@ -11,7 +11,7 @@
 | DBMS | PostgreSQL |
 | 성격 | **To-Be 설계** — 현 코드베이스의 실측 기록 부재. 구현은 이 문서에 맞춰 갱신 대상 |
 
-**자매 문서** — [FEATURE_SPEC.md](./FEATURE_SPEC.md) · [PRD.md](./PRD.md) · [USER_FLOWS.md](./USER_FLOWS.md) · [API_SPEC.md](./API_SPEC.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [TECH_DECISIONS.md](./TECH_DECISIONS.md)
+**자매 문서** — [FEATURE_SPEC.md](../planning/FEATURE_SPEC.md) · [PRD.md](../planning/PRD.md) · [USER_FLOWS.md](../planning/USER_FLOWS.md) · [API_SPEC.md](../planning/API_SPEC.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [TECH_DECISIONS.md](TECH_DECISIONS.md)
 
 ## 0. 문서 경계 · 표기 규칙
 
@@ -1149,7 +1149,7 @@ erDiagram
 
 ### 6.2 보유 여부가 스키마에 남기는 결과
 
-격리를 **어디서 어떻게 강제하는가**는 [ARCHITECTURE §6](./ARCHITECTURE.md) 담당. 이 문서는 그 판단이 스키마에 남기는 것만 적는다.
+격리를 **어디서 어떻게 강제하는가**는 [ARCHITECTURE §6](ARCHITECTURE.md) 담당. 이 문서는 그 판단이 스키마에 남기는 것만 적는다.
 
 - **직접 보유 17개** — `academy_id` 선행 복합 인덱스를 둠 (§5.3). 격리 조건이 모든 쿼리에 무조건 붙는 술어이기 때문.
 - **부모 경유 22개**(2026-09-05 `delay_notice`·`run_transfer` 추가로 21→23, 2026-09-22 Ruling 324 로 `link_request` 삭제로 23→22) — 컬럼이 부재하므로 조회에 부모 조인이 필수. 자식 단독 조회 경로를 만들면 격리 조건을 붙일 자리가 없어짐.

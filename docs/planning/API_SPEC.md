@@ -9,7 +9,7 @@
 | 기준 | 바래다 API명세서 v2.1 · 기능정의서 v2.1 · PRD v2.1 · 유저플로우 v2.1 (2026-08-24) |
 | 프로토콜 | REST + JSON, Bearer 토큰. 실시간은 WebSocket 병행 |
 
-**자매 문서** — [FEATURE_SPEC.md](./FEATURE_SPEC.md) · [PRD.md](./PRD.md) · [USER_FLOWS.md](./USER_FLOWS.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [ERD.md](./ERD.md) · [TECH_DECISIONS.md](./TECH_DECISIONS.md)
+**자매 문서** — [FEATURE_SPEC.md](FEATURE_SPEC.md) · [PRD.md](PRD.md) · [USER_FLOWS.md](USER_FLOWS.md) · [ARCHITECTURE.md](../backend/ARCHITECTURE.md) · [ERD.md](../backend/ERD.md) · [TECH_DECISIONS.md](../backend/TECH_DECISIONS.md)
 
 **신규 설계 결정 (2026-08-24 승인 완료)** — 아래는 기획 원본에 근거가 부재하나 API 구현에 필요해 이 문서에서 처음 정한 값. 베이스 경로·필드 명명·시각/좌표 표기(§1.1) · `X-Client-Version`·`X-Request-Id`(§1.3) · 멱등키 보존 24시간(§1.7) · 페이징 규약(§1.8) · `INVALID_CREDENTIALS.details.remaining_attempts` · 에러 코드 명칭 `STAFF_QUOTA_EXCEEDED`·`MANAGER_ASSIGNED`.
 
@@ -2927,7 +2927,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 
 ⚠ **이 절은 파생본이라 정본이 닫혀도 자동으로 따라오지 않는다.** 실제로 위 3행이 해제 후에도 표에 남아 있었다(Ruling 185). **한 행을 고칠 일이 생기면 표 전체를 각 절과 대조한다** — 하나가 낡아 있으면 나머지도 낡아 있다.
 
-관련 오픈 이슈(노선 최적화 알고리즘 기준, 승하차지 상세 관리, 지도 SDK 선정, 지오코딩 API)는 [PRD.md](./PRD.md) 참조.
+관련 오픈 이슈(노선 최적화 알고리즘 기준, 승하차지 상세 관리, 지도 SDK 선정, 지오코딩 API)는 [PRD.md](PRD.md) 참조.
 
 ---
 
