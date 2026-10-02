@@ -147,3 +147,4 @@ apps/academy-web/src/
 ## 시험
 
 - 시험에서 `next/navigation` 의 `useRouter` 를 가짜로 바꿀 때는 `shared/testing/stableRouter` 의 **`createStableRouter`** 로 한 번 만든 객체를 돌려준다. 렌더마다 새 객체(`useRouter: () => ({ … })`)를 주면 `router` 를 의존성에 둔 effect 가 렌더 때마다 다시 예약돼 주소를 바꾸는 시험이 간헐 실패한다. 어기면 `shared/testing/stableRouter.test.ts` 가 실패한다(`Ruling 560`).
+- 외부 SDK 클래스를 `new` 로 부르는 코드를 시험할 때 가짜는 화살표 함수가 아니라 `function` 으로 쓴다 — `vi.fn(function () { return { … }; })`. vitest 4 부터 `new` 호출을 `Reflect.construct` 로 처리해 `vi.fn(() => ({ … }))` 는 `is not a constructor` 로 던지고, 던진 오류를 컴포넌트가 삼키면 "호출 0회" 로만 보인다(`[vitest] The vi.fn() mock did not use 'function' or 'class'` 경고가 단서). 예 `features/map/naver/NaverMapSurface.test.tsx`.
