@@ -730,11 +730,14 @@ sudo aws s3 cp s3://<백업버킷>/photos/<날짜시각>.tar.gz - \
 cd /opt/school-bus
 C="sudo docker compose -f docker-compose.prod.yml --env-file .env"
 $C stop backend
-$C exec -T postgres psql -U schoolbus schoolbus -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+$C exec -T postgres psql -U schoolbus schoolbus -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS ops_stats CASCADE;'
 LATEST=$(sudo aws s3 ls s3://<백업버킷>/db/ | sort | tail -1 | awk '{print $4}')
 sudo aws s3 cp "s3://<백업버킷>/db/$LATEST" - | gunzip | $C exec -T postgres psql -U schoolbus schoolbus -v ON_ERROR_STOP=1 -1
+$C exec -T postgres psql -U schoolbus schoolbus -c 'ANALYZE'
 $C start backend
 ```
+
+`ops_stats` 도 비우는 이유 — 덤프의 `CREATE SCHEMA ops_stats;` 는 `IF NOT EXISTS` 가 없고, 새 인스턴스의 postgres 초기화 스크립트(`01-pg-stat-statements.sql`)가 그 스키마를 먼저 만들어 `ON_ERROR_STOP` 에서 복원 전체가 취소될 것으로 **추정**한다(2026-10-03 창 G — 덤프 형태만 실측, 복원은 미실행). 첫 복구 리허설(§7.0)에서 확인한다.
 
 4. 사진은 §7.2 로 최신 묶음(`photos/`)을 푼다(하루 전까지)
 5. §2.14 의 1·2번으로 확인. 복원한 덤프의 시각이 곧 실제 유실 구간이므로 `$LATEST` 를 기록한다
@@ -744,6 +747,81 @@ $C start backend
 **소요 시간 추정(첫 연습에서 실측해 §7.1 에 적는다)**: 인스턴스 생성·부팅 5분 · 부트스트랩(`dnf update` 포함) 10분 · 이미지 수신·배포 10~15분 · 복원 5분 · 확인 5분 = 약 40분. 실측 전에는 추정일 뿐이다.
 
 ---
+
+
+### 7.4 postgres 주 버전 상향 — 18 → 19 처럼 주 버전이 바뀔 때 (BR-377)
+
+**언제 쓰나.** 같은 주 버전 안의 갱신(18.6 → 18.7)은 Dependabot 이 PR 을 만들고 §5 배포로 이미지 태그만 올린다. **주 버전이 바뀔 때는 Dependabot 이 PR 을 만들지 않으므로**(`.github/dependabot.yml` 의 ignore, BR-330) 사람이 이 절로 한다. 주 버전만 올려 배포하면 새 이미지가 `/var/lib/postgresql/<새 버전>/docker` 를 빈 디렉터리로 만들어 **빈 DB 로 뜬다** — 옛 데이터(`<옛 버전>/docker`)는 같은 볼륨에 그대로 남아 있다(`RuntimeImageParityTest`).
+
+**전제**
+
+- 데이터는 named volume `postgres-data`(데이터 디스크의 `/var/lib/docker/volumes` 아래)에 있다. 컨테이너 안 마운트는 `/var/lib/postgresql`, 데이터 디렉터리는 `/var/lib/postgresql/<주 버전>/docker`.
+- **서비스가 멈춘다** — DB 가 내려가 있는 동안 API 가 응답하지 않는다(외부 가동 감시 §11.4 가 알린다). 운행이 없는 시간에 한다. 걸린 시간은 첫 리허설에서 재어 §7.1 과 같은 표에 적는다(미실측).
+- 버전이 박힌 곳은 다섯이다 — `docker-compose.prod.yml` · `docker-compose.yml` · `docker-compose.staging.yml` 의 `image: postgres:<버전>` 과 시험 코드 `MigratedPostgresTestBase` · `BaseTimeEntityAuditingTest` 의 `new PostgreSQLContainer("postgres:<주 버전>")`. `RuntimeImageParityTest` 가 다섯이 같은 주 버전인지 본다.
+- 개발 PC 에서 먼저: 시험용 컨테이너 버전을 올려 `scripts/verify.sh` 가 통과하는지 · Flyway(`flyway-database-postgresql`)와 JDBC 드라이버가 새 버전을 지원하는지 · compose 의 `-c shared_preload_libraries=pg_stat_statements` 가 새 버전에서도 유효한지 본다. 스테이징은 메모리 DB 라 이 절차 대상이 아니고, 개발 compose 는 영속 볼륨이 없어 태그만 바꾼다.
+- 데이터 디스크 여유 — 옛 디렉터리와 새 디렉터리가 같은 볼륨에 함께 있게 된다. `df -h /var/lib/docker/volumes` 로 데이터 크기의 2배 이상 남았는지 확인한다.
+
+**방법 고르기**
+
+| | 방법 A — 덤프·복원 (기본) | 방법 B — `pg_upgrade --link` |
+|---|---|---|
+| 언제 | DB 가 작아 복원이 RTO(1시간) 안에 끝날 때(추정 5년 6~9GB — 당분간 이쪽) | 복원이 RTO 를 넘을 만큼 커졌을 때 |
+| 쓰는 것 | §7.3 경로 B 3번과 같은 명령 | 옛·새 바이너리가 함께 든 커뮤니티 이미지(`tianon/postgres-upgrade:<옛>-to-<새>`) — **이미지 이름·옵션은 첫 상향 때 그 이미지의 README 로 확인한다(이 초안은 실행해 확인하지 못했다)** |
+| 되돌리기 | 쉽다 — 옛 디렉터리가 손대지 않은 채 남는다 | 변환을 시작하면 옛 클러스터로 못 돌아간다(`--link` 는 옛 데이터 파일을 새 클러스터가 직접 쓴다) — 점검 전 스냅샷으로만 |
+
+**단계 (방법 A)** — 아래에서 `C="sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/school-bus/.env"` 로 줄여 쓴다.
+
+0. **사전(점검 시작 전)**
+   1. 정시 덤프가 올라와 있는지: `sudo aws s3 ls s3://<백업버킷>/db/ | sort | tail -3`
+   2. 데이터 디스크 수동 스냅샷: `aws ec2 create-snapshot --volume-id <데이터 볼륨> --description "pre-pg-upgrade <날짜>"` 후 `aws ec2 describe-snapshots --snapshot-ids <스냅샷> --query 'Snapshots[].State'` 가 `completed`. DLM(§2.4.1)이 만든 것이 아니라 자동으로 지워지지 않는다 — 끝난 뒤 사람이 지운다.
+   3. 점검 전 행 수와 마이그레이션 기록을 적어 둔다.
+
+      ```bash
+      $C exec -T postgres psql -U schoolbus schoolbus -tAc "SELECT 'account', count(*) FROM account UNION ALL SELECT 'student', count(*) FROM student UNION ALL SELECT 'run', count(*) FROM run UNION ALL SELECT 'run_rider', count(*) FROM run_rider UNION ALL SELECT 'notification_log', count(*) FROM notification_log UNION ALL SELECT 'flyway_max_rank', max(installed_rank) FROM flyway_schema_history"
+      ```
+   4. 이미지 태그를 바꾼 PR(위 다섯 곳)을 **병합하지 않고** 준비해 둔다.
+1. **쓰기를 멈춘다**: `$C stop backend`
+2. **최종 덤프**: `sudo BACKUP_BUCKET=<백업버킷> /opt/school-bus/infra/scripts/backup-db.sh db`(크론이 쓰는 값과 같다 — `/etc/cron.d/schoolbus-backup`). backend 가 멈춰 있어 이 덤프가 마지막 상태다. 출력된 크기가 이전 덤프와 비슷한지 본다.
+3. **postgres 를 멈추고 옛 데이터 위치를 확인한다**: `$C stop postgres` · `sudo ls /var/lib/docker/volumes/*postgres-data/_data/` 에 옛 주 버전 디렉터리(`18`)가 보인다.
+4. **새 버전으로 올린다**: EC2 의 `/opt/school-bus/docker-compose.prod.yml` 에서 postgres 이미지 태그만 새 버전으로 손으로 바꾼다(PR 과 같은 값) → `$C up -d postgres`. 새 디렉터리(`19/docker`)가 만들어지고 초기화 스크립트가 `schoolbus` DB · `ops_stats` 스키마를 만든다. `$C exec -T postgres psql -U schoolbus schoolbus -tAc 'SELECT version()'` 가 새 버전이어야 한다.
+
+   (병합보다 먼저 손으로 바꾸는 이유 — 병합이 먼저면 CI 의 `deploy.sh`(`docker compose up -d`)가 postgres 를 새 이미지·빈 DB 로 다시 만들고 backend 가 그 빈 DB 에 스키마를 새로 만든다.)
+5. **복원** — §7.3 경로 B 3번과 같되 **`ops_stats` 도 비운다**(덤프의 `CREATE SCHEMA ops_stats;` 가 초기화 스크립트가 이미 만든 스키마와 부딪혀 `ON_ERROR_STOP` 에서 전체가 취소된다).
+
+   ```bash
+   $C exec -T postgres psql -U schoolbus schoolbus -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS ops_stats CASCADE;'
+   LATEST=$(sudo aws s3 ls s3://<백업버킷>/db/ | sort | tail -1 | awk '{print $4}')
+   sudo aws s3 cp "s3://<백업버킷>/db/$LATEST" - | gunzip | $C exec -T postgres psql -U schoolbus schoolbus -v ON_ERROR_STOP=1 -1
+   $C exec -T postgres psql -U schoolbus schoolbus -c 'ANALYZE'
+   ```
+
+   `$LATEST` 가 단계 2 에서 방금 뜬 덤프인지 시각으로 확인한다.
+6. **backend 를 켠다**: `$C start backend` — Flyway 가 이미 적용된 마이그레이션을 검증만 하고 적용하지 않는다.
+7. 아래 **확인**이 끝나면 PR 을 병합한다 — CI 배포가 compose 파일을 동기화하지만 postgres 정의가 이미 같은 태그라 컨테이너를 다시 만들지 않는다.
+
+**단계 (방법 B)** — 0~3 은 방법 A 와 같다(덤프는 B 에서도 보험으로 뜬다).
+
+4. 옛 볼륨 위에서 변환한다: `sudo docker run --rm -v <프로젝트>_postgres-data:/var/lib/postgresql tianon/postgres-upgrade:<옛>-to-<새> --link`(이미지 · 옵션 · 볼륨 이름은 `sudo docker volume ls` 와 이미지 README 로 확인한다 — 미검증). 성공하면 `<새>/docker` 가 생기고 옛 파일을 하드링크로 공유한다. **이 시점부터 옛 클러스터로 돌아갈 수 없다.**
+5. 방법 A 의 4번처럼 태그를 바꿔 postgres 를 올린다(데이터 디렉터리가 비어 있지 않아 초기화 스크립트는 돌지 않는다). 이어서 `ALTER EXTENSION pg_stat_statements UPDATE;` · 필요하면 `ANALYZE`.
+6. `$C start backend` → 확인 → PR 병합.
+
+**확인 (두 방법 공통)**
+
+1. `SELECT version()` 이 새 주 버전이다.
+2. 단계 0-3 에서 적은 행 수와 정확히 같다(점검 중 쓰기가 없었다) · `flyway_schema_history` 마지막 순번이 같고 backend 기동 로그에 새로 적용된 마이그레이션이 없다.
+3. `/healthz`(§11.4)가 UP 이고 §2.14 의 1·2번이 통과한다.
+4. `ops_stats.pg_stat_statements` 조회가 된다(§11.5). 안 되면 §11.5 의 한 줄을 다시 친다.
+5. 다음 정시 덤프가 새 버전에서 성공한다 — `aws s3 ls s3://<백업버킷>/db/` 의 새 파일 크기가 이전과 비슷하고 `BackupDbStale` 경보가 울리지 않는다.
+6. 회차 확정 배치(30초 폴링, `ARCHITECTURE §9`)가 돈다 — 확정 지연 게이지가 0 이다.
+
+**되돌리기**
+
+- 확인에서 실패했고 **서비스를 재개하기 전**(방법 A): `$C stop backend postgres` → `/opt/school-bus/docker-compose.prod.yml` 의 태그를 옛 버전으로 → `$C up -d postgres` → `$C start backend`. 옛 디렉터리(`18/docker`)가 점검 전 그대로라 즉시 되살아난다(점검 중에는 쓰기가 없었다). 새 디렉터리는 원인을 본 뒤 지운다. PR 은 병합하지 않았으니 닫는다.
+- **서비스를 재개한 뒤**(새 버전에서 쓰기가 생긴 뒤): 옛 디렉터리에는 그 쓰기가 없다. 새 버전에서 덤프를 떠 옛 버전 컨테이너에 복원하는 역방향 덤프·복원이 필요하다(주 버전은 내릴 수 없다). 그래서 **재개한 뒤 최소 1주는 옛 디렉터리를 지우지 않는다**.
+- 방법 B 에서 변환을 시작한 뒤: 단계 0-2 의 스냅샷으로 볼륨을 만든다(§7.3 경로 C 의 `create-volume` 과 같다). 점검 중이라 그 스냅샷 이후 쓰기는 없다.
+- PR 을 병합한 뒤라면 revert PR.
+
+**끝난 뒤** — 1주 뒤 옛 디렉터리(`sudo rm -rf /var/lib/docker/volumes/<볼륨>/_data/<옛 버전>`)와 단계 0-2 의 스냅샷을 지운다. 걸린 시간을 §7.1 과 같은 표에 적는다.
 
 ## 8. 장애 대응
 
