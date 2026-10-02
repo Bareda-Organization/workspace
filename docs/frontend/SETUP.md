@@ -157,8 +157,8 @@ npm run dev      # http://localhost:3000
 `*.g.dart` · `*.freezed.dart` 는 git 이 추적하지 않음. 새로 받은 저장소에서는 없으므로 아래를 먼저 실행:
 
 ```bash
-cd ../mobile/packages/baraeda_core && flutter pub get && dart run build_runner build --delete-conflicting-outputs
-cd ../../apps/manager-app         && flutter pub get && dart run build_runner build --delete-conflicting-outputs
+cd ../mobile/packages/baraeda_core && flutter pub get && dart run build_runner build
+cd ../../apps/manager-app         && flutter pub get && dart run build_runner build
 cd ../parent-app                  && flutter pub get
 ```
 
