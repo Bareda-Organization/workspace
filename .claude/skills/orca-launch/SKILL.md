@@ -58,3 +58,4 @@ orca worktree create --name <이름> --setup run      # 프론트 의존성이 �
   - **증상** — 영수증 `stage: turn_start_unobserved` · `orca terminal read --screen` 의 `draft:` 에 지시 전문 · 프롬프트 `❯` 가 비어 있음
   - **복구** — `worker-stop` 으로 멈추고(8개 `stopped`, 1개는 `user_owned` 라 `stop_unknown` → 화면을 확인한 뒤 `worker-abandon` + `terminal close`), `worker-start --task <원 task> --retry-of <원 dispatch>` 로 **하나씩** 다시 띄우면 전부 `input_accepted`. 한 번에 1개씩 치면 9개가 약 1분 안에 모두 뜬다 — 병렬로 줄이는 시간이 거의 없다
   - 원인은 미확인(앱이 동시에 여러 창의 첫 제출을 처리하다 일부를 놓치는 것으로 보임). **병렬 기동으로 아낄 시간이 없으니 순차가 기본**
+  - ⚠ **순차로 띄워도 0건이 되지는 않는다** — 2026-10-03 검사 창 10개를 for 루프로 하나씩 띄웠는데 **마지막 1개가 `turn_start_unobserved`** 였다(`draft` 에 지시 전문이 남아 있었다). 그러니 **기동 루프가 끝나면 영수증마다 `stage` 를 확인**하고, `input_accepted` 가 아닌 창은 위 복구 절차(`worker-stop` → `--task … --retry-of …`)로 다시 띄운다. 재기동 1회로 정상이 됐다
