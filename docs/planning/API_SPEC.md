@@ -2373,7 +2373,7 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 
 관계자 계정 목록 (ACAD-06, O-02).
 
-**권한** 메인 관리자 · **요청 (쿼리)**(`Ruling 807`) — `academy_id`(선택) · `q`(선택 — 이름·로그인 아이디 부분 일치, 대소문자 무시) · `status`(선택 — `active` 재직 · `inactive` 퇴사) · 페이징. `academy_id` 가 없는 학원이면 `404 ACADEMY_NOT_FOUND`, `status` 가 두 값 밖이면 `422 VALIDATION_FAILED`.
+**권한** 메인 관리자 · **요청 (쿼리)**(`Ruling 807`) — `academy_id`(선택) · `q`(선택 — 이름·로그인 아이디 부분 일치, 대소문자 무시) · `status`(선택 — `active` 재직 · `inactive` 퇴사, **대소문자 무시** — §6.1 `status` 와 같은 처리) · 페이징. `academy_id` 가 없는 학원이면 `404 ACADEMY_NOT_FOUND`, `status` 가 두 값 밖이면 `422 VALIDATION_FAILED`. `q` 는 앞뒤 공백을 자르지 않는다.
 
 **응답** — `items[]` — `account_id` · `name` · `login_id` · `phone` · `academy_id` · `academy_name` · `last_login_at` · `status` · `academy_pending_signup_count`(그 학원의 대기 중 관계자 가입 요청 수) + 최상위 `counts`(`active` · `inactive` — **`status` 만 뺀** 같은 조건의 건수, 탭 건수용)(`Ruling 807`)
 
