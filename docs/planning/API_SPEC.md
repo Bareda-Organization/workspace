@@ -787,9 +787,9 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `received_at` | datetime | ○ | 좌표 수신 시각. 송신 주기 **2초**(2026-09-14 · 옛값 5~10초) |
 | `last_seen_at` | datetime | ○ | 신호 유실 시 마지막 확인 시각 — 화면은 "마지막 확인 위치 · N분 전". **유실 판정은 마지막 수신 후 2분**(2026-08-31 사용자 확정, Ruling 208). `TECH_DECISIONS §관제 경고`의 *"2분 이상 미수신"* 과 **같은 값으로 통일**한다 — 갈라 두면 관제에는 경고가 떴는데 학부모 화면은 정상으로 보이는 구간이 생긴다. ⚠ **판정 주기 10초**(`ARCHITECTURE §9`)와 다른 값이며 층이 다르다 — 주기는 얼마나 자주 보는가이고 이 값은 얼마나 오래 끊겨야 유실인가다 |
 | `current_stop_name` | string | ○ | **마지막으로 도착한** 승하차지 이름 — 도착 기록이 없으면 부재 (§4.3 `current_stop` 과 같은 판정, 2026-09-17 문면 정정, `Ruling 304`). 신호 유실 때도 유지 (BR-056) |
-| `current_stop_arrived_at` | datetime | ○ | 그 승하차지 도착 처리 시각 — "마지막으로 지난 곳 · 12:09" (`Ruling 821`) |
+| `current_stop_arrived_at` | datetime | ○ | 그 승하차지 도착 처리 시각 — "마지막으로 지난 곳 · 12:09". `current_stop_name` 과 같은 조건(실시간 위치가 있을 때)에서만 채운다. 이름은 마지막 위치 수신 때의 값이고 시각은 저장값이라 도착 직후 한 번(2초)은 어긋날 수 있다 (`Ruling 821`) |
 | `started_at` · `finished_at` | datetime | ○ | 실제 운행 시작 · 종료 시각 — 지나기 전이면 `null`. WebSocket `run_started` · `run_ended` 를 놓치고 들어온 화면도 시각을 그린다 (`Ruling 821`) |
-| `delay` | object | ○ | 그 회차의 **마지막 지연 알림**(§4.9) — `minutes` · `reason` · `sent_at`. 없거나 회차가 끝났으면 `null` — 지연 안내 띠 (`Ruling 821`) |
+| `delay` | object | ○ | 그 회차의 **마지막 지연 알림**(§4.9, 회차 안 발신 순서상 마지막) — `minutes` · `reason` · `sent_at`. 없거나 회차가 끝났거나 **그 학생이 당일 미등원**이면 `null` — 지연 안내 띠 (`Ruling 821`) |
 
 당일 미등원(`absent`)이면 위치 부재 + 화면 안내 "오늘은 버스를 이용하지 않습니다".
 
@@ -877,7 +877,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `ack_required` | boolean | ● | 노선 변경 확인 응답 미완료 여부 (RUN-07) |
 | `role_in_run` | enum | ● | `driver` · `escort` — 화면 구성 결정 |
 | `plate_no` | string | ● | 차량번호 — 내 정보의 "담당 차량" (`Ruling 822`) |
-| `rider_count` · `absent_count` · `stop_count` | integer | ○ | 탑승 예정 인원(`absent` 제외 명단 수) · 미등원 인원 · 승하차지 수(경유 지점·도착지 제외 — §4.2 `stops[]` 에서 `is_destination` 을 뺀 수). **확정 전(`confirmed=false`)이면 셋 다 `null`** — 홈 · 운행 준비 화면의 "학생 14명 · 승하차지 6곳 · 미등원 2명" (`Ruling 822`) |
+| `rider_count` · `absent_count` · `stop_count` | integer | ○ | 탑승 예정 인원(`absent` 제외 명단 수) · 미등원 인원(§4.2 `counts.absent_n` 과 같은 정의 — 버스 간 이동으로 빠진 학생은 빼므로 §5.3 `absent_count` 와 다를 수 있다) · 승하차지 수(경유 지점·도착지 제외 — §4.2 `stops[]` 에서 `is_destination` 을 뺀 수). **확정 전(`confirmed=false`)이면 셋 다 `null`** — 홈 · 운행 준비 화면의 "학생 14명 · 승하차지 6곳 · 미등원 2명" (`Ruling 822`) |
 
 **에러** — §1.11 공통 항목 외 고유 에러 부재. 배정 회차 부재는 빈 `items[]` 로 반환.
 
@@ -1102,7 +1102,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | 필드 | 타입 | 설명 |
 |---|---|---|
 | `rider_id` · `status` · `changed_at` | — | 반영 결과 |
-| `no_show_case` | object | `status=no_show` 일 때 — `case_id` · `started_at` · `expires_at`(**3분** 후) |
+| `no_show_case` | object | `status=no_show` 일 때 — `case_id` · `started_at` · `expires_at`(**3분** 후) · `contacts[]`(§4.2 와 같은 연락 기록 — 되돌렸다 다시 미승차가 된 케이스는 이전 기록을 그대로 갖는다, `Ruling 823`) |
 | `stop_skipped` | boolean | 잔여 탑승자 0명 전환 여부 (C-05) |
 
 ```json
@@ -1453,7 +1453,7 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 | `added_count` · `removed_count` | integer | 변경분 (MON-05) |
 | `ack_driver` · `ack_escort` | boolean | 기사·동승자 변경 확인 응답 여부 (RUN-07) |
 | `driver_phone` · `escort_phone` | string, null 가능 | 배치 인력 전화 **원문**(관계자 웹은 마스킹 대상 밖 — §5.4 `guardian_phone` 과 같은 등급). 배치 전이면 `null` (`Ruling 810`) |
-| `no_show_count` · `absent_count` | integer | **이 회차의** 미승차 · 미등원 인원(`run_rider.status` 가 `no_show` · `absent` 인 행 수). 확정 전(`idle`)은 `0`. 대기 인원은 `total_count − boarded_count − no_show_count − absent_count` 로 화면이 계산한다 (`Ruling 810`) |
+| `no_show_count` · `absent_count` | integer | **이 회차의** 미승차 · 미등원 인원(`run_rider.status` 가 `no_show` · `absent` 인 행 수 — **버스 간 이동으로 빠진 `absent` + `change=removed` 행도 센다**. `total_count` 가 그 행을 포함하므로 대기 공식이 맞으려면 같은 범위여야 한다. §4.1 `absent_count` 는 §4.2 `counts.absent_n` 과 같은 정의라 그 행을 빼므로 두 값은 다를 수 있다). 확정 전(`idle`)은 `0`. 대기 인원은 `total_count − boarded_count − no_show_count − absent_count` 로 화면이 계산한다 (`Ruling 810`) |
 | `delay_minutes` | integer, null 가능 | 지연 분 — §5.18 과 같은 계산(`Ruling 232`: 마지막 도착 승하차지 `arrived_at − eta`, 도착 전이면 `started_at − depart_time`, 음수는 0). `moving` 이 아니면 `null` (`Ruling 810`) |
 | `last_delay_notice` | object, null 가능 | 그 회차의 **마지막 지연 알림**(§4.9) — `minutes` · `reason` · `sent_at` · `recipient_count`(그 알림으로 적재된 수신 건수). 없으면 `null` (`Ruling 810`) |
 | `no_show_cases[]` | array | 진행 중 에스컬레이션 — `student_name` · `stop_name` · `expires_at` · `call_attempts`(integer — 그 케이스에 남은 연락 시도 수, §4.8) · `last_contact_result`(`answered` · `no_answer`, 시도가 없으면 `null`) (`Ruling 810`) |
@@ -2674,11 +2674,11 @@ O-04 · SYS-01·02. 정본 API명세서에 경로 미기재 — 감사 로그 �
 | `period` | object | ● | `from` · `to`(date) · `days` |
 | `runs` | object | ● | `count`(기간의 미취소 회차 수 — 오늘의 아직 출발하지 않은 회차 포함) · `previous_count`(직전 기간) · `canceled_count`(기간의 임시 취소 회차) |
 | `on_time` | object | ● | `rate`(number 0~1 — **정시 출발률**, `Ruling 802`: `started_at ≤ depart_time + 5분` 인 회차 ÷ 기간에 시작한 미취소 회차. 분모 0 이면 `null`) · `on_time_count` · `started_count` · `target_rate`(0.9 — 표시 기준, `FEATURE_SPEC §2.1`) |
-| `delays` | object | ● | `count`(기간 중 지연 알림 §4.9 이 1건 이상 나간 회차 수 — 알림이 여러 건이어도 회차는 한 번) · `today_count` · `peak`(`date` · `count` — 기간 중 가장 많은 날, 0건이면 `null`) |
-| `change_requests` | object | ● | 기간에 **결정된** 변경 요청(§9.6) — `approved` · `rejected` · `auto_rejected` · `total` |
-| `logins` | object | ● | `success` · `fail`(기간의 로그인 시도 — 접속 이력 §6.13 과 같은 원천) · `today_success` · `yesterday_success` · `blocks`(기간의 차단 수) · `blocks_released`(그중 지금 풀린 수) |
+| `delays` | object | ● | `count`(기간 중 지연 알림 §4.9 이 1건 이상 나간 회차 수 — 알림이 여러 건이어도 회차는 한 번) · `today_count` · `peak`(`date` · `count` — 기간 중 가장 많은 날, 동률이면 더 최근 날, 0건이면 `null`) |
+| `change_requests` | object | ● | 기간에 **결정된** 변경 요청(§9.6) — `approved` · `rejected` · `auto_rejected` · `total`. 출처(§5.5 `source` — 등하원 토글 · 일일 변경)를 가리지 않는다 |
+| `logins` | object | ● | `success` · `fail`(기간의 로그인 시도 — 접속 이력 §6.13 과 같은 원천) · `today_success` · `yesterday_success` · `blocks`(기간의 차단 수) · `blocks_released`(그중 그 계정이 **지금** `blocked` 가 아닌 수 — 해제 행의 유무가 아니라 현재 상태 기준) |
 | `daily[]` | array | ● | 날짜 오름차순 — `date` · `run_count` · `delay_count` · `login_success` · `login_fail`. **기간이 7일보다 짧아도 최근 7일을 싣는다**(추이 그래프가 늘 7칸 이상) |
-| `academies[]` | array | ● | 학원별 기간 지표, 학원 이름순 — `academy_id` · `academy_name` · `run_count` · `on_time_rate`(null 가능) · `delay_count` · `emergency_count`(기간 비상 알림, 취소 제외) · `change_request_count`(기간에 **접수된** 변경 요청) |
+| `academies[]` | array | ● | 학원별 기간 지표, 학원 이름순 — `academy_id` · `academy_name` · `run_count` · `on_time_rate`(null 가능) · `delay_count` · `emergency_count`(기간 비상 알림, 취소 제외 · 접수 시각 `received_at` 기준) · `change_request_count`(기간에 **접수된** 변경 요청) |
 | `attention` | object | ● | **지금 처리할 것** — 기간과 무관한 지금 상태. 아래 표 |
 | `today_runs[]` | array | ● | 오늘 미취소 회차, 출발 순 — 아래 표 |
 | `health[]` | array | ● | 시스템 상태 4칸(`Ruling 803`) — `key`(`api` · `position` · `confirm_batch` · `notification`) · `status`(`ok` · `warn` · `down`) · `detail`(짧은 사유, `ok` 면 `null`). 판정은 아래 |
@@ -2690,21 +2690,21 @@ O-04 · SYS-01·02. 정본 API명세서에 경로 미기재 — 감사 로그 �
 |---|---|
 | `signup_blocked[]` | 대기 중 관계자 가입 요청(§6.4) 중 그 학원에 재직 관계자가 있어 **지금은 승인할 수 없는 것** — `request_id` · `name` · `academy_name` · `requested_at` |
 | `delayed_runs[]` | 오늘 지연 회차(§6.15 `delayed_runs` 와 같은 정의) — `run_id` · `academy_name` · `bus_no` · `direction` · `delay_minutes` |
-| `expiring_change_requests[]` | 대기 중 변경 요청(§5.5)을 회차별로 묶어 `deadline_at` 이 **30분 안**인 것 — `run_id` · `academy_name` · `bus_no` · `direction` · `deadline_at` · `count`. 놓치면 자동 거절(§9.6 `auto_rejected`)된다 |
+| `expiring_change_requests[]` | 대기 중 변경 요청(§5.5)을 회차별로 묶어 `deadline_at` 이 **(지금, 지금 + 30분]** 인 것(정확히 30분 뒤는 포함 · 이미 마감이 지난 요청은 자동 거절 배치가 거두므로 제외) — `run_id` · `academy_name` · `bus_no` · `direction` · `deadline_at`(그 회차 대기 요청 중 가장 이른 마감) · `count`. 놓치면 자동 거절(§9.6 `auto_rejected`)된다 |
 | `unacked_emergencies` · `stale_runs` · `confirm_failed_runs` · `blocked_accounts` | integer — 미확인 비상 알림(§6.11) · 끝나지 않은 회차(§6.16) · 확정 실패 회차(§6.15 합) · 차단 계정(§6.10) 수 |
 
-**`today_runs[]`** — `run_id` · `academy_id` · `academy_name` · `bus_no` · `direction` · `depart_time` · `est_arrival_time`(§5.3 과 같은 계산, `null` 가능) · `run_status` · `started_at` · `finished_at` · `delay_minutes`(§5.18 계산, `moving` 아니면 `null`) · `stops_done` · `stops_total`(확정 뒤 승하차지 도착 수 / 전체 — 경유 지점 제외, 확정 전 `null`) · `pending_change_count`(대기 중 변경 요청 수) · `driver_assigned`(boolean — 기사 배치 여부). 진행률(지금 − 출발)/(도착 예정 − 출발)과 상태별·학원별 막대는 화면이 이 배열로 계산한다.
+**`today_runs[]`** — `run_id` · `academy_id` · `academy_name` · `bus_no` · `direction` · `depart_time` · `est_arrival_time`(§5.3 과 같은 계산, `null` 가능) · `run_status` · `started_at` · `finished_at` · `delay_minutes`(§5.18 계산, `moving` 아니면 `null`) · `stops_done` · `stops_total`(확정 뒤 승하차지 도착 수 / 전체 — 경유 지점 · 도착지 · 건너뛴(`skipped`) 승하차지 제외, §5.18 `progress` 와 같은 범위. 확정 전 `null`) · `pending_change_count`(대기 중 변경 요청 수) · `driver_assigned`(boolean — 기사 배치 여부). 진행률(지금 − 출발)/(도착 예정 − 출발)과 상태별·학원별 막대는 화면이 이 배열로 계산한다.
 
 **`health[]` 판정**(`Ruling 803`) — 서버가 이미 가진 값만 읽는다. 정식 감시는 운영 경보(`DEPLOYMENT §11`)다.
 
 | `key` | `ok` | 아닐 때 |
 |---|---|---|
 | `api` | DB · Redis 연결이 모두 살아 있음(기존 헬스 지표) | 하나라도 끊기면 `down` |
-| `position` | 오늘 `moving` 회차 전부가 2분 안에 위치를 보냄 | 마지막 수신이 2분을 넘은(시작 뒤 한 번도 안 보낸 것 포함) 회차가 있으면 `warn`, `detail` "위치 끊김 N대"(유실 기준 `Ruling 208`) |
+| `position` | 오늘 `moving` 회차 전부가 2분 안에 위치를 보냄 | 마지막 수신이 2분을 넘은(시작 뒤 2분이 지나도록 한 번도 안 보낸 것 포함 — 시작 2분 안은 세지 않는다, 운영 경보 `RunPositionLost` 와 같은 판정) 회차가 있으면 `warn`, `detail` "위치 끊김 N대"(유실 기준 `Ruling 208`) |
 | `confirm_batch` | 확정 배치의 마지막 실행이 2분 안(30초 폴링 4회분) — 서버 기동 뒤 2분 안이면 `ok` | 넘으면 `down` |
 | `notification` | 적재 뒤 5분 넘게 발송을 기다리는 알림이 0건 | 있으면 `warn`, `detail` "발송 지연 N건" |
 
-**`recent_events[]`**(`Ruling 804`) — 최근 7일 운영 사건 중 최신 10건, 시각 내림차순. 감사 이력(§6.13 — 개인정보 조회·수정)과 별개이며 새 테이블 없이 각 사건의 시각 컬럼에서 읽는다. 항목 — `at` · `kind`(`run_confirmed` · `run_started` · `run_finished` · `delay_notified` · `staff_signup_requested`) · `academy_name` · 회차 사건이면 `run_id` · `bus_no` · `direction` · `delay_minutes`(지연 알림의 분) · `pending_change_count`(확정 사건 — 지금 그 회차의 대기 변경 요청 수), 가입 신청이면 `name` · `status`(§9.2 지금 상태). 해당 없는 키는 `null`.
+**`recent_events[]`**(`Ruling 804`) — 최근 7일 운영 사건 중 최신 10건, 시각 내림차순. 감사 이력(§6.13 — 개인정보 조회·수정)과 별개이며 새 테이블 없이 각 사건의 시각 컬럼에서 읽는다. 항목 — `at` · `kind`(`run_confirmed` · `run_started` · `run_finished` · `delay_notified` · `staff_signup_requested`) · `academy_name` · 회차 사건이면 `run_id` · `bus_no` · `direction` · `delay_minutes`(지연 알림의 분) · `pending_change_count`(확정 사건 — 지금 그 회차의 대기 변경 요청 수), 가입 신청이면 `name` · `status`(§9.2 지금 상태 — 처리된 신청도 7일 안이면 싣는다). 해당 없는 키는 `null`.
 
 **에러** — `422 VALIDATION_FAILED`(`days` 가 1·7·30 밖) · `404 ACADEMY_NOT_FOUND`(`academy_id` 가 미등록 학원)
 
