@@ -59,6 +59,12 @@ orca worktree create --name <이름> --setup run      # 프론트 의존성이 �
   - **복구** — `worker-stop` 으로 멈추고(8개 `stopped`, 1개는 `user_owned` 라 `stop_unknown` → 화면을 확인한 뒤 `worker-abandon` + `terminal close`), `worker-start --task <원 task> --retry-of <원 dispatch>` 로 **하나씩** 다시 띄우면 전부 `input_accepted`. 한 번에 1개씩 치면 9개가 약 1분 안에 모두 뜬다 — 병렬로 줄이는 시간이 거의 없다
   - 원인은 미확인(앱이 동시에 여러 창의 첫 제출을 처리하다 일부를 놓치는 것으로 보임). **병렬 기동으로 아낄 시간이 없으니 순차가 기본**
   - ⚠ **순차로 띄워도 0건이 되지는 않는다** — 2026-10-03 검사 창 10개를 for 루프로 하나씩 띄웠는데 **마지막 1개가 `turn_start_unobserved`** 였다(`draft` 에 지시 전문이 남아 있었다). 그러니 **기동 루프가 끝나면 영수증마다 `stage` 를 확인**하고, `input_accepted` 가 아닌 창은 위 복구 절차(`worker-stop` → `--task … --retry-of …`)로 다시 띄운다. 재기동 1회로 정상이 됐다
+- ⭐ **하트비트는 대기 루프가 걷어내고, 조율자는 완료·문제 신고·질문에만 깨어난다(2026-10-04 사용자 지시).** 하트비트 알림마다 턴을 쓰면 그 턴마다 대화 전체를 다시 읽는다 — R48 은 대화 약 80만 토큰에서 하트비트 처리 턴만 수십 번이었다(Opus 기준 턴당 캐시 읽기 약 $0.16).
+  - 발주 직후 `python3 .claude/skills/orca-launch/waitloop.py <run_id> 1500` 을 **백그라운드로 하나만** 건다. 루프가 하트비트만 든 묶음을 확인 처리하고, `worker_done`·`escalation`·`question` 이 오면 그 묶음을 출력하고 끝난다(확인 처리는 조율자가 내용을 처리한 뒤 `check --run <id> --ack <deliveryId>`)
+  - **시간 만료(`TIMEOUT`)가 멈춘 창 점검 주기다** — 25분마다 깨어나 창별 커밋 수 · `orca terminal read` 마지막 줄을 보고 루프를 다시 건다. 사용량 한도 · API 오류 끊김으로 멈춘 창은 하트비트가 아니라 이것으로 잡힌다(R48 실측 — 멈춤 3회 모두 커밋 수와 화면으로 알아챘다)
+  - 대화에 들어오는 *"You have N orchestration message(s)"* 알림은 루프가 돌고 있으면 **도구 호출 없이 한 줄로 넘긴다.** 알림 자체를 끄는 CLI 옵션 · 하트비트 간격 옵션은 부재(간격은 Orca 가 지시문 머리에 넣는다)
+  - ⚠ 루프를 두 개 띄우지 마라 — 서버가 `waiter_exists` 로 거절하고, 출력 파일이 같으면 서로 덮는다(R48 실제 발생)
+  - 알림 한 번의 비용을 가장 크게 줄이는 수단은 **라운드마다 새 세션으로 시작해 대화를 짧게 두는 것**이다
 - **워크트리를 만든 직후 `.claude/skills/orca-launch/wt-prep.sh <원본 저장소> <워크트리>` 를 돈다** — git 이 무시하는 `.env` · `.env.local` · `*.g.dart` · `*.freezed.dart` 를 복사하고 워크트리가 깨끗한지 확인한다(2026-10-03 · Skill `parallel-agents` §12.1 을 손으로 하던 것). ⚠ `git -C <저장소> worktree add <상대 경로>` 의 상대 경로는 **그 저장소 기준**이다 — 작업 공간의 `.claude/wt/` 에 두려면 절대 경로를 준다(2026-10-03 실제로 `web/.claude/wt/` 에 생겼다)
 - ⚠ **작업 창이 `API Error: Server error mid-response` 로 끊기면 `worker_done` 없이 빈 프롬프트에서 멈춘다 — `worker-list` 는 여전히 `live` 라 기다려도 안 끝난다**(2026-10-03 창 A · 35분 방치). 판별은 `worker-read --dispatch <id> --limit 5` 의 마지막 항목이 그 오류 문구인지 · 작업 트리 `git status --porcelain`. 복구는 새로 띄우지 말고 **같은 창에 입력** — `orca terminal send --terminal <그 창 핸들> --text "[조율자] … 끊긴 지점부터 이어서 · 이미 커밋한 것은 다시 하지 마라" --enter --wait-submit 15`(핸들은 기동 영수증 `effects[].kind=terminal`). 대화 맥락이 남아 있어 재조사 없이 이어진다. ⚠ 커밋이 몇 시간째 늘지 않는 창은 `check --wait` 만 걸지 말고 이 판별을 먼저 한다
 - ⭐ **web · mobile 디자인 작업 창은 디자인 스킬을 붙여 띄운다(2026-10-03 사용자 지시 — 메인 세션은 지시만 하고 그 스킬을 읽지 않는다).**
