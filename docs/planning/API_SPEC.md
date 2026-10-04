@@ -1821,8 +1821,9 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **노선 하나의 정차지는 최대 50개다**(2026-10-01 `Ruling 613`) — 적용 대상은 `POST /staff/routes`·`PATCH /staff/routes/{id}` 의 `stop_ids`, `PUT /staff/routes/{id}/stops` 의 `stops[]`, `POST /staff/routes/{id}/optimize` 의 `fixed_stop_ids` 4곳이고 넘으면 `422 VALIDATION_FAILED` 다. 상한이 없으면 정차지 500개짜리 노선 하나를 열 때마다 외부 경로 호출이 구간 수(17지점당 1회)만큼 나가 일일 한도를 갉아먹고 요청 스레드를 수 분 묶는다. 정상 노선은 30개 안쪽이다. 관계자 웹 폼의 사전 안내는 이 판정의 범위 밖이다(서버 거절 문구가 그대로 보인다). 2026-09-25 전에는 `GlobalExceptionHandler` 가 `ErrorCode` 의 고정 문구만 실어 그 문구도 도달하지 않았다(BR-135 로 해소). 화면이 사유를 **코드로** 갈라 분기해야 하면 `ErrorCode` 를 나누는 것이 유일한 수단이다.
 
-**`GET /staff/routes/{id}/path` 응답**(R27-B 신설) — `road_path`(`{lat,lng}[]`, 순서 있음) · `fallback_used`(`true` 면 직선거리 근사) · `stops[]`(`stop_id` · `seq` · `name` · `lat` · `lng`, 상세 응답과 같은 모양) · **`distance_m`**(integer — 도로 경로 총 거리) · **`duration_s`**(integer — 도로 경로 예상 소요) · **`computed_at`**(datetime — 이 경로를 계산한 시각, 저장된 경로를 다시 쓰면 그 계산 시각)(`Ruling 819`)
+**`GET /staff/routes/{id}/path` 응답**(R27-B 신설) — `road_path`(`{lat,lng}[]`, 순서 있음) · `fallback_used`(`true` 면 직선거리 근사) · `stops[]`(`stop_id` · `seq` · `name` · `lat` · `lng`, 상세 응답과 같은 모양) · **`distance_m`**(integer — 도로 경로 총 거리) · **`duration_s`**(integer — 도로 경로 예상 소요) · **`computed_at`**(datetime — 이 경로를 계산한 시각. 편성 경로는 저장하지 않고 호출마다 계산하므로 지금 시각이며 빈 경로에도 채운다)(`Ruling 819`)
 
+- 이 응답의 `stops[]` 는 상세와 같은 모양이되 **`rider_count` 는 싣지 않는다**(정차지별 학생 수는 상세 응답에서 읽는다)
 - `distance_m` · `duration_s` 는 도로 경로 API 가 돌려준 값을 그대로 싣는다. **직선 근사(`fallback_used=true`)이거나 `road_path` 가 빈 배열이면 둘 다 `null`** — 근사 거리를 도로 거리로 보이지 않는다
 
 - 방향별 기준점은 §5.19 `plannedRouteOf` 와 같은 규칙이다(Ruling 190) — 등원은 첫 승차지 → 학원, 하원은 학원 → 마지막 하차지. **학원에 좌표가 없으면 학원 쪽 끝점만 빼고 정차지끼리 잇는다** — 이 엔드포인트는 §5.19 확정 노선이 아니라 학기 단위 원본 편성을 다루므로, 학원 기준점이 없어도 "정차지끼리 어떤 차례로 도는가"는 여전히 유효한 정보라고 판단했다
@@ -1862,7 +1863,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 `PATCH` 는 보낸 필드만 고친다 — **키가 없으면 유지 · 선택(○) 항목에 `null` 을 명시하면 지움 · 선택 문자열 항목의 빈 문자열(`""`)은 `null` 로 저장 · 필수(●) 항목의 `null`·빈 문자열은 `422 VALIDATION_FAILED`**(`Ruling 390` — §5.11 과 같다). **`active` 는 ○ 이지만 지울 값이 아니라 켜고 끄는 값이라 `null` 도 `422`** 다(지우면 어느 쪽인지 정할 수 없고, 모르고 켜면 회차가 생긴다). **`bus_id`·`weekday`·`direction`·`depart_time` 넷이 유일성 조합**이라, 그중 하나만 고쳐도 기존 스케줄과 충돌하면 `409 DUPLICATE_SCHEDULE`.
 
-**응답** — `id` · `bus_id` · `bus_no` · `weekday` · `direction` · `depart_time` · `origin_name` · `destination_name` · `est_duration_min` · `active` · **`route_stop_count`**(integer, null 가능 — 같은 `bus_id`·`weekday`·`direction` 편성(§5.9)의 정차지 수. 편성이 없으면 `null`, 정차지 없는 빈 편성이면 `0` — 노선이 비어 있는 스케줄을 목록에서 알린다, `Ruling 818`)
+**응답** — `id` · `bus_id` · `bus_no` · `weekday` · `direction` · `depart_time` · `origin_name` · `destination_name` · `est_duration_min` · `active` · **`route_stop_count`**(integer, null 가능 — 목록 · 등록 · 수정 응답 모두. 같은 `bus_id`·`weekday`·`direction` 편성(§5.9)의 정차지 수. 편성이 없으면 `null`, 정차지 없는 빈 편성이면 `0` — 노선이 비어 있는 스케줄을 목록에서 알린다, `Ruling 818`)
 
 **`GET /staff/schedules` 쪽 크기** — `size` 상한 **500**(§1.8 의 100 예외 — 요일표가 스케줄 전량을 한 번에 그린다, `Ruling 818`).
 
@@ -1922,7 +1923,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **응답 최상위 `summary`**(`Ruling 815`) — `total`(재원 학생 수) · `class_count`(반 종류 수) · `guardian_unlinked` · `address_missing` · `can_go_alone`. **쿼리와 쪽에 무관한 학원 전체 값**이라 지표 칸이 필터를 걸어도 바뀌지 않는다.
 
-**`GET /staff/students/{id}/withdrawal-preview` 응답**(`Ruling 815`) — `today_runs[]` · `tomorrow_runs[]`, 각 항목 `run_id` · `bus_no` · `direction` · `depart_time` · `status` · `stop_name`(그 학생의 승하차지, 확정 전 예정 명단이면 예정 승하차지). **그 학생이 탑승자(확정 뒤 `run_rider`, 확정 전 예정 명단 — §5.4 와 같은 계산)인 미취소 · 미종료 회차**만 싣는다. 퇴원하면 `today_runs` 는 그대로 운행되고(오늘 명단 유지) `tomorrow_runs` 에서 빠진다 — 화면은 그 승하차지 인원 −1 을 보인다. 권한·에러는 상세와 같다(`404 STUDENT_NOT_FOUND`).
+**`GET /staff/students/{id}/withdrawal-preview` 응답**(`Ruling 815`) — `today_runs[]` · `tomorrow_runs[]`, 각 항목 `run_id` · `bus_no` · `direction` · `depart_time` · `status` · `stop_name`(그 학생의 승하차지, 확정 전 예정 명단이면 예정 승하차지). **그 학생이 탑승자(확정 뒤 `run_rider`, 확정 전 예정 명단 — §5.4 와 같은 계산)인 미취소 · 미종료 회차**만 싣는다. 그 회차에서 **미등원(`absent`)인 행은 뺀다** — 그 승하차지 인원에 이미 세지 않는 학생이라 퇴원해도 인원이 줄지 않는다. 퇴원하면 `today_runs` 는 그대로 운행되고(오늘 명단 유지) `tomorrow_runs` 에서 빠진다 — 화면은 그 승하차지 인원 −1 을 보인다. 권한·에러는 상세와 같다(`404 STUDENT_NOT_FOUND`).
 
 **`POST` · `PATCH` 요청** — 매체는 `multipart/form-data`(§1.1: JSON 파트 `data` + 선택 파일 파트 `photo`). **다른 `Content-Type`(예: `application/json`)은 `422 VALIDATION_FAILED`** 이며 `500` 이 아니다(`Ruling 399`). 아래 필드 중 `photo` 는 파일 파트, 나머지는 `data` 파트의 키다.
 
@@ -2178,7 +2179,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 전송 알림 전수 조회 — 푸시 off 로 차단된 건도 레코드로 존치.
 
-**`group=true` — 묶어 보기**(`Ruling 813`) — 같은 사건이 적재한 행(같은 `type` · `run_id` · `body` · 적재 시각 초 단위)을 한 항목으로 묶는다. **쪽 나누기와 `total_count` 도 묶음 단위**다(화면이 쪽 안에서 묶으면 쪽 경계에서 같은 알림이 갈린다). 묶음 항목 — `group_key`(string) · `sent_at` · `bus_no` · `type` · `body` · `recipient_count` · `acked_count` · `recipients[]`(앞 3명 — `recipient_name` · `recipient_role`). `acked` 필터는 묶음 안에 그 상태 행이 하나라도 있으면 그 묶음을 싣는다. `unacked_count` 는 묶지 않은 행 기준 그대로.
+**`group=true` — 묶어 보기**(`Ruling 813`) — 같은 사건이 적재한 행(같은 `type` · `run_id` · `body` · 적재 시각 초 단위)을 한 항목으로 묶는다. **쪽 나누기와 `total_count` 도 묶음 단위**다(화면이 쪽 안에서 묶으면 쪽 경계에서 같은 알림이 갈린다). 묶음 항목 — `group_key`(string) · `sent_at`(묶음 안 가장 늦은 시각) · `bus_no` · `type` · `body` · `recipient_count` · `acked_count` · `recipients[]`(앞 3명 — `recipient_name` · `recipient_role`). `acked` 필터는 묶음 안에 그 상태 행이 하나라도 있으면 그 묶음을 싣는다. `unacked_count` 는 묶지 않은 행 기준 그대로.
 
 **에러** — §1.11 공통 항목 외 고유 에러 부재.
 
