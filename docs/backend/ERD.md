@@ -768,8 +768,10 @@ erDiagram
 | `memo` | text | NN | 상황 기술 |
 | `reported_by` | bigint | NN | 보고자 계정 |
 | `reported_at` | timestamptz | NN | |
+| `handled_at` | timestamptz | | 관계자가 처리됨으로 표시한 시각 — 미처리면 NULL(`Ruling 814` · API_SPEC §5.20) |
+| `handled_by` | bigint | | 처리 표시한 관계자 계정. `handled_at` 과 함께 채워진다 — CHECK `(handled_at IS NULL) = (handled_by IS NULL)` |
 
-**존재 이유** — 보호자 부재·현장 상황을 관계자에게 통지하고 사후 확인 가능한 형태로 남기는 자리. **MVP 범위는 보고까지** — 재승차·대체 보호자·인계 완료 판정 컬럼 부재. **근거** EXC-02·03 · M-14 · API_SPEC §4.13 · PRD §11.2 E-05
+**존재 이유** — 보호자 부재·현장 상황을 관계자에게 통지하고 사후 확인 가능한 형태로 남기는 자리. **MVP 범위는 보고와 처리 표시까지**(2026-10-04 `Ruling 814` — 쌓이기만 하고 처리됐는지 갈 수 없었다) — 재승차·대체 보호자·인계 완료 판정 컬럼 부재. **근거** EXC-02·03 · M-14 · API_SPEC §4.13 · PRD §11.2 E-05
 
 #### `run_position` — 운행 중 버스 위치
 
@@ -1055,6 +1057,7 @@ erDiagram
 | `emergency_alert` | `type <> 'etc' OR memo IS NOT NULL` | 기타 유형은 메모 필수 (API_SPEC §4.14) |
 | `academy_setting` | `no_show_wait_minutes > 0 AND no_show_wait_minutes <= 30` | 미승차 대기 기본 **3분**, 상한 **30분**(Ruling 257) |
 | `exception_report` | `type <> 'guardian_absent' OR run_rider_id IS NOT NULL` | 보호자 부재는 대상 탑승자 필수 (EXC-02) |
+| `exception_report` | `(handled_at IS NULL) = (handled_by IS NULL)` | 처리 시각과 처리자는 함께 있다 (`Ruling 814`) |
 | `weekly_address` · `schedule` · `route` | `weekday IN ('mon','tue','wed','thu','fri','sat','sun')` | 요일 enum |
 | `delay_notice` | `minutes > 0 AND minutes % 5 = 0` | 지연 예상 분은 **5분 단위** (BR-141) |
 | `academy` · `stop` · `waypoint` · `run_position` | `lat BETWEEN -90 AND 90` · `lng BETWEEN -180 AND 180` | 좌표 범위 |
