@@ -5,8 +5,8 @@
 | 항목 | 결정 (2026-09-29 사용자 확정) |
 |---|---|
 | 서버 | 집 PC 1대(i5 10세대 · 16GB) · `docker-compose.staging.yml` 한 파일 |
-| 공개 | Cloudflare Tunnel — 공유기 포트 개방 부재 · HTTPS 는 Cloudflare 가 처리 |
-| 웹 | 같은 서버·같은 주소(Vercel 미사용 — 새로 고침 쿠키가 `SameSite=Strict` 라 웹과 API 가 다른 **사이트**가 되면 로그인 유지 불가). 운영은 `Ruling 481` 로 웹만 Vercel 이지만 웹·API 를 같은 사이트의 커스텀 도메인(`app.<도메인>` · `api.<도메인>`)에 두어 `Strict` 가 성립하게 한 것이고(`DEPLOYMENT.md §12.2`), 스테이징은 도메인 1개(`bus.<도메인>`)라 서버 한 곳에 묶음 |
+| 공개 | Cloudflare Tunnel — 공유기 포트 개방 부재 · HTTPS 는 Cloudflare 가 처리. **또는 ngrok**(Docker 확장 · 고정 도메인 — `STAGING.md §4.1` · `Ruling 841`) |
+| 웹 | 같은 서버·같은 주소(Vercel 미사용 — 새로 고침 쿠키가 `SameSite=Strict` 라 웹과 API 가 다른 **사이트**가 되면 로그인 유지 불가). 운영은 `Ruling 481` 로 웹만 Vercel 이지만 웹·API 를 같은 사이트의 커스텀 도메인(`app.<도메인>` · `api.<도메인>`)에 두어 `Strict` 가 성립하게 한 것이고(`DEPLOYMENT.md §12.2`), 스테이징은 도메인 1개(`bus.<도메인>`)라 서버 한 곳에 묶음. ngrok 구성(`STAGING.md §4.1`)은 웹을 Vercel `web-dev` 에 둔다 — 새로 고침하거나 15분이 지나면 다시 로그인(감수) |
 | 앱 | Android 만 · APK 를 서버의 `/download/` 에 두고 QR 로 설치. iOS 는 제외(원격 설치에 Apple 개발자 등록 필수) |
 | 데이터 | 백엔드 `local,staging` 프로파일 — QA Mock 시드(`db/qa-seed` · 경기 부천 학원 3곳 · 계정과 시나리오는 [`docs/qa/QA_SCENARIOS.md`](../../qa/QA_SCENARIOS.md)) + 버스 시뮬레이터. **매일 새벽 시드 상태로 초기화** · 팀원이 웹 머리말 **[테스트 데이터 초기화]** 로 언제든 초기화(`Ruling 364`) |
 
@@ -55,6 +55,21 @@ scp <mac 사용자>@<mac IP>:Desktop/PJ/baraeda/web/.env.local ../web/.env.local
 2. 설치 명령 화면에 나오는 **토큰**(`eyJ…`)만 복사한다 — 설치 명령은 실행하지 않는다(compose 가 띄운다)
 3. Public Hostname — Subdomain `bus` · Domain `<도메인>` · Service **`HTTP`** · URL **`proxy:80`**
 
+### 4.1 ngrok 으로 대신할 때 (`Ruling 841` · 2026-10-05 사용자 결정)
+
+도메인·Cloudflare 계정 없이 Mac 에서 바로 띄우는 구성이다. 웹은 Vercel `web-dev`, API·앱은 ngrok 고정 도메인(ngrok 대시보드 → Domains, 무료 1개 — 실제 값은 저장소에 적지 않고 `.env` 의 `PUBLIC_URL` 에만 둔다).
+
+1. `.env`(§6) 에서 `COMPOSE_FILE` · `TUNNEL_TOKEN` 줄을 빼고 `COMPOSE_PROFILES=ngrok` · `NGROK_AUTHTOKEN=<ngrok 대시보드 → Your Authtoken>` · `WEB_ORIGIN=https://<web-dev 운영 주소>.vercel.app` 을 쓴다. ngrok 에이전트가 스테이징 compose 의 `ngrok` 컨테이너로 같이 떠서 고정 도메인(`PUBLIC_URL`)을 `proxy:80` 으로 보낸다. `WEB_ORIGIN` 은 허용 출처(CORS · WebSocket)에 웹 주소를 함께 싣는다 — 허용 출처(CORS · WebSocket)에 웹 주소가 함께 실린다. `COMPOSE_FILE` 을 빼는 이유는 같은 폴더의 개발용 compose 명령이 스테이징으로 바뀌지 않게 하려는 것 — 기동은 `docker compose -f docker-compose.staging.yml up -d --build`
+2. **Docker Desktop 의 ngrok 확장은 쓰지 않는다** — 공개를 컨테이너 ID 에 묶어 `up --build` 로 프록시가 새로 만들어질 때마다 끊기고, 2026-10-05 에는 스테이징 프록시로 켠 공개가 요청을 프록시까지 전달하지 못해 503(`ERR_NGROK_3004`)만 냈다. 같은 도메인을 두 에이전트가 잡을 수 없으므로 확장의 공개는 꺼 둔다. ⚠ 특히 **개발용 `school-bus-proxy-1`(3000) 은 공개하지 않는다** — 전 계정 비밀번호가 공개된 `password` 이고 Swagger 가 열린다(같은 날 실제로 열렸다가 닫음)
+3. Vercel `web-dev` 운영(Production) 환경변수 — `NEXT_PUBLIC_API_BASE_URL` = 고정 도메인 · `NEXT_PUBLIC_TEST_DATA_RESET=true` → 재배포. `NEXT_PUBLIC_*` 는 빌드 때 화면 코드에 박혀 값만 바꾸면 반영되지 않는다
+4. §5 의 Web 서비스 URL 에 Vercel 주소를 등록한다
+5. 앱은 §7 의 `API_BASE_URL` 에 `<고정 도메인>/api/v1`
+
+한계
+- 웹(`vercel.app`)과 API(`ngrok-free.dev`)가 다른 사이트라 새로 고침 쿠키(`SameSite=Strict` · `Ruling 502`)가 붙지 않는다 — **새로 고침하거나 access 토큰(15분)이 끝나면 다시 로그인.** 쿠키는 완화하지 않는다
+- 프록시는 접속자 IP 를 `CF-Connecting-IP` 로만 읽는다 — ngrok 뒤에서는 팀원 전원이 한 IP 로 보여 로그인 제한(분당 20회)을 함께 쓰고 감사 로그의 IP 가 터널 쪽 주소다
+- Mac 이 잠자기에 들어가면 서버도 멈춘다
+
 ## 5. 네이버 지도 키에 새 주소 등록
 
 NCP 콘솔 → Maps → 애플리케이션 수정. **안 하면 지도가 401 로 막혀 "지도를 불러오지 못했습니다" 만 뜬다.**
@@ -78,6 +93,8 @@ PUBLIC_URL=https://bus.<도메인>
 # ⚠ 작은따옴표 필수 — 해시 속 `$` 를 compose 가 변수로 읽지 않게 한다
 SEED_PASSWORD_HASH='$2y$10$...'
 JWT_SECRET=<위 openssl 결과>
+# cloudflared 는 이 프로필일 때만 뜬다(ngrok 구성 §4.1 은 ngrok 프로필과 NGROK_AUTHTOKEN 으로 바꾼다)
+COMPOSE_PROFILES=cloudflare
 TUNNEL_TOKEN=<§4 토큰>
 ```
 
@@ -87,7 +104,7 @@ docker compose up -d --build      # COMPOSE_FILE 덕에 -f 불필요. 첫 빌드
 docker compose ps                 # 6개 전부 running
 ```
 
-- 넷 중 하나라도 비면 compose 가 기동 전에 멈춘다 — 저장소에 공개된 비밀번호·JWT 키로 뜨는 일을 막는 장치
+- `PUBLIC_URL` · `SEED_PASSWORD_HASH` · `JWT_SECRET` 중 하나라도 비면 compose 가 기동 전에 멈춘다 — 저장소에 공개된 비밀번호·JWT 키로 뜨는 일을 막는 장치. `TUNNEL_TOKEN` 은 필수가 아니다(비면 `cloudflared` 컨테이너만 실패)
 - 확인 — 브라우저에서 `https://bus.<도메인>` 로그인. 계정 ID 는 [`docs/qa/QA_SCENARIOS.md`](../../qa/QA_SCENARIOS.md) §1(QA Mock — 2026-10-03 시드 분리 뒤 옛 `SeedFixtures`(`staffA` 등)는 시험 전용이라 스테이징에 없다), 비밀번호는 위에서 정한 값
 
 ## 7. APK 빌드 · 올리기 · QR
