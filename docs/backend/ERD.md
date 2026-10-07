@@ -45,7 +45,7 @@
 | 좌표 | `lat` · `lng` `numeric(9,6)` (API_SPEC §1.1 — WGS84 소수점 6자리) |
 | enum | `varchar(n)` + CHECK 목록. 값은 API_SPEC §9 표기와 글자 그대로 일치 |
 | 감사 컬럼 | 생성 시각 컬럼을 전 테이블에 두되 **의미가 명확한 이름을 우선**(`requested_at` · `sent_at` · `occurred_at` 등), 그 외에는 `created_at timestamptz NN default now()`. 수정이 발생하는 테이블에만 `updated_at` 추가 |
-| 정렬 규칙 | DB 기본 정렬은 **ICU 한국어**(`ko-KR`) — 컬럼별 `COLLATE` 를 두지 않고 DB 를 만들 때 정한다(compose 의 `POSTGRES_INITDB_ARGS` · 시험용 컨테이너 같은 값). 이름순 `ORDER BY` 가 가나다순이 된다. 이미지 기본값 `en_US.utf8` 은 한글을 섞어 세웠다(2026-10-07 `Ruling 851`). 이미 만든 DB 에는 먹지 않는다 — 덤프·복원으로만 바뀐다 |
+| 정렬 규칙 | DB 기본 정렬은 **ICU 한국어 + 숫자 크기순**(`ko-KR-u-kn` — "1번 · 2번 · 10번", `Ruling 852`) — 컬럼별 `COLLATE` 를 두지 않고 DB 를 만들 때 정한다(compose 의 `POSTGRES_INITDB_ARGS` · 시험용 컨테이너 같은 값). 이름순 `ORDER BY` 가 가나다순이 된다. 이미지 기본값 `en_US.utf8` 은 한글을 섞어 세웠다(2026-10-07 `Ruling 851`). 이미 만든 DB 에는 먹지 않는다 — 덤프·복원으로만 바뀐다 |
 
 ---
 
