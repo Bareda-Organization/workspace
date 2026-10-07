@@ -755,6 +755,7 @@ $C start backend
 
 **전제**
 
+- **새 클러스터도 같은 정렬 규칙으로 만든다** — `docker-compose.prod.yml` 의 `POSTGRES_INITDB_ARGS`(ICU 한국어, `Ruling 851`)가 빈 데이터 디렉터리를 만들 때 먹는다. `pg_upgrade` 는 옛·새 클러스터의 정렬 규칙이 다르면 거절하므로 이 인자를 빼거나 바꾸지 않는다. 첫 배포 전에 만든 볼륨이 있으면(이 인자 없이 초기화됨) 덤프 → 볼륨 새로 만들기 → 복원으로 바꾼다
 - 데이터는 named volume `postgres-data`(데이터 디스크의 `/var/lib/docker/volumes` 아래)에 있다. 컨테이너 안 마운트는 `/var/lib/postgresql`, 데이터 디렉터리는 `/var/lib/postgresql/<주 버전>/docker`.
 - **서비스가 멈춘다** — DB 가 내려가 있는 동안 API 가 응답하지 않는다(외부 가동 감시 §11.4 가 알린다). 운행이 없는 시간에 한다. 걸린 시간은 첫 리허설에서 재어 §7.1 과 같은 표에 적는다(미실측).
 - 버전이 박힌 곳은 다섯이다 — `docker-compose.prod.yml` · `docker-compose.yml` · `docker-compose.staging.yml` 의 `image: postgres:<버전>` 과 시험 코드 `MigratedPostgresTestBase` · `BaseTimeEntityAuditingTest` 의 `new PostgreSQLContainer("postgres:<주 버전>")`. `RuntimeImageParityTest` 가 다섯이 같은 주 버전인지 본다.
