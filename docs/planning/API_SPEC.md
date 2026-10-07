@@ -1386,9 +1386,9 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 
 가입 요청 목록 (AUTH-10, A-02).
 
-**권한** 학원 관계자 · **요청 (쿼리)** `status` (enum, 선택 — `pending` 기본) · 페이징
+**권한** 학원 관계자 · **요청 (쿼리)** `status` (enum, 선택 — `pending` 기본) · `role`(선택 · 반복 가능 — `parent` · `student` · `driver` · `escort`. 주면 `items[]` 와 `total_count` 를 그 역할로 거른다 · 그 밖의 값은 `422 VALIDATION_FAILED` · 2026-10-07 `Ruling 846` — 매니저 관리 화면의 "가입 승인 대기 N건" 은 `status=pending&role=driver&role=escort` 의 `total_count`) · 페이징
 
-**응답** — `items[]` + `pending_count`(미처리 배지)
+**응답** — `items[]` + `pending_count`(미처리 배지 — `status`·`role` 필터와 무관한 학원 전체 대기 건수)
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
@@ -2555,11 +2555,11 @@ O-04 · SYS-01·02. 정본 API명세서에 경로 미기재 — 감사 로그 �
 |---|---|---|
 | `GET /admin/audit-logs` | SYS-01 | `actor`(행위자 로그인 아이디 스냅샷) · `actor_name`(행위자 계정의 현재 이름 — 계정이 없으면 `null`) · `action`(`read` · `update` · `delete`) · `detail_action`(감사 행 `detail.action` — 강제 확정 `run.force_confirm`(§6.14) · 강제 종료 `run.force_finish`(§6.17) 등 원문 그대로, 없으면 `null`) · `target_type` · `target_id` · `academy_name` · `ip` · `occurred_at` (`actor_name` · `detail_action` · `ip` 는 `Ruling 809`) |
 | `GET /admin/audit-actors` | SYS-01 | `items[]` — `account_id` · `name` · `login_id` · `role` · `academy_name`(소속 없으면 `null`). 감사 화면이 행위자를 이름으로 고르는 목록 |
-| `GET /admin/login-history` | SYS-02 | `account_id` · `login_id` · `result`(`success` · `fail`) · `ip` · `occurred_at` · `block_event` · `block_action`(`block` · `unblock`) |
+| `GET /admin/login-history` | SYS-02 | `account_id` · `login_id` · `result`(`success` · `fail`) · `ip` · `occurred_at` · `block_event` · `block_action`(`block` · `unblock`) · `unblocked_by_name`(`Ruling 846`) |
 
 **`block_action`** — `block_event=true` 인 행에서 차단 행이면 `block`, 해제 행이면 `unblock`, 나머지 행은 `null`(키는 존재). `block_event`(불리언)는 두 행 모두 `true` 라 그대로 두고 이 필드가 둘을 가른다 — 기존 소비처를 깨지 않는 추가다(`Ruling 394`, ERD `audit_log.action` 의 `block`·`unblock` 투영). **`result` 는 로그인 시도 행(`success` · `fail`)에만 값이 있고 차단·해제 행은 `null`**(`LoginHistoryQueryService.toItem` — 로그인 시도가 아니라 상태 변경이라서) — 클라이언트는 `null` 을 실패로 그리지 않는다.
 
-**`block_event` 행의 `account_id` · `login_id`** — 차단(`block`) 행은 차단된 계정(행위자와 같다), **해제(`unblock`) 행은 해제된 계정**이다(BR-219 — 계정별 이력이 끊기지 않게). 해제한 관리자는 `audit_log.actor_account_id` 와 해제 응답의 `unblocked_by`(§6.12)가 갖는다 — 이 목록의 행이 싣지 않는다. **해제 행의 `ip` 도 `null`** — 감사 행에 저장된 IP 는 해제한 관리자의 것(`Ruling 595`)이라 해제된 계정의 접속 IP 로 읽히지 않게 비운다(관리자 IP 는 감사 로그 목록 §6.13 `GET /admin/audit-logs` 의 `ip` 가 갖는다). `account_id` 필터도 같은 뜻 — 해제된 계정의 해제 행이 걸리고, 해제한 관리자의 필터에는 걸리지 않는다.
+**`block_event` 행의 `account_id` · `login_id`** — 차단(`block`) 행은 차단된 계정(행위자와 같다), **해제(`unblock`) 행은 해제된 계정**이다(BR-219 — 계정별 이력이 끊기지 않게). 해제한 관리자는 `audit_log.actor_account_id` 와 해제 응답의 `unblocked_by`(§6.12)가 갖고, 이 목록은 해제 행에 **`unblocked_by_name`**(string, null 가능 — 해제한 메인 관리자 계정의 현재 이름. 해제 행이 아니면 `null`(키는 존재) · 계정이 없으면 `null`)만 싣는다(2026-10-07 `Ruling 846` — AUTH-06·O-03 의 "처리자·일시 이력" 을 화면에서 보게. 계정 식별자·로그인 아이디는 싣지 않는다). **해제 행의 `ip` 도 `null`** — 감사 행에 저장된 IP 는 해제한 관리자의 것(`Ruling 595`)이라 해제된 계정의 접속 IP 로 읽히지 않게 비운다(관리자 IP 는 감사 로그 목록 §6.13 `GET /admin/audit-logs` 의 `ip` 가 갖는다). `account_id` 필터도 같은 뜻 — 해제된 계정의 해제 행이 걸리고, 해제한 관리자의 필터에는 걸리지 않는다.
 
 쿼리 파라미터 — `academy_id` · `account_id` · `from` · `to` · 페이징 · **`action`**(`/admin/audit-logs` 만 — `read` · `update` · `delete` 중 하나, 안 주면 셋 다. 그 밖의 값은 `422 VALIDATION_FAILED`, `Ruling 446`). **`from` · `to` 는 §1.1 의 시각 표기(ISO-8601 + 오프셋, 예 `2026-09-30T00:00:00+09:00`)이며 날짜만(`2026-09-30`) 보내면 `422 VALIDATION_FAILED`** 다(`Ruling 399`). **`from` 을 안 주면 `to`(없으면 지금)로부터 30일 전부터다**(`Ruling 632`) — 기간 없이 부르면 최근 30일만 돌려주며 `total_count` 도 그 기간의 건수다. 더 옛 이력은 `from` 을 명시한다. `to` 를 안 주면 상한은 열려 있다.
 
