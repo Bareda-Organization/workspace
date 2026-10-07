@@ -1386,7 +1386,7 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 
 가입 요청 목록 (AUTH-10, A-02).
 
-**권한** 학원 관계자 · **요청 (쿼리)** `status` (enum, 선택 — `pending` 기본) · `role`(선택 · 반복 가능 — `parent` · `student` · `driver` · `escort`. 주면 `items[]` 와 `total_count` 를 그 역할로 거른다 · 그 밖의 값은 `422 VALIDATION_FAILED` · 2026-10-07 `Ruling 846` — 매니저 관리 화면의 "가입 승인 대기 N건" 은 `status=pending&role=driver&role=escort` 의 `total_count`) · 페이징
+**권한** 학원 관계자 · **요청 (쿼리)** `status` (enum, 선택 — `pending` 기본 · 값은 `pending` · `accepted` · `rejected`, 그 밖의 값은 `422 VALIDATION_FAILED` — 2026-10-07 `Ruling 848`) · `role`(선택 · 반복 가능 — `parent` · `student` · `driver` · `escort`. 주면 `items[]` 와 `total_count` 를 그 역할로 거른다 · 그 밖의 값은 `422 VALIDATION_FAILED` · 2026-10-07 `Ruling 846` — 매니저 관리 화면의 "가입 승인 대기 N건" 은 `status=pending&role=driver&role=escort` 의 `total_count`) · 페이징
 
 **응답** — `items[]` + `pending_count`(미처리 배지 — `status`·`role` 필터와 무관한 학원 전체 대기 건수)
 
@@ -2146,7 +2146,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 | `memo` | string | ○ | |
 | `raised_by` | object | ● | `name` · `role`(`driver`·`escort`) · `phone` |
 | `run_id` · `bus_no` · `direction` | — | ● | 대상 회차 |
-| `position` | object | ● | `lat` · `lng` · `recorded_at` — **발신 시점 위치** |
+| `position` | object | ● | `lat` · `lng` · `recorded_at` — **발신 시점 위치**. 서버에 그 회차의 위치 기록이 없으면(발신 전 송신 부재) 세 값이 모두 `null` — 화면은 "위치 확인 불가" 로 그리고 지도 링크를 두지 않는다(`Ruling 848`) |
 | `rider_count` | integer | ● | 발신 시점 회차에 배정된 라이더 전원 수(승하차 상태 무관) |
 | `contacts` | array | ● | 기사·동승자 연락처 |
 | `raised_at` · `acked_at` · `canceled_at` | datetime | ● / ○ / ○ | `raised_at` 은 **서버 접수 시각**(`received_at`)이다 — 정렬·판정은 이 값만 쓴다 |
@@ -3069,4 +3069,4 @@ DB 를 Flyway 시드 상태로 되돌리고 위치 캐시(Redis)를 비운 뒤 *
 
 구현 — `global/dev/DevResetController` · `DevResetService`. 미리보기 캐시도 함께 비운다(`ApprovalPreviewCache`). 내일 회차 생성은 일일 배치와 같은 `RunGenerationService.generate(내일)` 이라 멱등이다.
 
-**팀원 체험용 서버(스테이징)에서도 켜져 있다**(Ruling 364) — `local,staging` 프로파일이라 겹①을 통과하고, compose 안의 DB 는 컨테이너 이름 `postgres` 로 불려 `LocalFlywayCleanStrategy` 의 localhost 판정에 걸리므로 staging 섹션이 `app.flyway-clean.extra-allowed-hosts: postgres` 로 그 이름 하나만 연다. 관계자 웹 머리말의 **[테스트 데이터 초기화]** 버튼이 이 엔드포인트를 부르고 성공하면 로그아웃한다(초기화가 로그인 유지 토큰까지 지운다). `pending` 계정은 상태 게이트가 `403` 으로 막는다(허용 목록에 부재).
+**팀원 체험용 서버(스테이징)에서도 켜져 있다**(Ruling 364) — `local,staging` 프로파일이라 겹①을 통과하고, compose 안의 DB 는 컨테이너 이름 `postgres` 로 불려 `LocalFlywayCleanStrategy` 의 localhost 판정에 걸리므로 staging 섹션이 `app.flyway-clean.extra-allowed-hosts: postgres` 로 그 이름 하나만 연다. 관계자 웹 · 메인 관리자 콘솔 머리말의 **[테스트 데이터 초기화]** 버튼(빌드 설정 `NEXT_PUBLIC_TEST_DATA_RESET=true` 일 때만)이 이 엔드포인트를 부르고 성공하면 로그아웃한다(초기화가 로그인 유지 토큰까지 지운다). `pending` 계정은 상태 게이트가 `403` 으로 막는다(허용 목록에 부재).
