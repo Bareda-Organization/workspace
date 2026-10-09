@@ -29,7 +29,7 @@ orca worktree create --name <이름> --setup run      # 프론트 의존성이 �
 
   배정 기준의 본문은 **Skill `parallel-agents` §4.1** 이다. 여기 다시 적지 않는다 — 두 벌이 되면 한쪽이 낡는다.
 - ⭐ **Orca 로 일할 때도 서브에이전트를 쓴다 — 작업 창 안에서도, 조율자도(2026-10-09 사용자 지시).** 라운드 공통 규칙에 *"서브에이전트를 띄우지 마라"* 를 넣지 말고 **Skill `parallel-agents` §4.4.2 의 문단**을 넣는다(창의 서브에이전트는 창과 같은 워크트리·DB 를 쓰므로 쓰기는 한 번에 하나 · 전용 DB·포트를 그대로 · 리뷰는 조율자 몫). 조율자는 위치 파악·끝난 창의 시험 재실행·결함 심기 확인·읽기 전용 조사를 서브에이전트로 돌리고 **Orca 창은 쓰기 갈래에** 쓴다(§4.4.1)
-  - ⚠ **Orca 설정 `중첩 작업자 깊이`(`nestedWorkerMaxDepth`, 현재 2)는 Orca 창만 센다** — 조율자의 창이 깊이 1 이라 2 이면 창이 하위 Orca 창을 띄울 수 있고 지시문 머리도 그렇게 안내한다. 공통 규칙에 "하위 Orca 작업 창 금지 · 보조는 서브에이전트" 를 넣는다(Skill `parallel-agents` §4.4.4). 서브에이전트 깊이는 이 설정과 별개
+  - ⚠ **Orca 설정 `중첩 작업자 깊이`(`nestedWorkerMaxDepth`)는 Orca 창만 센다** — 조율자의 창이 깊이 1 이라 2 이면 창이 하위 Orca 창을 띄울 수 있고 지시문 머리도 그렇게 안내한다. ✅ **2026-10-09 사용자가 1 로 낮춰 기계적으로 막혔다**(확인은 `profile-state.db` — `orca-data.json` 은 낡은 사본이었다). 공통 규칙에 "하위 Orca 작업 창 금지 · 보조는 서브에이전트" 를 넣는다(Skill `parallel-agents` §4.4.4). 서브에이전트 깊이는 이 설정과 별개
 - **`effortLevel` 기본값도 `xhigh` 다**(주 세션이 opus 라서). `--effort` 를 빠뜨린 작업 창은 모델만 내려가고 **노력 수준은 `xhigh` 로 남는다** — 모델 누락과 같은 형태의 누출이라 위 표대로 둘을 같이 적는다.
 - ⚠⚠ **Orca 가 띄우는 창에서는 `.claude/settings.json` 의 `model`·`effortLevel` 이 기준이 아니다.** Orca 는 자체 선택기 값을 **명령줄 인자로** 넘기고, 인자는 설정 파일보다 세다. 2026-09-18 실측 — 설정이 `opus[1m]`·`xhigh` 인데 실제 명령은 `claude --model 'opus[1m]' --effort 'medium'` 이었다(Orca 선택기가 Medium).
   - **Orca 를 거쳐 띄울 때는 Orca 의 `Effort`·`Model` 선택기를 맞춘다.** `settings.json` 은 **Orca 가 아무 값도 안 줄 때의 바닥값**이다
