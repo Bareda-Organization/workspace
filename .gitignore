@@ -16,7 +16,7 @@
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/baraeda-screen-check/
-!.claude/skills/orca-launch/
+!.claude/skills/orca-baraeda/
 
 # 문서 — Markdown 만 추적한다. 사람용 렌더(HTML·PDF·PNG)와 기획 원본 .docx 는 파생본·바이너리라 제외한다.
 **/docs/**

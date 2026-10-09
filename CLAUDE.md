@@ -59,7 +59,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Orca 로 워크트리·작업 창을 띄울 때
 
-🔴 **`orca worktree create` · `worker-start` · `terminal create` 를 치기 전에 Skill `orca-launch` 를 먼저 읽는다.** `--setup skip` 기본 · 작업 창마다 `--model`·`--effort` 명시(sonnet 은 `[1m]`) · 한 줄 기동 · `Default view` 함정 · Haiku 의 `worker_done` 미발신 · `worktreeBaseRef` 가 거기 있다. 조율(기다리기·정산)은 이어서 Skill `orchestration`.
+🔴 **`orca worktree create` · `worker-start` · `terminal create` 를 치기 전에 Skill `orca-launch`(전역 — 일반 규칙) 와 Skill `orca-baraeda`(이 저장소의 Orca id·기준 브랜치·워크트리 위치·디자인 창)를 먼저 읽는다.** `--setup skip` 기본 · 작업 창마다 `--model`·`--effort` 명시(sonnet 은 `[1m]`) · 한 줄 기동 · `Default view` 함정 · `worker_done` 발신(Haiku 4.5 는 미발신 · 5.5 는 발신 확인) · `worktreeBaseRef` 가 거기 있다. 조율(기다리기·정산)은 이어서 Skill `orchestration`.
 
 ## 저장소별 작업 안내
 
