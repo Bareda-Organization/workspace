@@ -1,6 +1,6 @@
 ---
 name: orca-launch
-description: Orca 로 워크트리·작업 창(워커)을 만들거나 띄우기 전에 반드시 읽는다. orca worktree create · worker-start · terminal create 를 치기 전, 작업 창의 모델·effort 를 정할 때, 워커가 5분 뒤 exited 로 죽거나 worker_done 이 안 올 때. --setup skip 기본 · sonnet 은 언제나 [1m] · Haiku 에 effort 금지 · 한 줄 기동 · Default view 함정 · worktreeBaseRef.
+description: Orca 로 워크트리·작업 창(워커)을 만들거나 띄우기 전에 반드시 읽는다. orca worktree create · worker-start · terminal create 를 치기 전, 작업 창의 모델·effort 를 정할 때, 워커가 5분 뒤 exited 로 죽거나 worker_done 이 안 올 때. --setup skip 기본 · sonnet 은 언제나 [1m] · effort high · Haiku 5.5 는 effort medium · 한 줄 기동 · Default view 함정 · worktreeBaseRef.
 ---
 
 # Orca 로 워크트리·작업 창 띄우기 (2026-09-18~)
@@ -18,9 +18,10 @@ orca worktree create --name <이름> --setup run      # 프론트 의존성이 �
 
   | 작업 | 붙일 것 |
   |---|---|
-  | 결과 집계 · 로그 추출 · 개수 세기 | `--model claude-haiku-4-5` — **effort 는 주지 않는다** |
-  | 구현 · 리뷰 | **`--model 'claude-sonnet-5-5[1m]' --effort xhigh`** — ⭐ **sonnet 은 언제나 `[1m]`**(2026-09-19 사용자 상시 지시) · ⭐ **effort 는 `xhigh`**(2026-10-01 사용자 상시 지시 *"sonnet 을 앞으로 xhigh 로"* — 그 전 기본 `high`) |
-  | 코드를 건드려 재현하는 디버깅 | 워크트리 + `--model claude-opus-5 --effort xhigh` |
+  | 결과 집계 · 로그 추출 · 개수 세기 · 찾기 | `--model claude-haiku-5-5 --effort medium` |
+  | 사양이 정해진 작은 구현(함수 1~2개 + 그 시험) | `--model claude-haiku-5-5 --effort medium` — 끝나면 조율자가 시험 재실행 + 결함 심기로 확인 |
+  | 구현 · 리뷰 | **`--model 'claude-sonnet-5-5[1m]' --effort high`** — ⭐ **sonnet 은 언제나 `[1m]`**(2026-09-19 사용자 상시 지시) · ⭐ **effort 는 `high`**(2026-10-09 사용자 승인 — Sonnet 5.5 는 effort 눈금이 재조정돼 `xhigh` 가 과하다. 공식 지침은 에이전트 코딩 `medium` 시작이나 낮은 effort 에서 검사 생략 경향이 있어 한 단계 위. 그 전 2026-10-01 지시는 `xhigh`) |
+  | 코드를 건드려 재현하는 디버깅 | 워크트리 + `--model claude-opus-5-5 --effort xhigh` — Opus 5.5 는 기본 effort 가 `medium` 이라 반드시 적는다 |
 
   ⚠ **사양 충돌 판정 · 원인 미상 디버깅은 기본적으로 창을 띄우지 않는다 — 주 세션이 이미 `opus[1m]` · `xhigh` 다.** 별도 창이 값을 하는 경우는 둘뿐이다: ①**코드를 건드려 재현**해야 해서 워크트리 격리가 필요할 때 ②로그·파일을 대량으로 읽어 **주 세션의 조율 맥락을 밀어낼 때**. 둘 다 아니면 여기서 한다.
 
@@ -41,14 +42,20 @@ orca worktree create --name <이름> --setup run      # 프론트 의존성이 �
     - **가이드의 정식 루프가 그 답을 이미 담고 있다** — 발주 후 마지막 줄이 **막아서 기다리는 호출**이고(`check --wait --types "worker_done,escalation,question"`), `check` 가 **확인 처리 전까지 같은 배치를 재생한다**는 것도 명시돼 있다(메시지 유실 방지 설계이지 결함이 아니다). 완료 뒤 **정산(재사용·`worker-retain`·`worker-release`) 중 하나를 반드시** 한다는 것도 거기 있다.
     - ⚠ **`stage=settled` 는 완료 *통지* 가 아니다** — dispatch 상태일 뿐이다. **Orca 는 조율자 대화로 밀어 넣지 않는다.** 기다리는 것은 조율자 몫이고, 그 수단이 위 `--wait` 다.
   - ⚠ **`worker_done` 은 자동으로 오지 않는다 — 워커가 명령을 직접 실행해야 한다.** 위 실측에서 Haiku 는 `orchestration send … --type worker_done …` 을 **코드 블록으로 출력만 하고 실행하지 않았고**, 조율자 인박스는 `No messages` 로 남았다. **2026-09-18 하루에 3회 전부 Haiku 에서만 재발**(Sonnet·Opus 는 6회 전부 정상 발신) — 경향이 아니라 **Haiku 고유 형태로 확정**. ⇒ **Haiku 좌석은 완료 수집에 기대지 말고 처음부터 `orca terminal read` 로 답을 회수**하고, 미settle 로 남은 Dispatch 는 `worker-stop` 으로 닫는다(한 줄 기동으로 만든 창은 `worker-start` 소유라 `stop`·`release` 가 창까지 닫는다 — **`terminal create` 로 미리 만든 창은 `retained` 로 남아 손으로 닫아야 한다**). 완료 수집에 기대려면 발주문에 **"이 명령을 실제로 실행하라"** 를 못박고, 그래도 `[ready]` 로 머물면 산출물을 직접 확인한다
+    - ⚠ **위 관측은 Haiku 4.5 다. Haiku 5.5 는 미확인**(2026-10-09 기준) — 처음 Orca 창으로 띄울 때 `worker_done` 이 오는지 보고 이 줄을 고친다. 확인 전까지는 4.5 와 같이 `orca terminal read` 로 회수한다
   - ⚠ **Orca 의 `Agent Permissions` 를 `yolo` 로 두지 않는다.** `claude` 에 `--dangerously-skip-permissions` 가 붙어 권한 분류기가 통째로 꺼진다(ECC `common/hooks.md` 가 금지 — 그 파일은 2026-09-24 `~/.claude/ecc-unloaded/common/` 로 옮김). 2026-09-18 에 이 플래그 때문에 확인 대화상자가 뜨고, 터미널 포커스 신호가 그 대화상자에 입력으로 들어가 **기동이 취소**되기도 했다. `manual` 로 둔다
-- ⚠ **Haiku 4.5 에는 effort 를 주지 않는다.** 2026-09-18 실측 — `effortLevel: xhigh` 를 물려받은 상태로 `--model claude-haiku-4-5` 를 띄웠더니 **오류 없이 기동했고 배너에 effort 표기가 아예 없었다**(Sonnet 은 `Sonnet 5 with high effort`). Claude Code 가 지원하지 않는 모델에는 빼고 넘긴다. 명령줄에 직접 `--effort` 를 주는 것은 여전히 피한다.
-- ⚠ Haiku 4.5 는 컨텍스트가 200K 고정이다(Sonnet·Opus 는 1M). 탐색이 넓은 작업에는 쓰지 않는다.
+- ⭐ **Haiku 는 5.5(`claude-haiku-5-5`)를 쓴다 — 2026-10-09 사용자 승인.** 4.5 의 제약 둘이 풀렸다.
+  - **effort 를 받는다**(low~max, 기본 `medium`) — `--effort medium` 을 적는다. 빠뜨리면 부모의 `xhigh` 를 물려받아 생각이 길어진다. (Haiku 4.5 는 effort 를 지원하지 않아 Claude Code 가 빼고 넘겼다 — 2026-09-18 실측)
+  - **컨텍스트 1M** — 접미사 없이 1M 이다(2026-10-09 `claude -p --model claude-haiku-5-5` 의 `modelUsage.contextWindow = 1000000`). 넓은 탐색에도 쓸 수 있다
+  - 단가는 프롬프트 100K 이하 $0.10/$0.50 · 초과 $0.50/$2.50(초과해도 Sonnet 의 1/4)
+  - 근거 실측(2026-10-09 · 같은 문제 Haiku `medium` 2회 · Sonnet `high` 1회) — 찾기(`@Scheduled` 12개) 12/12 · 심은 결함 3개 리뷰 3/3(단 1회는 영향 방향을 반대로 적음) · TDD 작은 구현 숨긴 정답 9/9 · 심은 변형 4/4 를 자기 시험이 잡음 · **비용 약 1/10**
+  - ⚠ **맡기지 않는다** — 사양이 모호한 작업 · 여러 모듈·저장소에 걸친 변경 · API 계약 판단 · 원인 미상 디버깅 · 최종 게이트 판정(첫 단계 후보 뽑기까지만)
+  - ⚠ 공식 문서상 약점 — 긴 작업 지시를 `low` 로 받으면 일찍 멈추고, `low`·`medium` 에서 고친 뒤 검사를 생략할 때가 있다. 그래서 `low` 로 내리지 않고, 결과는 조율자가 시험을 다시 돌려 확인한다
 - ⭐⭐ **sonnet 작업 창은 예외 없이 `[1m]` 을 붙인다 — 2026-09-19 사용자 상시 지시.** *"앞으로 sonnet 은 오케스트레이터든 다른 방식이든 전부 1m 으로 띄워줘."* **접미사는 적어야만 붙고 부모에게서 상속되지 않는다** — 2026-09-19 실측: 조율 세션이 `claude-opus-5[1m]` 인데 `--model claude-sonnet-5` 로 띄운 워커 2개의 기동 기록이 `requested`·`effective` 둘 다 접미사 부재였다.
   - 확인 — `orca orchestration worker-show --dispatch <id> --json` 의 `result.worker.startOptions.launch.effective.model` 에 `[1m]` 이 실재하는지 본다. **배너로 판정하지 않는다**
   - ⚠ **쉘에서 대괄호가 글로브로 해석되므로 따옴표로 감싼다** — `--model 'claude-sonnet-5[1m]'`
   - ⚠ **`--effort` 는 별개다** — 모델만 바꾸고 빠뜨리면 노력 수준이 부모(`xhigh`)로 남는다
-- ⚠ **모델을 섞으면 프롬프트 캐시가 갈린다** — 캐시는 모델별 이름공간이라 창마다 모델이 다르면 재사용이 끊긴다. 그래서 **비용을 줄일 때는 모델 교체보다 `--effort` 를 먼저 내린다**(공식 지침).
+- ⚠ **모델을 섞으면 프롬프트 캐시가 갈린다** — 캐시는 모델별 이름공간이라 창마다 모델이 다르면 공통 앞부분(시스템 프롬프트·CLAUDE.md)의 재사용이 끊긴다. 그래서 **같은 등급 안에서 비용을 줄일 때는 모델 교체보다 `--effort` 를 먼저 내린다**(공식 지침). ⚠ **Haiku 5.5 로 내리는 것은 이 고려 밖이다** — Haiku 의 캐시 없는 입력($0.10/M)이 Sonnet 의 캐시 읽기($0.20/M)보다 싸다.
 - ⚠⚠ **`worktreeBaseRef` 는 `refs/heads/main`(로컬)이어야 한다.** 기본값이 `origin/main` 이었고, push 하지 않는 저장소라 원격은 **360 커밋 뒤처져** 있었다 — 그대로 두면 워크트리가 몇 달 전 코드에서 갈라진다. 2026-09-18 에 `orca repo set-base-ref --repo id:88941bb9-3200-415e-a8a9-0e2d5bb4ab7a --ref refs/heads/main` 으로 고쳤다. 저장소를 다시 등록하면 이 값을 확인한다.
 - ⚠⚠ **처음 여는 폴더(새 저장소)에 작업 창을 띄우면 Claude Code 의 "이 폴더를 신뢰하는가" 확인이 먼저 뜬다 — 기본 선택이 "No, exit" 라 지시문 제출의 Enter 가 그것을 확정해 Claude 가 바로 종료된다.** 2026-09-26 `observability-stack` 에서 실제 발생.
   - **증상** — 영수증 `stage: turn_start_unobserved` · `worker-list` 가 `start_unknown` · 화면 끝이 신뢰 확인 문구 뒤 **셸 프롬프트**(`❱❱❱`)
@@ -71,6 +78,6 @@ orca worktree create --name <이름> --setup run      # 프론트 의존성이 �
   - 스킬은 `web/.claude/skills/`(`agent-browser` · `web-design-guidelines` · `design-references`) · `mobile/.claude/skills/`(`web-design-guidelines` · `design-references`)에 있다. 두 저장소의 `.git/info/exclude` 로 git 밖(공개 저장소에 외부 스킬을 올리지 않는다)
   - 메인 세션은 `.claude/settings.local.json` 의 `skillOverrides: off` 로 막혀 있다(대조 시험 — web 이 별도 저장소라 메인은 원래도 못 찾지만, 동작이 바뀔 때의 안전장치)
   - 띄우는 법 — 한 줄 기동(`worker-start --agent`)은 인자를 못 붙이므로 **창을 먼저 만들고 붙인다**:
-    `orca terminal create --worktree current --title <이름> --command "claude --model 'claude-sonnet-5-5[1m]' --effort xhigh --add-dir /Users/mskim/Desktop/PJ/baraeda/<web|mobile> --settings /Users/mskim/Desktop/PJ/baraeda/.claude/design-worker.settings.json"` → `orca orchestration worker-start --spec "…" --terminal <핸들>`. `--add-dir` 가 그 저장소의 스킬을 읽게 하고 `--settings` 가 메인의 `off` 를 그 창에서만 `on` 으로 되돌린다(둘 다 실측 2026-10-03)
+    `orca terminal create --worktree current --title <이름> --command "claude --model 'claude-sonnet-5-5[1m]' --effort high --add-dir /Users/mskim/Desktop/PJ/baraeda/<web|mobile> --settings /Users/mskim/Desktop/PJ/baraeda/.claude/design-worker.settings.json"` → `orca orchestration worker-start --spec "…" --terminal <핸들>`. `--add-dir` 가 그 저장소의 스킬을 읽게 하고 `--settings` 가 메인의 `off` 를 그 창에서만 `on` 으로 되돌린다(둘 다 실측 2026-10-03)
   - ⚠ **작업 창을 워크트리 폴더 안에서 직접 띄우지 마라**(`--worktree id:<repo>::<워크트리 경로>`) — git 저장소 경계가 달라 Claude Code 신뢰 확인이 뜨고 기본값 "No, exit" 가 지시문 제출의 Enter 로 확정돼 즉시 종료된다(작업 공간이 신뢰돼 있어도, 2026-10-03 실측)
   - ⚠ `terminal create` 로 만든 창은 끝난 뒤 `worker-release` 가 `retained` 로 남긴다 — `orca terminal close --terminal <핸들>` 로 직접 닫는다
