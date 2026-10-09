@@ -698,7 +698,7 @@ erDiagram
 | `client_key` | uuid | UK | 오프라인 큐 멱등키. 재수신 시 최초 결과 반환 |
 | `occurred_at` | timestamptz | | 단말 기록 시각. 오프라인 처리분의 실제 시각 |
 | `changed_at` | timestamptz | NN | 서버 반영 시각 |
-| `actor_type` 🆕 | varchar(10) | NN | `escort` · `system`. 자동 전이(하원 시작 시 전원 `boarded` · 등원 종료 시 전원 `alighted` · `absent` 부여)의 주체를 구분. CHECK |
+| `actor_type` 🆕 | varchar(10) | NN | `escort` · `system`. 자동 전이(하원 시작 시 전원 `boarded` · 등원 종료 시 전원 `alighted` · ③구간 미등원 토글과 ②구간 취소 승인이 부여하는 `absent`)의 주체를 구분. 확정 배치가 처음부터 `absent` 로 만드는 행(OFF 학생 · 버스 이동)은 전이가 아니라 초기 상태라 이력을 만들지 않는다. CHECK |
 | `changed_by` 🆕 | bigint | | 처리한 동승자 계정. `actor_type='system'` 이면 NULL |
 
 **존재 이유** — 되돌리기가 **이력 보존 전제**이며 "원 상태 · 정정 상태 · 처리자 · 시각"을 저장하도록 규정. 멱등키의 보관처도 이 테이블이라 재전송 판정이 상태 컬럼 비교가 아니라 키 조회로 성립. **근거** BRD-05 · BRD-06 · API_SPEC §1.7 · UF-E-06·07 · NFR-05·07

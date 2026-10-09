@@ -1078,6 +1078,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 |---|---|
 | 시점 | 도착 직전 |
 | 효과 | ① 도착 타임스탬프 기록 ② 기사 화면 포인터 전진 ③ **최종 지점이면 운행 종료 판정** (C-15) |
+| **강제 출발** | 다음 승하차지 도착 처리는 **그보다 앞 순번이면서 아직 출발 처리되지 않은 정차지 전부**(도착 처리 여부 무관, 건너뜀 정차지 포함)를 강제로 출발 처리하고, 그 확정 결과를 학부모에게 알린다(§4.6 연쇄 처리). 운행 종료는 미출발 정차지 전부를 같은 방식으로 처리한다. 100m 이탈 출발 판정은 도착 처리된 정차지에만 건다 |
 | **최종 지점** | 등원 = **학원 항목**(§4.3 `is_destination=true`) · 하원 = 마지막 하차지. 등원의 마지막 승차지 도착은 일반 도착(포인터 전진) — 그 승차지 학생의 승차 처리가 계속 가능 (2026-09-25 `Ruling 327`) |
 | **종료 겸함** | `is_final=true` 일 때 — 등원: 즉시 `run_status=finished` + 전원 자동 `alighted`. 하원: 잔류 0명이면 즉시 `finished`, 미하차 존재 시 `finish_pending=true` + `moving` 유지 (RUN-06) |
 | 보류 해제 | 하원 보류 중 마지막 탑승자가 `alighted` 되는 순간 **서버가 자동으로 `finished` 전이** — 기사 재조작 부재. `run_ended` 발행 |
@@ -1135,7 +1136,9 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `no_show` | **기사가 그 승하차지를 출발할 때 발송**(출발 판정 · 강제 발송 포함). 출발 전에 표시를 되돌리면 발송 부재 (`Ruling 854`) | 미승차 카운트 +1 + **에스컬레이션 시작** — 관계자 알림은 표시 즉시 |
 | `absent` | **부재** — 학부모가 스스로 설정한 값 | 미등원 카운트 +1 |
 
-**전이 표(FEATURE_SPEC §3.3, Ruling 345)** — 이 엔드포인트가 받는 것은 `waiting→boarded` · `waiting→no_show` · `boarded→alighted` 셋뿐이다. 같은 상태 재요청을 포함해 그 밖은 `409 RIDER_TRANSITION_NOT_ALLOWED` — 상태·이력·이벤트 변화 없음. 표 밖으로 가려면 되돌리기(§4.7)가 먼저다. `client_key` 재전송(멱등 재생)은 이 판정보다 먼저 처리된다.
+기사가 서지 않고 지나간(건너뜀) 승하차지도 다음 승하차지 도착 또는 운행 종료 때 출발로 처리되어, 그곳의 미승차 학부모 알림이 나간다(`Ruling 854`).
+
+**전이 표(FEATURE_SPEC §3.3, Ruling 345)** — 이 엔드포인트가 받는 것은 `waiting→boarded`(**등원 회차만**) · `waiting→no_show`(방향 무관) · `boarded→alighted`(**하원 회차만**) 셋뿐이다. 같은 상태 재요청과 방향이 맞지 않는 요청(등원의 `boarded→alighted` · 하원의 `waiting→boarded`)을 포함해 그 밖은 `409 RIDER_TRANSITION_NOT_ALLOWED` — 상태·이력·이벤트 변화 없음. 하원의 `waiting→no_show` 는 종료 보류 회차에서 남은 학생을 되돌리기(§4.7) 뒤 `[미승차]` 로 정리하는 길이라 방향과 무관하게 연다. 표 밖으로 가려면 되돌리기(§4.7)가 먼저다. `client_key` 재전송(멱등 재생)은 이 판정보다 먼저 처리된다.
 
 **에러** — `403 ESCORT_ONLY` · `409 RUN_NOT_MOVING` · `409 RIDER_TRANSITION_NOT_ALLOWED`(전이 표 밖 · Ruling 345) · `422 VALIDATION_FAILED` · `404 RIDER_NOT_FOUND`(미존재 탑승자 · `absent` 로 명단에서 제외된 탑승자) · `404 RUN_NOT_FOUND`
 
@@ -1233,7 +1236,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 위치 업로드 (LOC-01).
 
-**권한** 버스기사 (운행 단말) · **주기** **2초**(2026-09-14 사용자 결정 · 옛값 ~~5~10초~~) · **조건** `run_status=moving` 에서만. 그 외 `409 RUN_NOT_MOVING`
+**권한** 버스기사 (운행 단말) · **주기** **2초**(2026-09-14 사용자 결정 · 옛값 ~~5~10초~~) · **조건** `run_status=moving` 에서만. 그 외 `409 RUN_NOT_MOVING`. 하원 종료 보류(`finish_pending`) 중에도 `moving` 이므로 계속 받는다.
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
@@ -2892,7 +2895,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | `STOP_ALREADY_DEPARTED` | 409 | 승하차지를 이미 떠난 뒤의 되돌리기 시도(§4.7) — `run_stop.departed_at IS NOT NULL`. 도착 처리된 정차지에서 버스가 100m 밖으로 벗어난 최초 시점에 기록(claimDeparture 조건부 UPDATE). 횟수 제한은 부재하나 이 경계만 막음 (BRD-05, 2026-09-19 사용자 확정 Ruling 305, 판정 방식은 Ruling 307 로 교체) |
 | `RUN_NOT_CONFIRMED` | 409 | 확정 전(`idle`) 회차의 명단·운행 진입·경유 지점 지정(§5.15) |
 | `RUN_NOT_MOVING` | 409 | `moving` 아닌 회차에 위치 업로드·승하차 처리 · 강제 종료(§6.17 — 이미 끝난 회차·동시에 마지막 하차로 끝난 회차) |
-| `RIDER_TRANSITION_NOT_ALLOWED` | 409 | 승하차 처리(§4.6)가 FEATURE_SPEC §3.3 전이 표(`waiting→boarded` · `waiting→no_show` · `boarded→alighted`) 밖의 상태를 요청 — 같은 상태 재요청 포함. 표 밖으로 가려면 되돌리기(§4.7)가 먼저다. 422 가 아니라 409 인 이유는 `STOP_ALREADY_DEPARTED` 와 같다 — 요청 형식이 아니라 탑승자의 현재 상태가 막는다 (2026-09-25 신설, Ruling 345) |
+| `RIDER_TRANSITION_NOT_ALLOWED` | 409 | 승하차 처리(§4.6)가 FEATURE_SPEC §3.3 전이 표(`waiting→boarded` · `waiting→no_show` · `boarded→alighted`) 밖의 상태·방향을 요청 — 같은 상태 재요청과 방향이 맞지 않는 요청(등원의 `boarded→alighted` · 하원의 `waiting→boarded`) 포함. 표 밖으로 가려면 되돌리기(§4.7)가 먼저다. 422 가 아니라 409 인 이유는 `STOP_ALREADY_DEPARTED` 와 같다 — 요청 형식이 아니라 탑승자의 현재 상태가 막는다 (2026-09-25 신설, Ruling 345) |
 | `RUN_NOT_FOUND` | 404 | 존재하지 않는 회차 · 타 학원 — 존재 비노출, Ruling 163 |
 | `RUN_ALREADY_STARTED` | 409 | 이미 `moving` · `finished` 인 회차에 운행 시작 요청 · 임시 취소(§5.10 — 취소는 `idle`·`confirmed` 만) (RUN-02 · §9.3 운행 상태 전이) |
 | `RUN_CANCELED` | 409 | 임시 취소된 회차(§5.10 `canceled_at`)에 운행 시작(§4.4) · 강제 추가(§5.7) · 이동(§5.8) · 탑승 토글(§3.6) · 변경 신청(§3.8)·승인(§5.6) · 배치 변경(§5.14) · 경유 지점(§5.15) · 강제 확정(§6.14) · 강제 종료(§6.17) (`Ruling 375`·`376`·`724`). 404 가 아닌 것은 행이 실재하고 관계자 화면에 취소로 보이기 때문 (BR-042) |
@@ -3047,6 +3050,8 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | `emergency_canceled` | 비상 발신 1분 이내 취소 | 위와 동일 | 부재 |
 
 `absent` 학생은 `arrive` · `delay` 발송 대상 밖. off 는 푸시만 차단하고 레코드는 항상 생성 — 보관 **14일**.
+
+`boarding` 중 **하원 시작의 자동 승차분**은 운행 시작 때 보호자 전원에게 나간다. 승하차지 출발을 기다리지 않는다(하원 출발지는 승하차지가 아니다). 하원 승하차지를 출발할 때 아직 하차 처리되지 않은(탑승 중) 학생에게는 승차·하차 어느 알림도 나가지 않는다. 기사가 서지 않고 지나간(건너뜀) 승하차지도 다음 승하차지 도착 또는 운행 종료 때 출발로 처리되어, 그곳의 미승차(`no_show`) 학부모 알림이 나간다(`Ruling 854`).
 
 `run_started` 문구(코드 그대로, `RunStartedComposer`) — 제목 "운행 시작 안내" · 본문 "배정된 회차의 운행이 시작되었습니다." 수신자 셋(관계자·학부모·학생) 공통.
 
