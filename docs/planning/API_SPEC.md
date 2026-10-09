@@ -1924,6 +1924,8 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 ### 5.11 학생 관리 (STU-01~08, A-10)
 
+**권한 — 학원 관계자 전용.** 목록 · 상세 · 요일별 주소 · 퇴원 미리보기는 학원 소속이 있어야 열린다. 메인 관리자는 권한 상수(`STUDENT_READ_BASIC` · `STUDENT_READ_SENSITIVE`)를 가지지만 학원 소속이 없어 `403 FORBIDDEN` 이다 — 전 학원 학생 명단을 보이는 화면이 없고, 메인 관리자가 학생을 보는 길은 §6.9 관제 명단뿐이다 (`Ruling 860`).
+
 | 메서드 · 경로 | 기능 ID | 설명 |
 |---|---|---|
 | `GET /staff/students?q=&class_name=&filter=` | STU-01 | 목록·검색. 강제 추가 자동완성과 공용 |
@@ -1936,7 +1938,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **`DELETE /staff/students/{id}` 응답 `200`** — `{ student_id, deleted_at }`. `204` 가 아니라 본문을 돌려주는 것은 §1.9("변경 후 자원 상태를 그대로 반환") 때문이다 — 퇴원의 변경분은 `deleted_at` 하나이고 그 값이 없으면 클라이언트가 지워졌는지 구별할 수 없다. 학생 정보 전체는 싣지 않는다(§1.12, 목록에서 뺀 개인정보가 삭제 응답으로 다시 나가지 않게)(2026-09-30 BR-261).
 
-**`GET /staff/students/{id}/weekly-address`**(STU-06 · `Ruling 498`) — 권한은 상세와 같다(`STUDENT_READ_SENSITIVE` — 관계자·메인 관리자). 응답은 §3.7 의 `entries[]` 와 같은 구조(요일·방향 순, 아직 등록하지 않았으면 빈 목록)이고 **쓰기 경로는 두지 않는다**. 주소 원문·좌표는 L3 라 조회가 성공하면 감사 `read` 를 남기며(`target_type=student`, `detail.fields=["weekly_address"]`) 같은 행위자·같은 학생의 10분 안 재조회는 새 행을 쓰지 않는다(`Ruling 333`·`445`). **에러** — `404 STUDENT_NOT_FOUND`(남의 학원 학생 · 퇴원생 — 존재 비노출, 이때 감사 행도 남기지 않는다) · `403 FORBIDDEN`(권한 없는 역할)
+**`GET /staff/students/{id}/weekly-address`**(STU-06 · `Ruling 498`) — 권한은 상세와 같다(`STUDENT_READ_SENSITIVE` — 학원 관계자 전용, `Ruling 860`). 응답은 §3.7 의 `entries[]` 와 같은 구조(요일·방향 순, 아직 등록하지 않았으면 빈 목록)이고 **쓰기 경로는 두지 않는다**. 주소 원문·좌표는 L3 라 조회가 성공하면 감사 `read` 를 남기며(`target_type=student`, `detail.fields=["weekly_address"]`) 같은 행위자·같은 학생의 10분 안 재조회는 새 행을 쓰지 않는다(`Ruling 333`·`445`). **에러** — `404 STUDENT_NOT_FOUND`(남의 학원 학생 · 퇴원생 — 존재 비노출, 이때 감사 행도 남기지 않는다) · `403 FORBIDDEN`(권한 없는 역할)
 
 **`GET /staff/students` 정렬** — 기본 `name` 오름차순이고 이름은 **자연 정렬**이다(`Ruling 552`) — 숫자 덩어리는 크기로 비교해 "학생2" 가 "학생10" 앞에 온다(앞 0 만 다른 이름은 원문 순, 동명은 `id` 오름차순). 쪽 나누기·`sort=name:desc` 와 함께 쓸 수 있고 `total_count` 는 그대로 학생 수다.
 
@@ -2158,7 +2160,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 비상 알림 수신·확인 (EXC-04, A-16).
 
-**권한** 학원 관계자 · **요청 (쿼리)** `status`(`open` · `acked` · `canceled`, 기본 `open`) · `date`
+**권한** 학원 관계자 · 메인 관리자(`EMERGENCY_ACK`) · **요청 (쿼리)** `status`(`open` · `acked` · `canceled`, 기본 `open`) · `date`. **메인 관리자의 범위 차이** — `POST …/ack` 는 학원을 가리지 않고 어느 학원의 신고든 확인한다. `GET /staff/emergencies` 는 호출자의 학원 소속으로 거르는데 메인 관리자는 소속이 없어 **언제나 빈 목록**(`items[]` 가 비고 `unacked_count` 는 0)이다 — 메인 관리자가 전 학원 신고를 보는 길은 §6.11 (`Ruling 860`)
 
 **응답** — `items[]` · `unacked_count`(미확인 배지 — `status`·`date` 필터와 무관하게 그 학원의 미확인·미취소 건수. §6.11 은 전 학원 건수)
 
@@ -2373,6 +2375,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 ### 6.4 GET /admin/staff-signup-requests
 
 관계자 가입 요청 목록 (ACAD-05, O-02). 관계자도 form 가입, 승인 주체는 메인 관리자 (C-01).
+
+**요청 (쿼리)** — `status`(`pending` 기본 · `accepted` · `rejected`, 그 밖의 값은 `422 VALIDATION_FAILED`) · `sort`(`requested_at` 만 — 기본 오래된 순, 같은 값은 `id` 오름차순) · 페이징. §5.1 의 `role` 은 이 목록에서 **읽지 않고 무시**한다 (`Ruling 860`).
 
 **응답** — `items[]` — `request_id` · `name` · `phone` · `academy`(`id` · `name` · `region` · `code`) · `requested_at` · `academy_staff_count` · **`current_staff`**(그 학원의 재직(`active`) 관계자 — `name` · `login_id` · `last_login_at`. 없으면 `null`. 정원이 1명이라 객체 하나다 — 승인이 막힌 이유와 푸는 방법(그 사람 퇴사 처리 §6.7)을 처리 화면에 보인다, `Ruling 807`)
 
@@ -2624,7 +2628,7 @@ O-04 · SYS-01·02. 정본 API명세서에 경로 미기재 — 감사 로그 �
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
-| `academy_id` | integer | ● | 학원 식별자 |
+| `academy_id` | string | ● | 학원 식별자 (`§1.1` — 식별자는 JSON 문자열, `Ruling 860`) |
 | `delayed_runs` | integer | ● | **지연 회차 수** — 오늘 회차 중 지연 알림(`POST /runs/{runId}/delay`, §4.9)이 **1건 이상 나갔고 아직 `finished` 가 아닌** 회차. 알림이 여러 건이어도 회차는 한 번만 센다 |
 | `confirm_failed_runs` | integer | ● | **확정 실패 회차 수** — 오늘 회차 중 아직 `idle` 인데 `consecutive_failures > 0`(§6.8 의 같은 필드)인 회차 — 강제 확정(§6.14) 대상 후보 |
 
@@ -2648,8 +2652,8 @@ O-04 · SYS-01·02. 정본 API명세서에 경로 미기재 — 감사 로그 �
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
-| `run_id` | integer | ● | 회차 식별자 |
-| `academy_id` · `academy_name` | integer · string | ● | 학원 |
+| `run_id` | string | ● | 회차 식별자 (`§1.1` — 식별자는 JSON 문자열, `Ruling 860`) |
+| `academy_id` · `academy_name` | string · string | ● | 학원 (`academy_id` 도 문자열) |
 | `academy_contact` | string | ○ | 학원 대표 연락처(§6.3 `contact`) — 강제 종료 전에 학원에 전화로 남은 탑승자를 확인한다(`UF-O-08`). 미등록이면 `null` (`Ruling 808`) |
 | `service_date` | date | ● | 운행일 |
 | `direction` | enum | ● | `to_academy` · `from_academy` |
@@ -2763,7 +2767,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 |---|---|---|
 | `/ws/students/{id}/run` | 학부모(연결 자녀) · 학생(본인) | `position` · `stop_arrived` · `run_started` · `run_ended` |
 | `/ws/manager/runs/{id}` | 해당 회차 배치 기사 · 동승자 | `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · **`emergency_acked`** · **`route_changed`** |
-| `/ws/academy/{id}/live` | 해당 학원 관계자 | `position` · `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · `approval_requested` · **`emergency_raised`** · **`emergency_canceled`** |
+| `/ws/academy/{id}/live` | 해당 학원 관계자 · 메인 관리자(어느 학원이든 — 전체 관제의 학원 상세, `Ruling 860`) | `position` · `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · `approval_requested` · **`emergency_raised`** · **`emergency_canceled`** |
 | `/ws/admin/live` | 메인 관리자 | `position` · `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · **`emergency_raised`** · **`emergency_canceled`** |
 
 **공통 봉투**
