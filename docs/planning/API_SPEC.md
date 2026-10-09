@@ -696,7 +696,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `address` | string | ● | 주소 원문 |
 | `address_detail` | string | ○ | 아파트 동·출입구 등 상세 위치 |
 
-**응답** — 반영된 `entries[]` + 항목별 `lat` · `lng` · `verified`(boolean).
+**응답** — 반영된 `entries[]` + 항목별 `lat` · `lng` · `verified`(boolean) · `stop_id`(string — 주소 검증을 거쳐 매칭·생성된 승하차지의 식별자, §1.1 문자열. 칸이 "주소만 저장되고 승하차지 매칭을 건너뛴 것" 이 아님을 클라이언트가 확인하는 값이다 · 승하차지를 나중에 고쳐도 이 칸의 `address`·`lat`·`lng` 사본은 바뀌지 않는다, `Ruling 858`).
 
 주소 검증(좌표 변환·유효성)을 거쳐 승하차지로 매칭·생성 (STU-05). 검증 실패 시 `422 ADDRESS_VERIFICATION_FAILED` — **저장 보류**.
 
@@ -1734,12 +1734,11 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 | `PATCH /staff/routes/{id}` | RTE-01 | 수정 — §1.9 대로 변경 후 자원 상태를 그대로 반환 |
 | `DELETE /staff/routes/{id}` | RTE-01 | 삭제. **행을 지운다**(soft delete 부재) — 정차 순서도 `route_stop` FK CASCADE 로 함께 사라진다. 성공 `204`(본문 부재, §1.1) |
 | `POST /staff/routes/{id}/optimize` | RTE-09 | 정차 순서 최적화. 결과는 상세와 같은 형태 |
-| `GET /staff/routes/{id}/path` | RTE-01 | 정차 순서대로 이은 **도로 경로**. 응답 `road_path[{lat,lng}]` · `fallback_used` · `stops[]` |
+| `GET /staff/routes/{id}/path` | RTE-01 | 정차 순서(`seq`)대로 이은 **도로 경로**(R27-B 신설) — 관계자 웹이 편성 화면 지도에 그린다. 응답 `road_path[{lat,lng}]` · `fallback_used` · `stops[]` |
 | `PUT /staff/routes/{id}/stops` | RTE-01 | **승하차지 한 번에 저장**(Ruling 325) — 추가·수정·삭제·순서를 한 트랜잭션으로 |
 | `GET /staff/stops/suggest?query=` | RTE-01 | **주소 자동완성**(Ruling 325) — 후보 여럿. **아무것도 만들지 않는다** |
 | `GET /staff/stops?q=` | RTE-01 · A-08 | **승하차지 목록**(`Ruling 849`) — 아래 "승하차지 관리" |
 | `PATCH /staff/stops/{id}` | RTE-01 · A-08 | **승하차지 수정**(`Ruling 849`) — 이름 · 주소 · 좌표 |
-| `GET /staff/routes/{id}/path` | RTE-01 | **도로 경로**(R27-B 신설) — 정차 순서(`seq`)대로 이은 실제 도로 좌표열. 관계자 웹이 편성 화면 지도에 그린다 |
 
 **`POST /staff/routes` · `PATCH /staff/routes/{id}` 요청** (두 엔드포인트가 같은 본문을 쓴다)
 
@@ -2413,11 +2412,24 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 
 관계자 계정 관리 (ACAD-06, O-02).
 
+**요청**
+
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
 | `name` · `phone` · `email` | string | ○ | 정보 수정 |
 | `reset_password` | boolean | ○ | 비밀번호 초기화 — 응답에 임시 비밀번호 1회 반환. **그 계정에 `must_change_password=true` 가 서서** 본인이 바꿀 때까지 다른 API 가 막힌다(§1.4 · `Ruling 540`) |
 | `status` | enum | ○ | `active` · `inactive` — 퇴사 시 즉시 권한 회수 |
+
+**응답** — 변경 후 자원 상태(§1.9)
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|:-:|---|
+| `account_id` | string | ● | 계정 식별자 (§1.1) |
+| `name` · `login_id` · `phone` | string | ● | |
+| `email` | string | ○ | 없으면 `null` |
+| `academy_name` | string | ● | 소속 학원 이름 |
+| `status` | enum | ● | `active` · `inactive` — **재직 상태**(`academy_staff.status`)이며 계정 상태(`account.status`)가 아니다 |
+| `temporary_password` | string | ○ | **`reset_password=true` 로 초기화를 요청한 응답에만 키가 있다**(요청하지 않으면 키 자체가 빠진다) — 원문 1회 반환 |
 
 관계자 계정은 학생 개인정보 전체에 접근 — 퇴사 즉시 비활성화가 요건.
 
@@ -3097,3 +3109,15 @@ DB 를 Flyway 시드 상태로 되돌리고 위치 캐시(Redis)를 비운 뒤 *
 구현 — `global/dev/DevResetController` · `DevResetService`. 미리보기 캐시도 함께 비운다(`ApprovalPreviewCache`). 내일 회차 생성은 일일 배치와 같은 `RunGenerationService.generate(내일)` 이라 멱등이다.
 
 **팀원 체험용 서버(스테이징)에서도 켜져 있다**(Ruling 364) — `local,staging` 프로파일이라 겹①을 통과하고, compose 안의 DB 는 컨테이너 이름 `postgres` 로 불려 `LocalFlywayCleanStrategy` 의 localhost 판정에 걸리므로 staging 섹션이 `app.flyway-clean.extra-allowed-hosts: postgres` 로 그 이름 하나만 연다. 관계자 웹 · 메인 관리자 콘솔 머리말의 **[테스트 데이터 초기화]** 버튼(빌드 설정 `NEXT_PUBLIC_TEST_DATA_RESET=true` 일 때만)이 이 엔드포인트를 부르고 성공하면 로그아웃한다(초기화가 로그인 유지 토큰까지 지운다). `pending` 계정은 상태 게이트가 `403` 으로 막는다(허용 목록에 부재).
+
+---
+
+## 12. 운영 경로 (헬스 확인 · API 문서)
+
+`/api/v1` 접두사 밖에 있는 비업무 경로다(서블릿 전역 접두사가 붙지 않는다). 사용자 화면이 부르는 계약이 아니라 운영·개발 도구용이며 `Ruling 861 ⑨` 로 등재한다.
+
+| 경로 | 인증 | 용도 | 비고 |
+|---|---|---|---|
+| `GET /actuator/health` | 없음 | DB · Redis 포함 헬스 확인(컨테이너 헬스체크) | `local` · `load` 는 **앱 포트(8080)**. 운영 계열(prod · demo · staging)은 **관리 포트(8081)** 로 옮겨 가며 호스트 · 프록시에 공개하지 않는다(`ARCHITECTURE §9` 관측 · `DEPLOYMENT §11`) |
+| `GET /healthz` | 없음 | 외부 가동 감시(인터넷에서 닿는 유일한 헬스 주소). 정상이면 `200` `{"status":"UP"}` | 운영 계열에서 앱 포트에 남기는 헬스 그룹(`external`). 앱 연결 상한에 닿아 사용자가 못 붙는 상태도 이 경로가 함께 본다 |
+| `GET /swagger-ui.html` · `GET /v3/api-docs` | 서버는 열어 둠 | API 문서 화면 · OpenAPI 원문 | 서버 보안 설정은 공개이지만 **프록시가 가린다** — 스테이징 프록시는 공개하지 않고 운영은 프록시 Basic Auth(`DEPLOYMENT §2.12`). 로컬 개발에서만 바로 열린다 |
