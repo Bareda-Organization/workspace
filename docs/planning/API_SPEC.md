@@ -6,7 +6,7 @@
 |---|---|
 | 문서 버전 | v1.0 |
 | 작성일 | 2026-08-24 |
-| 최근 개정 | 2026-10-04 — R48 리디자인 반영(`Ruling 801`~`824`): `API_SPEC §6.18` 대시보드 신설 · `API_SPEC §5.20` 처리 표시 신설 · `API_SPEC §5.11` 퇴원 미리보기 신설 · 응답 필드 추가(§3.1·3.9·3.10·3.11 · §4.1·4.2 · §5.1·5.3·5.4·5.5·5.9~5.13·5.17·5.21 · §6.1·6.3·6.4·6.6·6.8·6.13·6.15·6.16) |
+| 최근 개정 | 2026-10-10 — R51 사양 대조 반영(`Ruling 853`~`862`): §3.10 `stops[].address` · §4.5 재전송 · §4.6 · §4.9 수신자 · §5.11 · §5.16 · §6.4 · §6.15~6.16 · §7 구독 · §12 운영 경로 신설 · 표기 정리(§3.7 `stop_id` · §5.9 · §6.7 응답 표). 이전 개정 — 2026-10-04 — R48 리디자인 반영(`Ruling 801`~`824`): `API_SPEC §6.18` 대시보드 신설 · `API_SPEC §5.20` 처리 표시 신설 · `API_SPEC §5.11` 퇴원 미리보기 신설 · 응답 필드 추가(§3.1·3.9·3.10·3.11 · §4.1·4.2 · §5.1·5.3·5.4·5.5·5.9~5.13·5.17·5.21 · §6.1·6.3·6.4·6.6·6.8·6.13·6.15·6.16) |
 | 기준 | 바래다 API명세서 v2.1 · 기능정의서 v2.1 · PRD v2.1 · 유저플로우 v2.1 (2026-08-24) |
 | 프로토콜 | REST + JSON, Bearer 토큰. 실시간은 WebSocket 병행 |
 
@@ -2779,7 +2779,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 |---|---|---|
 | `/ws/students/{id}/run` | 학부모(연결 자녀) · 학생(본인) | `position` · `stop_arrived` · `run_started` · `run_ended` |
 | `/ws/manager/runs/{id}` | 해당 회차 배치 기사 · 동승자 | `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · **`emergency_acked`** · **`route_changed`** |
-| `/ws/academy/{id}/live` | 해당 학원 관계자 · 메인 관리자(어느 학원이든 — 전체 관제의 학원 상세, `Ruling 860`) | `position` · `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · `approval_requested` · **`emergency_raised`** · **`emergency_canceled`** |
+| `/ws/academy/{id}/live` | 해당 학원 관계자 · 메인 관리자(어느 학원이든, `Ruling 860`) | `position` · `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · `approval_requested` · **`emergency_raised`** · **`emergency_canceled`** |
 | `/ws/admin/live` | 메인 관리자 | `position` · `rider_changed` · `stop_arrived` · `run_started` · `run_ended` · **`emergency_raised`** · **`emergency_canceled`** |
 
 **공통 봉투**
