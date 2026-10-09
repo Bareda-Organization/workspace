@@ -2205,7 +2205,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 전송 알림 전수 조회 — 푸시 off 로 차단된 건도 레코드로 존치.
 
-**확인됨 건수** — 관계자 웹은 `수신자 확인됨` 탭의 건수를 같은 필터(종류 · 날짜 · 묶어 보기 · 관계자만)에 `acked=true` 를 더한 조회 결과의 `total_count` 로 표시한다. 별도 응답 필드는 두지 않는다. 전체 건수에서 `unacked_count` 를 빼면 확인을 추적하지 않는 종류가 섞여 맞지 않는다(`Ruling 850` · R51).
+**확인됨 건수** — 관계자 웹은 `수신자 확인됨` 탭의 건수를 같은 필터(종류 · 날짜 · 관계자만)에 `acked=true` · `group=false`(묶지 않음) 를 더한 조회 결과의 `total_count` 로 표시한다. 묶지 않은 행 기준이라 `unacked_count` 와 같은 단위이고, 묶어 보기를 켜고 꺼도 이 건수는 바뀌지 않는다(`group=true` 의 `total_count` 는 묶음 단위라 같은 탭 줄에서 두 숫자의 단위가 갈린다). 별도 응답 필드는 두지 않는다. 전체 건수에서 `unacked_count` 를 빼면 확인을 추적하지 않는 종류가 섞여 맞지 않는다(`Ruling 850` · R51).
 
 **`group=true` — 묶어 보기**(`Ruling 813`) — 같은 사건이 적재한 행(같은 `type` · `run_id` · `body` · 적재 시각 초 단위)을 한 항목으로 묶는다. **쪽 나누기와 `total_count` 도 묶음 단위**다(화면이 쪽 안에서 묶으면 쪽 경계에서 같은 알림이 갈린다). 묶음 항목 — `group_key`(string) · `sent_at`(묶음 안 가장 늦은 시각) · `bus_no` · `type` · `body` · `recipient_count` · `acked_count` · `recipients[]`(앞 3명 — `recipient_name` · `recipient_role`). `acked` 필터는 묶음 안에 그 상태 행이 하나라도 있으면 그 묶음을 싣는다. `unacked_count` 는 묶지 않은 행 기준 그대로.
 
