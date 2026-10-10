@@ -144,7 +144,7 @@
 | ③ | 운행 시작 후 | 노선 변경 부재. 미등원(`riding=false`)만 승인 없이 즉시 수용 — 해당 승하차지는 경유하되 미정차(`skipped`). 그 외는 `403 CHANGE_WINDOW_CLOSED` |
 
 - 확정 배치는 실행 시점 최신값을 읽되 **판정 기준은 출발−30분 시계**. 배치 지연에도 마감 시각은 불변.
-- ② 구간 요청이 **출발 시각 도달 또는 `Run.status` → `moving` 중 먼저 오는 시점**까지 미처리로 남으면 서버가 **자동 거절** — 재최적화 없이 **기존 노선 유지** + 학부모 통지, **횟수 미소진**. 처리 시각(`decided_at`)은 마감보다 **최대 30초 늦을 수 있고**(30초 폴링 설계 — 운행 시작이 마감이면 시작과 동시), **취소된 회차의 대기 요청**은 상태 전이는 그대로 두되 학부모 통지만 생략한다(회차 취소 알림이 이미 나갔다) (`Ruling 861`).
+- ② 구간 요청이 **출발 시각 도달 또는 `Run.status` → `moving` 중 먼저 오는 시점**까지 미처리로 남으면 서버가 **자동 거절** — 재최적화 없이 **기존 노선 유지** + 학부모 통지, **횟수 미소진**. 처리 시각(`decided_at`)은 마감보다 **최대 30초 늦을 수 있고**(30초 폴링 설계 — 운행 시작이 마감이면 시작과 동시), **취소된 회차의 대기 요청도 같은 자동 거절 + 학부모 통지**를 받는다(임시 취소에는 학부모 알림이 없으므로 이 통지가 취소 회차 요청의 유일한 결과 안내 — `Ruling 864`, `Ruling 861` ② 를 뒤집음).
 - 서버 처리 실패 시 기존 상태 복구 + **횟수 미소진** (C-10).
 
 ### 1.7 멱등성
@@ -704,7 +704,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 **일일 변경(REQ) 우선** — 특정 날짜에 일일 변경이 있으면 그날만 우선 적용, 이후 요일별 주소로 복귀.
 
-**에러** — `422 ADDRESS_VERIFICATION_FAILED`(주소 검증 실패 — 저장 보류) · `422 VALIDATION_FAILED`(`entries` 가 14건 초과 — 요일 7 × 방향 2, 지오코딩 전에 거부, BR-059) · `404 STUDENT_NOT_FOUND` · `403 FORBIDDEN`(연결 부재 자녀)
+**에러** — `422 ADDRESS_VERIFICATION_FAILED`(주소 검증 실패 — 저장 보류. `error.details.failed_entries[]` 에 **좌표로 옮기지 못한 칸의 `address` 문자열**을 보낸 그대로 담는다 — 문자열 배열이며 요일·방향 정보는 없고, 같은 주소가 여러 칸이면 칸 수만큼 반복. 한 칸이라도 실패하면 14칸 전부 저장하지 않으므로 앱은 이 목록으로 고칠 칸을 짚어 안내한다, R51) · `422 VALIDATION_FAILED`(`entries` 가 14건 초과 — 요일 7 × 방향 2, 지오코딩 전에 거부, BR-059) · `404 STUDENT_NOT_FOUND` · `403 FORBIDDEN`(연결 부재 자녀)
 
 **403·404 판정 순서** — 연결되지 않은 자녀는 `403 FORBIDDEN`, 연결은 있으나 퇴원(soft delete) 처리된 자녀는 `404 STUDENT_NOT_FOUND`. 판정은 이 순서로만 한다(연결 확인 먼저).
 
@@ -731,7 +731,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | ② | 승인 대기 접수 — **관리자 승인을 통해서만 반영**, 승인 시 **재최적화·재배포**(§5.6). 거절 시 기존 경로 유지. 회차당 1회 |
 | ③ | `403 CHANGE_WINDOW_CLOSED` |
 
-**에러** — `409 RUN_CANCELED`(임시 취소된 회차 — `Ruling 376`) · `403 CHANGE_WINDOW_CLOSED` · `403 CHANGE_LIMIT_REACHED` · `422 ADDRESS_VERIFICATION_FAILED` · `404 RUN_NOT_FOUND`(대상 부재 · 타 학원 · 그 자녀의 대상 회차가 아님 — §3.6 과 같은 기준, BR-084) · `404 STUDENT_NOT_FOUND` · `403 FORBIDDEN`(연결 부재 자녀)
+**에러** — `409 RUN_CANCELED`(임시 취소된 회차 — `Ruling 376`) · `403 CHANGE_WINDOW_CLOSED` · `403 CHANGE_LIMIT_REACHED` · `422 ADDRESS_VERIFICATION_FAILED`(`details.failed_entries[]` 에 그 `address` 하나 — §3.7 과 같은 모양) · `404 RUN_NOT_FOUND`(대상 부재 · 타 학원 · 그 자녀의 대상 회차가 아님 — §3.6 과 같은 기준, BR-084) · `404 STUDENT_NOT_FOUND` · `403 FORBIDDEN`(연결 부재 자녀)
 
 ### 3.9 GET /students/{id}/change-requests
 
@@ -748,7 +748,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `run_id` · `requested_at` · `decided_at` | — | ● / ○ | 대상 회차 · 신청 시각 · 처리 시각 |
 | `service_date` · `direction` | date · enum | ● | 대상 회차의 운행일 · 방향 — 이력에 "오늘 하원" 처럼 쓴다(`Ruling 824`) |
 
-이력은 **최근 100건까지**만 싣는다(페이징 부재 — 장기 운영 시 학생당 누적 방지). 응답 최상위에 `pending_count` 포함 — 홈 배지용이며 **잘린 이력과 무관하게 전체 대기 건수**. `pending` 동안 화면 안내는 **기존 승하차지 탑승**이고 처리중 뱃지를 상시 노출. `auto_rejected` 는 출발 시각 도달 또는 운행 시작으로 서버가 자동 거절한 건 — 기존 노선 유지 + 학부모 통지(취소된 회차는 생략 · 처리 시각은 마감보다 최대 30초 늦을 수 있음, `Ruling 861`), 횟수 미소진 (C-04).
+이력은 **최근 100건까지**만 싣는다(페이징 부재 — 장기 운영 시 학생당 누적 방지). 응답 최상위에 `pending_count` 포함 — 홈 배지용이며 **잘린 이력과 무관하게 전체 대기 건수**. `pending` 동안 화면 안내는 **기존 승하차지 탑승**이고 `대기` 뱃지를 상시 노출(앱 표기 — `승인` · `반려` · `자동 반려`). `auto_rejected` 는 출발 시각 도달 또는 운행 시작으로 서버가 자동 거절한 건 — 기존 노선 유지 + 학부모 통지(취소된 회차의 요청도 같은 통지 — `Ruling 864` · 처리 시각은 마감보다 최대 30초 늦을 수 있음, `Ruling 861`), 횟수 미소진 (C-04).
 
 **에러** — `404 STUDENT_NOT_FOUND` · `403 FORBIDDEN`(연결 부재 자녀)
 
@@ -1138,7 +1138,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 기사가 서지 않고 지나간(건너뜀) 승하차지도 다음 승하차지 도착 또는 운행 종료 때 출발로 처리되어, 그곳의 미승차 학부모 알림이 나간다(`Ruling 854`).
 
-**전이 표(FEATURE_SPEC §3.3, Ruling 345)** — 이 엔드포인트가 받는 것은 `waiting→boarded`(**등원 회차만**) · `waiting→no_show`(방향 무관) · `boarded→alighted`(**하원 회차만**) 셋뿐이다. 같은 상태 재요청과 방향이 맞지 않는 요청(등원의 `boarded→alighted` · 하원의 `waiting→boarded`)을 포함해 그 밖은 `409 RIDER_TRANSITION_NOT_ALLOWED` — 상태·이력·이벤트 변화 없음. 하원의 `waiting→no_show` 는 종료 보류 회차에서 남은 학생을 되돌리기(§4.7) 뒤 `[미승차]` 로 정리하는 길이라 방향과 무관하게 연다. 표 밖으로 가려면 되돌리기(§4.7)가 먼저다. `client_key` 재전송(멱등 재생)은 이 판정보다 먼저 처리된다.
+**전이 표(FEATURE_SPEC §3.3, Ruling 345)** — 이 엔드포인트가 받는 것은 `waiting→boarded`(**등원 회차만**) · `waiting→no_show`(방향 무관) · `boarded→alighted`(**하원 회차만**) 셋뿐이다. 같은 상태 재요청과 방향이 맞지 않는 요청(등원의 `boarded→alighted` · 하원의 `waiting→boarded`)을 포함해 그 밖은 `409 RIDER_TRANSITION_NOT_ALLOWED` — 상태·이력·이벤트 변화 없음. 하원의 `waiting→no_show` 는 종료 보류 회차에서 남은 학생을 되돌리기(§4.7) 뒤 `[미승차]` 로 정리하는 길이라 방향과 무관하게 연다 — 이 길은 **되돌리기가 막히지 않는(아직 떠나지 않은) 승하차지 소속 학생만** 탄다(떠난 승하차지의 학생은 되돌리기가 `409 STOP_ALREADY_DEPARTED` 로 막혀 이 길로 정리할 수 없다, R51). 표 밖으로 가려면 되돌리기(§4.7)가 먼저다. `client_key` 재전송(멱등 재생)은 이 판정보다 먼저 처리된다.
 
 **에러** — `403 ESCORT_ONLY` · `409 RUN_NOT_MOVING` · `409 RIDER_TRANSITION_NOT_ALLOWED`(전이 표 밖 · Ruling 345) · `422 VALIDATION_FAILED` · `404 RIDER_NOT_FOUND`(미존재 탑승자 · `absent` 로 명단에서 제외된 탑승자) · `404 RUN_NOT_FOUND`
 
@@ -1152,7 +1152,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 **미승차 되돌리기** — `no_show` 에서 벗어나면 미승차 케이스(§4.8)를 종결하고(에스컬레이션 중단) 그 승하차지의 `skipped` 를 해제. 다시 `no_show` 가 되면 같은 케이스를 재개(대기 시간 재시작)
 
-**에러** — `403 ESCORT_ONLY` · `409 RUN_NOT_MOVING` · `404 RIDER_NOT_FOUND` · `404 RUN_NOT_FOUND` · `409 STOP_ALREADY_DEPARTED`(승하차지를 이미 떠난 뒤 — `run_stop.departed_at IS NOT NULL`, Ruling 305·307)
+**에러** — `403 ESCORT_ONLY` · `409 RUN_NOT_MOVING` · `404 RIDER_NOT_FOUND` · `404 RUN_NOT_FOUND` · `409 STOP_ALREADY_DEPARTED`(승하차지를 이미 떠난 뒤 — `run_stop.departed_at IS NOT NULL`, Ruling 305·307. **강제 출발도 출발로 기록**한다 — 기사가 서지 않고 다음 승하차지를 도착 처리하거나 운행이 끝날 때 `departed_at` 이 채워져 그 뒤로는 되돌리기가 막힌다, R51)
 
 ### 4.8 POST /runs/{runId}/riders/{riderId}/no-show-contacts
 
@@ -1297,7 +1297,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | 처리 | 내용 |
 |---|---|
 | 첨부 | 회차 · 호차 · 발신자 · 기사·동승자 연락처 · **발신 시점 위치** · 탑승자 수를 서버가 자동 결합 |
-| 수신 | **학원 관계자 + 메인 관리자 동시.** 설정 항목 부재라 항상 발송 + 팝업 (C-17) |
+| 수신 | **학원 관계자 + 메인 관리자 동시.** 설정 항목 부재라 항상 발송 + 팝업 (C-17). 수신자는 `ACTIVE` 와 로그인 차단(`BLOCKED`) 계정이며 가입 대기·거절은 제외 — 차단된 메인 관리자도 받고 `notified` 수도 같은 기준으로 센다 (`Ruling 865`) |
 | 학부모·학생 | **수신 대상 밖** — 안내 시점·문구는 관계자가 판단 |
 | 발신 시점 | `run.status` 가 `confirmed` 이후면 허용. 운행 중이 아니어도 가능 |
 | 중복 | 차단 부재 — 상황 변화마다 재발신이 정상 |
@@ -1631,7 +1631,7 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 
 **승인 이력 저장 — 책임 소재.** 누가·언제·무엇을·자동 거절 여부를 기록.
 
-**출발 시각 도달 또는 `Run.status` → `moving` 중 먼저 오는 시점**에 미처리 요청은 서버가 **자동 거절** — 재최적화 없이 기존 노선 유지 + 학부모 통지 → `status=auto_rejected`, **횟수 미소진** (C-04). 처리 시각(`decided_at`)은 마감보다 최대 30초 늦을 수 있고(30초 폴링), 취소된 회차의 대기 요청은 통지를 생략한다 (`Ruling 861`). 그 시점 이후 도달한 승인 조작은 반영 부재 — 이미 자동 거절로 종결된 건은 `409 APPROVAL_ALREADY_DECIDED`(처리된 건은 창 판정보다 먼저 걸러진다), 자동 거절 폴링(30초)이 아직 돌기 전에 도달한 건은 `403 CHANGE_WINDOW_CLOSED`(`Ruling 200`).
+**출발 시각 도달 또는 `Run.status` → `moving` 중 먼저 오는 시점**에 미처리 요청은 서버가 **자동 거절** — 재최적화 없이 기존 노선 유지 + 학부모 통지 → `status=auto_rejected`, **횟수 미소진** (C-04). 처리 시각(`decided_at`)은 마감보다 최대 30초 늦을 수 있고(30초 폴링), 취소된 회차의 대기 요청도 같은 통지를 받는다 (`Ruling 864`). 그 시점 이후 도달한 승인 조작은 반영 부재 — 이미 자동 거절로 종결된 건은 `409 APPROVAL_ALREADY_DECIDED`(처리된 건은 창 판정보다 먼저 걸러진다), 자동 거절 폴링(30초)이 아직 돌기 전에 도달한 건은 `403 CHANGE_WINDOW_CLOSED`(`Ruling 200`).
 
 **에러** — `409 APPROVAL_ALREADY_DECIDED` · `409 RUN_CANCELED`(승인하려는 회차가 임시 취소됨 — 거절은 허용, `Ruling 376`) · **`403 CHANGE_WINDOW_CLOSED`**(운행 시작 후 도달 — ⚠ **2026-08-30 정정, Ruling 200.** 원래 `409` 로 적혀 있었으나 이 코드의 정의 자리인 **§8.3 사전이 403** 이고, 이 문서의 다른 **8곳이 전부 403**(§1.6 ③ · §3.6 · §3.8 · §5.7 · §5.8 · §5.15 · §8.3)이라 **이 한 줄만 어긋나 있었다.** `ErrorCode` 는 코드 하나에 상태 하나를 싣는 구조라 두 값을 함께 둘 수 없고, 새 코드를 만드는 것은 "새 상태값을 만들지 않는다"(`CLAUDE.md`)에 걸린다. 사전이 정의고 각 절은 사용처이므로 **사전이 이긴다**) · `409 PREVIEW_STALE`(미리보기 이후 입력 변경 — 재조회 후 재시도) · `409 STUDENT_NOT_IN_RUN`(승인 대상 학생이 그 회차 명단에 없음 — 접수 뒤 명단이 바뀐 경우, BR-030) · `404 APPROVAL_NOT_FOUND`(대상 없음 · 타 학원 — 존재 비노출, BR-133) · `422 VALIDATION_FAILED`(`approve=false` 인데 `reject_reason` 부재). 결정은 그 승인 건을 행 잠금으로 읽어 자동 거절과 겹쳐도 커밋된 상태로 판정한다(BR-028)
 
@@ -1836,7 +1836,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 | `routes[]` | array | ● | 이 승하차지를 정차지로 담은 편성 — `route_id` · `bus_no` · `weekday` · `direction` · `active`(비활성 편성도 싣는다). 없으면 빈 배열 |
 | `student_count` | integer | ● | 요일별 주소(§3.7)가 이 승하차지로 매칭된 **재원 학생 수**(한 학생이 여러 요일·방향으로 매칭돼도 1명) |
 
-**`PATCH /staff/stops/{id}`** — 본문 `name`(최대 100자) · `address`(최대 255자) · `lat` · `lng`, **보낸 필드만** 고친다(§1.14). `lat`·`lng` 는 **둘 다 주거나 둘 다 비운다** — 하나만이면 `422 VALIDATION_FAILED`. 규칙은 `PUT /staff/routes/{id}/stops` 의 기존 승하차지 수정과 같다 — ①그 승하차지를 쓰는 **모든 노선의 표시에 함께 반영**(사본을 만들지 않는다 · 학생 요일별 주소의 주소·좌표 사본은 바뀌지 않는다, `Ruling 858`) ②**운행 중(`moving`) 회차의 현재 노선에 서는 승하차지는 좌표를 고칠 수 없다** — 아무것도 바꾸지 않은 채 `403 CHANGE_WINDOW_CLOSED`(이름·주소만 고치는 요청은 허용 · `BR-052` 와 같은 근거 — 승하차지 관리 화면은 주소를 고르면 핀이 따라 움직이므로 `핀 되돌리기` 로 좌표를 원래대로 둔 채 이름·주소만 저장하게 한다, R51) ③좌표를 옮겨도 근접 병합은 하지 않는다(화면이 `suggest` 의 `nearby` 로 50m 안 기존 승하차지를 알린다). 응답은 목록 항목과 같은 형태.
+**`PATCH /staff/stops/{id}`** — 본문 `name`(최대 100자) · `address`(최대 255자) · `lat` · `lng`, **보낸 필드만** 고친다(§1.14). `lat`·`lng` 는 **둘 다 주거나 둘 다 비운다** — 하나만이면 `422 VALIDATION_FAILED`. 규칙은 `PUT /staff/routes/{id}/stops` 의 기존 승하차지 수정과 같다 — ①그 승하차지를 쓰는 **모든 노선의 표시에 함께 반영**(사본을 만들지 않는다 · 학생 요일별 주소의 주소·좌표 사본은 바뀌지 않는다, `Ruling 858`) ②**운행 중(`moving`) 회차의 현재 노선에 서는 승하차지는 좌표를 고칠 수 없다** — 아무것도 바꾸지 않은 채 `403 CHANGE_WINDOW_CLOSED`(이름·주소만 고치는 요청은 허용 · `BR-052` 와 같은 근거 — 승하차지 관리 화면은 주소를 고르면 핀이 따라 움직이므로 `핀 되돌리기` 로 좌표를 원래대로 둔 채 이름·주소만 저장하게 한다, R51) ③좌표를 옮겨도 근접 병합은 하지 않는다(화면이 `suggest` 의 `nearby` 로 50m 안 기존 승하차지를 알리고, 승하차지 관리 화면은 핀만 끌어 옮긴 경우도 잡으려고 학원 승하차지 목록 `GET /staff/stops` 도 50m 확인에 함께 쓴다 — 경고는 핀을 옮기거나 주소를 다시 고른 뒤에만 뜬다, `Ruling 867`). 응답은 목록 항목과 같은 형태.
 
 **에러** — `404 STOP_NOT_FOUND`(없거나 다른 학원 — 존재 비노출) · `403 CHANGE_WINDOW_CLOSED`(위 ②) · `422 VALIDATION_FAILED`(길이 · 좌표 한쪽만 · 범위 밖 좌표)
 
@@ -2196,7 +2196,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **권한** 학원 관계자 · **요청 (쿼리)** `type` (enum, 선택) · `date` (date, 선택) · `acked` (boolean, 선택) · `recipient_role` (§9.1 역할값, 선택 — 예 `staff` 면 관계자에게 온 알림만, `Ruling 813`) · `group` (boolean, 선택 — 아래) · 페이징
 
-**응답** — `items[]` + `unacked_count`(미확인 배지)
+**응답** — `items[]` + `unacked_count`(미확인 배지 — 확인을 추적하는 종류의 미확인 건수. **`type` · `date` · `acked` · `recipient_role` 필터와 쪽에 상관없이 그 학원 전체 건수**이고 묶지 않은 행 기준 — R51)
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
@@ -2210,7 +2210,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 전송 알림 전수 조회 — 푸시 off 로 차단된 건도 레코드로 존치.
 
-**확인됨 건수** — 관계자 웹은 `수신자 확인됨` 탭의 건수를 같은 필터(종류 · 날짜 · 관계자만)에 `acked=true` · `group=false`(묶지 않음) 를 더한 조회 결과의 `total_count` 로 표시한다. 묶지 않은 행 기준이라 `unacked_count` 와 같은 단위이고, 묶어 보기를 켜고 꺼도 이 건수는 바뀌지 않는다(`group=true` 의 `total_count` 는 묶음 단위라 같은 탭 줄에서 두 숫자의 단위가 갈린다). 별도 응답 필드는 두지 않는다. 전체 건수에서 `unacked_count` 를 빼면 확인을 추적하지 않는 종류가 섞여 맞지 않는다(`Ruling 850` · R51).
+**확인됨 건수** — 관계자 웹은 `수신자 확인됨` 탭의 건수를 같은 필터(종류 · 날짜 · 관계자만)에 `acked=true` · `group=false`(묶지 않음) 를 더한 조회 결과의 `total_count` 로 표시한다. 묶지 않은 행 기준이라 `unacked_count` 와 **행 단위는 같지만 범위는 다르다** — `unacked_count` 는 필터와 무관한 학원 전체 건수이고 확인됨 건수는 위 필터를 따른다. 묶어 보기를 켜고 꺼도 이 건수는 바뀌지 않는다(`group=true` 의 `total_count` 는 묶음 단위라 같은 탭 줄에서 두 숫자의 단위가 갈린다). 별도 응답 필드는 두지 않는다. 전체 건수에서 `unacked_count` 를 빼면 확인을 추적하지 않는 종류가 섞여 맞지 않는다(`Ruling 850` · R51).
 
 **`group=true` — 묶어 보기**(`Ruling 813`) — 같은 사건이 적재한 행(같은 `type` · `run_id` · `body` · 적재 시각 초 단위)을 한 항목으로 묶는다. **쪽 나누기와 `total_count` 도 묶음 단위**다(화면이 쪽 안에서 묶으면 쪽 경계에서 같은 알림이 갈린다). 묶음 항목 — `group_key`(string) · `sent_at`(묶음 안 가장 늦은 시각) · `bus_no` · `type` · `body` · `recipient_count` · `acked_count` · `recipients[]`(앞 3명 — `recipient_name` · `recipient_role`). `acked` 필터는 묶음 안에 그 상태 행이 하나라도 있으면 그 묶음을 싣는다. `unacked_count` 는 묶지 않은 행 기준 그대로.
 
@@ -2892,7 +2892,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | 코드 | HTTP | 발생 조건 |
 |---|:-:|---|
 | `DUPLICATE_ARRIVE` | 403 | 동일 승하차지 도착 처리 중복 (RUN-04) |
-| `STOP_ALREADY_DEPARTED` | 409 | 승하차지를 이미 떠난 뒤의 되돌리기 시도(§4.7) — `run_stop.departed_at IS NOT NULL`. 도착 처리된 정차지에서 버스가 100m 밖으로 벗어난 최초 시점에 기록(claimDeparture 조건부 UPDATE). 횟수 제한은 부재하나 이 경계만 막음 (BRD-05, 2026-09-19 사용자 확정 Ruling 305, 판정 방식은 Ruling 307 로 교체) |
+| `STOP_ALREADY_DEPARTED` | 409 | 승하차지를 이미 떠난 뒤의 되돌리기 시도(§4.7) — `run_stop.departed_at IS NOT NULL`. 도착 처리된 정차지에서 버스가 100m 밖으로 벗어난 최초 시점에 기록(claimDeparture 조건부 UPDATE). **강제 출발**(다음 승하차지 도착 처리 · 운행 종료 때 폴백)도 같은 컬럼에 출발로 기록돼 이 코드의 대상이다. 횟수 제한은 부재하나 이 경계만 막음 (BRD-05, 2026-09-19 사용자 확정 Ruling 305, 판정 방식은 Ruling 307 로 교체) |
 | `RUN_NOT_CONFIRMED` | 409 | 확정 전(`idle`) 회차의 명단·운행 진입·경유 지점 지정(§5.15) |
 | `RUN_NOT_MOVING` | 409 | `moving` 아닌 회차에 위치 업로드·승하차 처리 · 강제 종료(§6.17 — 이미 끝난 회차·동시에 마지막 하차로 끝난 회차) |
 | `RIDER_TRANSITION_NOT_ALLOWED` | 409 | 승하차 처리(§4.6)가 FEATURE_SPEC §3.3 전이 표(`waiting→boarded` · `waiting→no_show` · `boarded→alighted`) 밖의 상태·방향을 요청 — 같은 상태 재요청과 방향이 맞지 않는 요청(등원의 `boarded→alighted` · 하원의 `waiting→boarded`) 포함. 표 밖으로 가려면 되돌리기(§4.7)가 먼저다. 422 가 아니라 409 인 이유는 `STOP_ALREADY_DEPARTED` 와 같다 — 요청 형식이 아니라 탑승자의 현재 상태가 막는다 (2026-09-25 신설, Ruling 345) |
@@ -3021,7 +3021,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | `pending` | 승인 대기 — 기존 승하차지 탑승 안내 |
 | `approved` | 반영 완료 |
 | `rejected` | 관계자 거절 — 사유 통지 |
-| `auto_rejected` | 출발 시각 도달 또는 운행 시작 중 먼저 오는 시점에 서버가 자동 거절 — 기존 노선 유지 + 학부모 통지(취소된 회차는 통지 생략, 처리 시각은 마감보다 최대 30초 늦을 수 있음 — `Ruling 861`), **횟수 미소진** |
+| `auto_rejected` | 출발 시각 도달 또는 운행 시작 중 먼저 오는 시점에 서버가 자동 거절 — 기존 노선 유지 + 학부모 통지(취소된 회차의 요청도 통지 — `Ruling 864`, 처리 시각은 마감보다 최대 30초 늦을 수 있음 — `Ruling 861`), **횟수 미소진** |
 
 ### 9.7 알림 종류 (`notification.type`)
 
@@ -3121,12 +3121,13 @@ DB 를 Flyway 시드 상태로 되돌리고 위치 캐시(Redis)를 비운 뒤 *
 
 ---
 
-## 12. 운영 경로 (헬스 확인 · API 문서)
+## 12. 운영 경로 (헬스 확인 · 지표 · API 문서)
 
 `/api/v1` 접두사 밖에 있는 비업무 경로다(서블릿 전역 접두사가 붙지 않는다). 사용자 화면이 부르는 계약이 아니라 운영·개발 도구용이며 `Ruling 861 ⑨` 로 등재한다.
 
 | 경로 | 인증 | 용도 | 비고 |
 |---|---|---|---|
 | `GET /actuator/health` | 없음 | DB · Redis 포함 헬스 확인(컨테이너 헬스체크) | `local` · `load` 는 **앱 포트(8080)**. 운영 계열(prod · demo · staging)은 **관리 포트(8081)** 로 옮겨 가며 호스트 · 프록시에 공개하지 않는다(`ARCHITECTURE §9` 관측 · `DEPLOYMENT §11`) |
+| `GET /actuator/prometheus` | 없음 | 지표 수집(Prometheus 스크레이프 — 토큰을 못 들고 오므로 서버 보안 설정이 이 한 경로만 공개) | `/actuator/**` 전체가 아니라 `health` · `prometheus` 만 노출한다. `local` · `load` 는 앱 포트(8080), 운영 계열(prod · demo · staging)은 **관리 포트(8081)** 라 호스트에 열지 않고 compose 내부망의 Prometheus 만 닿는다. 접근 경계는 인증이 아니라 네트워크 — 프록시가 외부의 `/actuator` 를 `404` 로 막는다 (`DEPLOYMENT §11`) |
 | `GET /healthz` | 없음 | 외부 가동 감시(인터넷에서 닿는 유일한 헬스 주소). 정상이면 `200` `{"status":"UP"}` | 운영 계열에서 앱 포트에 남기는 헬스 그룹(`external`). 앱 연결 상한에 닿아 사용자가 못 붙는 상태도 이 경로가 함께 본다 |
 | `/swagger-ui.html` · `/v3/api-docs` | 서버는 열어 둠 | API 문서 화면 · OpenAPI 원문 | 서버 보안 설정은 공개이지만 **프록시가 가린다** — 스테이징 프록시는 공개하지 않고 운영은 프록시 Basic Auth(`DEPLOYMENT §2.12`). 로컬 개발에서만 바로 열린다 |
