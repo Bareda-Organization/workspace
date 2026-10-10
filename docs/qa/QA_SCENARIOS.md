@@ -25,6 +25,7 @@
 | `docker compose … down` + `up` | 컨테이너 모드 — DB 컨테이너까지 새로 |
 
 - **비밀번호는 전 계정이 같다** — local 은 `password` · staging 은 스테이징 운영자가 `.env` 의 `SEED_PASSWORD_HASH` 로 정한 값(`STAGING.md §6` — 팀원에게 따로 알린다) · demo 는 배포 설정의 값
+- **역할별 빠른 로그인**(`Ruling 877`) — 스테이징 웹·팀원용 APK 의 로그인 화면 아래 단추로 비밀번호 입력 없이 들어간다: 관계자 웹 `staffA` · `sysadmin` / 학부모·학생 앱 `parentA1` · `studentA1` / 매니저 앱 `driverA3` · `escortA3`. 그 밖의 계정(§1)은 아이디·비밀번호를 직접 넣는다. 단추는 빌드 때 비밀번호를 넣은 시험 빌드에만 보인다
 - 웹·앱 주소와 스테이징 접속은 `docs/backend/infra/STAGING.md`
 
 ### 0.2 지도와 Directions 사용량

@@ -61,7 +61,7 @@ scp <mac 사용자>@<mac IP>:Desktop/PJ/baraeda/web/.env.local ../web/.env.local
 
 1. `.env`(§6) 에서 `COMPOSE_FILE` · `TUNNEL_TOKEN` 줄을 빼고 `COMPOSE_PROFILES=ngrok` · `NGROK_AUTHTOKEN=<ngrok 대시보드 → Your Authtoken>` · `WEB_ORIGIN=https://<web-dev 운영 주소>.vercel.app` 을 쓴다. ngrok 에이전트가 스테이징 compose 의 `ngrok` 컨테이너로 같이 떠서 고정 도메인(`PUBLIC_URL`)을 `proxy:80` 으로 보낸다. `WEB_ORIGIN` 은 허용 출처(CORS · WebSocket)에 웹 주소를 함께 싣는다 — 허용 출처(CORS · WebSocket)에 웹 주소가 함께 실린다. `COMPOSE_FILE` 을 빼는 이유는 같은 폴더의 개발용 compose 명령이 스테이징으로 바뀌지 않게 하려는 것 — 기동은 `docker compose -f docker-compose.staging.yml up -d --build`
 2. **Docker Desktop 의 ngrok 확장은 쓰지 않는다** — 공개를 컨테이너 ID 에 묶어 `up --build` 로 프록시가 새로 만들어질 때마다 끊기고, 2026-10-05 에는 스테이징 프록시로 켠 공개가 요청을 프록시까지 전달하지 못해 503(`ERR_NGROK_3004`)만 냈다. 같은 도메인을 두 에이전트가 잡을 수 없으므로 확장의 공개는 꺼 둔다. ⚠ 특히 **개발용 `school-bus-proxy-1`(3000) 은 공개하지 않는다** — 전 계정 비밀번호가 공개된 `password` 이고 Swagger 가 열린다(같은 날 실제로 열렸다가 닫음)
-3. Vercel `web-dev` 운영(Production) 환경변수 — `NEXT_PUBLIC_API_BASE_URL` = 고정 도메인 · `NEXT_PUBLIC_TEST_DATA_RESET=true` → 재배포. `NEXT_PUBLIC_*` 는 빌드 때 화면 코드에 박혀 값만 바꾸면 반영되지 않는다
+3. Vercel `web-dev` 운영(Production) 환경변수 — `NEXT_PUBLIC_API_BASE_URL` = 고정 도메인 · `NEXT_PUBLIC_TEST_DATA_RESET=true` · `NEXT_PUBLIC_QUICK_LOGIN_PASSWORD` = 시드 공통 비밀번호(로그인 화면의 역할별 빠른 로그인 — `Ruling 877`, 값이 없으면 단추가 안 보인다) → 재배포. `NEXT_PUBLIC_*` 는 빌드 때 화면 코드에 박혀 값만 바꾸면 반영되지 않는다
 4. §5 의 Web 서비스 URL 에 Vercel 주소를 등록한다
 5. 앱은 §7 의 `API_BASE_URL` 에 `<고정 도메인>/api/v1`
 
@@ -115,7 +115,8 @@ Mac 에서 빌드한다(두 앱 모두).
 cd mobile/apps/parent-app        # 매니저 앱은 manager-app (Mac 의 작업 공간 baraeda/ 에서)
 flutter build apk --release \
   --dart-define=API_BASE_URL=https://bus.<도메인>/api/v1 \
-  --dart-define=NAVER_MAP_CLIENT_ID=<웹 .env.local 과 같은 ID>
+  --dart-define=NAVER_MAP_CLIENT_ID=<웹 .env.local 과 같은 ID> \
+  --dart-define=QUICK_LOGIN_PASSWORD=<시드 공통 비밀번호>   # 역할별 빠른 로그인(Ruling 877) — 운영 빌드에는 넣지 않는다
 scp build/app/outputs/flutter-apk/app-release.apk <집 PC>:baraeda/backend/downloads/parent.apk
 ```
 
