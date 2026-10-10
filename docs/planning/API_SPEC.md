@@ -918,7 +918,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `photo_url` | string | ○ | **육안 확인용** — 태그(NFC/QR) 미사용. **미등록 학생은 `null`** — 아래 대체 표시 규칙 |
 | `class_name` | string | ○ | 반 |
 | `guardian_phone` | string | ○ | **마스킹** (`010-2XXX-8814`). **보호자 미연결 학생은 `null`** — 앱은 연락처 칸을 생략(§1.13 목록, BR-082). 걸려면 §4.2.1 로 원번호를 따로 받는다 — 앱은 마스킹 값이 `null` 이 아닐 때만 [전화] 를 그린다 |
-| `note` | string | ○ | 특이사항·비고 (STU-07) |
+| `note` | string | ○ | 특이사항·비고 (STU-07). L3 이지만 **배치된 회차의 명단에는 싣는다**(매니저 예외 — 사진과 같은 자리, `Ruling 872`, FEATURE_SPEC §6.3) |
 | `can_go_alone` | boolean | ● | 혼자 귀가 가능 여부 (STU-08). 하원 하차 판단 근거 |
 | `status` | enum | ● | `waiting` · `boarded` · `alighted` · `no_show`. **`absent` 는 `change=removed` 행에서만** — 버스 간 이동으로 빠진 학생은 명단에서 지우지 않고 빨강으로 남긴다(RTE-04). 처리 대상이 아니며 `absent_n` 에 세지 않는다 |
 | `change` | enum | ○ | `added` · `removed` |
