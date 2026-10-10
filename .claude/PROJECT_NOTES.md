@@ -215,6 +215,10 @@ flutter test --dart-define=API_BASE_URL=http://localhost:<포트>/api/v1
 
 ⚠ **실행 중인 에이전트는 이름을 바꿀 수 없다.** 띄우는 시점에 정한다.
 
+- **라운드 작업(R46~)은 Phase 자리에 라운드를 쓴다** — `r{라운드}-t{작업}-{역할}-{에이전트}-{모델}` (예 `r52-t5-review-gp-haiku` · `r51-t2-impl-gp-sonnet`). 역할에 `audit`(사양 대조) · `docs`(문서 반영)도 쓴다
+- ⚠ **2026-10-10 기준 Agent 도구에 `name` 파라미터가 없다**(입력은 `description` · `model` · `prompt` · `subagent_type` 등). **그래서 `description` 칸에 위 형식 이름을 그대로 넣는다** — 화면·알림에 보이는 이름이 이 칸이다. Orca 작업 창은 `worker-start --spec` 머리의 창 이름과 원장 표에 같은 형식을 쓴다
+- ⚠ 2026-10-10 R51 에서 **세 번째 재발** — 이 파일을 안 읽고 서브에이전트 약 30개를 영어 설명으로 띄웠다(사용자 지적 *"에이전트 이름 규칙 준수해달라고 했었는데 현재 안되고 있네"*)
+
 ---
 
 ## task-gate-reviewer
