@@ -2229,7 +2229,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **응답** — `runs[]` — `run_id` · `bus_no` · `direction` · `status` · `position{lat, lng, recorded_at}` · `current_stop` · `next_stop` · `progress{done, total}` · `delay_minutes` · `driver_name` · `escort_name`
 
-**`/ws/academy/{id}/live` 의 `position` 은 증분 방송**이라 화면 진입 시 현재 위치를 그릴 **초기 스냅샷**이 부재. 이 엔드포인트가 그 자리를 채우고 이후 갱신은 WS 가 담당.
+**`/ws/academy/{id}/live` 의 `position` 은 증분 방송**이라 화면 진입 시 현재 위치를 그릴 **초기 스냅샷**이 부재. 이 엔드포인트가 그 자리를 채우고 이후 갱신은 WS 가 담당. 관계자 웹의 오늘 현황과 금일 운행 상세(MON-03)가 **같은 학원 구독**을 쓴다(`Ruling 873` — 폴링은 구독이 끊긴 때의 안전망이며 승하차 반영 5초 이내(NFR-02)는 구독이 지킨다).
 
 - `status='moving'` 인 회차만 반환. 위치 미수신 회차는 `position=null` + `last_seen_at`
 - 좌표 갱신은 **2초** 주기 (LOC-01 · 2026-09-14 · 옛값 5~10초)
