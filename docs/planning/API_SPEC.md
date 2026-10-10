@@ -838,7 +838,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 알림 읽음 처리 (NTF-08). 응답 `204`. 중요 통지는 이 처리가 수신 확인(NTF-10)의 근거.
 
-**에러** — `404 NOTIFICATION_NOT_FOUND` · `403 FORBIDDEN`(타 계정 알림)
+**에러** — `404 NOTIFICATION_NOT_FOUND` · `403 FORBIDDEN`(타 계정 알림 — 다른 학원 알림 포함 · §1.11 표의 소유 자원 규칙)
 
 ### 3.14 GET · PATCH /me/notification-settings
 
@@ -852,7 +852,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `boarding` | boolean | ● | ○ | 등하원(승차·하차·운행 시작) 알림 |
 | `no_show` | boolean | ● | ○ | 미승차 알림 |
 
-**PATCH 는 보낸 항목만 바꾼다**(`Ruling 869`, `§1.14` 공통 규칙 — 키가 없으면 유지 · `null` 도 유지) — 세 항목 중 하나만 보내도 `200` 이고 나머지는 그대로다. 응답은 GET 과 같은 세 항목 전부(바뀐 뒤의 값). 아무 항목도 보내지 않은 요청은 `§1.14` 에 따라 바뀌는 것이 없다. 앱은 지금처럼 세 항목을 모두 보내도 된다.
+**PATCH 는 보낸 항목만 바꾼다**(`Ruling 869`, `§1.14` 공통 규칙 — 키가 없으면 유지 · `null` 도 유지) — 세 항목 중 하나만 보내도 `200` 이고 나머지는 그대로다. 응답은 GET 과 같은 세 항목 전부(바뀐 뒤의 값). 아무 항목도 보내지 않은 요청은 `200` 이고 값·갱신 시각 그대로다(`Ruling 869` · `§1.14`). 앱은 지금처럼 세 항목을 모두 보내도 된다.
 
 **지연 알림은 설정 항목 자체가 부재** — 항상 발송 (NTF-07). off 는 푸시만 차단하고 레코드는 항상 생성.
 
@@ -1067,7 +1067,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `run_status` | enum | ● | §9.3 |
 | `finish_pending` | boolean | ● | 하원 잔류로 종료 보류 |
 | `remaining[]` | array | ● | `rider_id` · `name` · `stop_name`. 보류가 아니면 **빈 배열** |
-| `auto_alighted_count` | integer | ○ | 등원 종료 시에만 |
+| `auto_alighted_count` | integer | ○ | 등원 종료 시에만 — 등원 종료 때 자동 하차 처리된 수. **하원 종료는 어느 경로든 `0`** |
 
 ⚠ **`next_stop` 의 정차지 이름 키는 `stop_name` 이다 — `§4.3` 의 `next_stop` 은 같은 것을 `name` 으로 부른다** (2026-09-14 등재, `BE-R2` 목표 13). 두 엔드포인트가 **같은 화면에서 연달아 호출**되는데 같은 개념을 다른 이름으로 싣는다.
 
@@ -1639,6 +1639,8 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 **승인 이력 저장 — 책임 소재.** 누가·언제·무엇을·자동 거절 여부를 기록.
 
 **출발 시각 + 10분 또는 `Run.status` → `moving` 중 먼저 오는 시점**(`Ruling 870` — 이전 `Ruling 306` 의 "출발 시각 도달" 을 갱신)에 미처리 요청은 서버가 **자동 거절** — 재최적화 없이 기존 노선 유지 + 학부모 통지 → `status=auto_rejected`, **횟수 미소진** (C-04). 처리 시각(`decided_at`)은 마감보다 최대 30초 늦을 수 있고(30초 폴링), 취소된 회차의 대기 요청도 같은 통지를 받는다 (`Ruling 864`). 그 시점 이후 도달한 승인 조작은 반영 부재 — 이미 자동 거절로 종결된 건은 `409 APPROVAL_ALREADY_DECIDED`(처리된 건은 창 판정보다 먼저 걸러진다), 자동 거절 폴링(30초)이 아직 돌기 전에 도달한 건은 `403 CHANGE_WINDOW_CLOSED`(`Ruling 200`).
+
+**확정 전(`idle`) 회차의 ② 요청** — 미리보기를 만들 노선이 아직 없어 승인은 `409 PREVIEW_STALE` 로 막힌다. 거절은 처리되고 응답 `route_version` 은 `null` 이다(`Ruling 870`). ②구간 마감이 출발 + 10분까지라 확정이 실패한 회차에서는 이 틈이 그만큼 넓어진다.
 
 **에러** — `409 APPROVAL_ALREADY_DECIDED` · `409 RUN_CANCELED`(승인하려는 회차가 임시 취소됨 — 거절은 허용, `Ruling 376`) · **`403 CHANGE_WINDOW_CLOSED`**(운행 시작 후 도달 — ⚠ **2026-08-30 정정, Ruling 200.** 원래 `409` 로 적혀 있었으나 이 코드의 정의 자리인 **§8.3 사전이 403** 이고, 이 문서의 다른 **8곳이 전부 403**(§1.6 ③ · §3.6 · §3.8 · §5.7 · §5.8 · §5.15 · §8.3)이라 **이 한 줄만 어긋나 있었다.** `ErrorCode` 는 코드 하나에 상태 하나를 싣는 구조라 두 값을 함께 둘 수 없고, 새 코드를 만드는 것은 "새 상태값을 만들지 않는다"(`CLAUDE.md`)에 걸린다. 사전이 정의고 각 절은 사용처이므로 **사전이 이긴다**) · `409 PREVIEW_STALE`(미리보기 이후 입력 변경 — 재조회 후 재시도) · `409 STUDENT_NOT_IN_RUN`(승인 대상 학생이 그 회차 명단에 없음 — 접수 뒤 명단이 바뀐 경우, BR-030) · `404 APPROVAL_NOT_FOUND`(대상 없음 · 타 학원 — 존재 비노출, BR-133) · `422 VALIDATION_FAILED`(`approve=false` 인데 `reject_reason` 부재). 결정은 그 승인 건을 행 잠금으로 읽어 자동 거절과 겹쳐도 커밋된 상태로 판정한다(BR-028)
 
@@ -2235,6 +2237,8 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **`/ws/academy/{id}/live` 의 `position` 은 증분 방송**이라 화면 진입 시 현재 위치를 그릴 **초기 스냅샷**이 부재. 이 엔드포인트가 그 자리를 채우고 이후 갱신은 WS 가 담당. 관계자 웹의 오늘 현황과 금일 운행 상세(MON-03)가 **같은 학원 구독**을 쓴다(`Ruling 873` — 폴링은 구독이 끊긴 때의 안전망이며 승하차 반영 5초 이내(NFR-02)는 구독이 지킨다).
 
+**갱신 수단** (`Ruling 873`) — 학원 채널 `/topic/academy/{id}/live` 구독으로 갱신한다. `position` 은 즉시 반영, `stop_arrived` · `rider_changed` · `run_started` · `run_ended` 는 300ms 묶어 그 회차의 명단을 다시 읽는다(명단 조회는 감사 기록을 남긴다). 방송이 싣지 않는 값(지연 분 · 확정 전환 · 노선 확인 · 미승차 연락 결과)은 보조 조회로 갱신한다 — 연결 중 30초, 끊김 중 7초. 재연결하면 한 번 다시 읽는다.
+
 - `status='moving'` 인 회차만 반환. 위치 미수신 회차는 `position=null` + `last_seen_at`
 - 좌표 갱신은 **2초** 주기 (LOC-01 · 2026-09-14 · 옛값 5~10초)
 - `current_stop`·`next_stop` 은 **id 가 아니라 이름 문자열**이다 — §4.3 `current_stop`/`next_stop` 과
@@ -2813,7 +2817,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | `stop_arrived` | `POST /runs/{runId}/stops/{stopId}/arrive` | `stop_id` · `seq` · `name` · `arrived_at` · `next_stop_id`(둘 다 `run_stop.id`, `Ruling 327`). 기사 포인터 전진의 방송 — 동승자 처리 명단은 불변 |
 | `rider_changed` | `PATCH /runs/{runId}/riders/{riderId}` · `revert` · **§3.6 ③구간 `riding=false`**(`status=absent` · `stop_skipped`, `Ruling 334`) | `rider_id` · `student_id` · `student_name` · `status` · `stop_id` · `changed_at` · `counts` · `stop_skipped`. **5초** 이내 반영 |
 | `run_started` | `POST /runs/{runId}/start` | `run_status`(`moving`) · `started_at` · `auto_boarded_count`. **학생 채널은 `auto_boarded_count` 부재** (C-08 · §1.12, `Ruling 335`) |
-| `run_ended` | 서버의 `finished` 전이 (§4.10) | `run_status`(`finished`) · `finished_at` · `auto_alighted_count`. **학생 채널은 `auto_alighted_count` 부재** (C-08 · §1.12, `Ruling 335`) |
+| `run_ended` | 서버의 `finished` 전이 (§4.10) | `run_status`(`finished`) · `finished_at` · `auto_alighted_count`(등원 종료 때 자동 하차 처리된 수 · **하원 종료는 어느 경로든 `0`**). **학생 채널은 `auto_alighted_count` 부재** (C-08 · §1.12, `Ruling 335`) |
 | `emergency_raised` | `POST /runs/{runId}/emergency` | `emergency_id` · **`academy_id` · `academy_name`**(그 회차의 학원 — 메인 관리자 전체 관제 배너가 어느 학원 신고인지 표시, `Ruling 395`. 관계자 채널도 같은 페이로드) · `type` · `bus_no` · `raised_by{name, role, phone}` · `position{lat, lng}` · `rider_count`(발신 시점 회차에 배정된 라이더 전원 수, 승하차 상태 무관) · `raised_at`. **관계자·메인 관리자 채널 전용** (C-17) |
 | `emergency_canceled` | `DELETE /runs/{runId}/emergency/{id}` (§4.14 — 발신 후 1분 안 취소) | `emergency_id` · `bus_no` · `canceled_at`. **관계자·메인 관리자 채널 전용** — `emergency_raised` 를 받은 화면이 같은 신고를 닫는다(§4.14 "취소 사실도 수신자에게 통지") |
 | `emergency_acked` | `POST /staff/emergencies/{id}/ack` | `emergency_id` · `acked_by_name` · `acked_at`. **매니저 채널 전용** — 발신자 앱에 "학원이 확인했습니다" 표시 (A-16) |
@@ -3062,7 +3066,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 
 `boarding` 중 **하원 시작의 자동 승차분**은 운행 시작 때 보호자 전원에게 나간다. 승하차지 출발을 기다리지 않는다(하원 출발지는 승하차지가 아니다). 하원 승하차지를 출발할 때 아직 하차 처리되지 않은(탑승 중) 학생에게는 승차·하차 어느 알림도 나가지 않는다. 기사가 서지 않고 지나간(건너뜀) 승하차지도 다음 승하차지 도착 또는 운행 종료 때 출발로 처리되어, 그곳의 미승차(`no_show`) 학부모 알림이 나간다(`Ruling 854`).
 
-`run_started` 문구(`RunStartedComposer`, `Ruling 868`) — 제목은 수신자 공통 "운행 시작 안내". **본문은 수신자에 따라 갈린다.** 학부모·학생에게 가는 본문에는 **자녀(학생) 이름이 들어간다** — 형제가 같은 회차를 타면 같은 문구 2건이 와서 누구 버스인지 가를 수 없었기 때문이다(규칙 "모든 문구에 자녀 이름" — `USER_FLOWS §10.2`, `ARCHITECTURE §11`). 학부모는 그 회차를 타는 자녀마다 1건씩, 학생은 본인 이름으로 1건. 그 밖의 수신자(관계자 등)의 본문은 "배정된 회차의 운행이 시작되었습니다." 그대로다.
+`run_started` 문구(`RunStartedComposer`, `Ruling 868`) — 제목은 수신자 공통 "운행 시작 안내". **본문은 수신자에 따라 갈린다.** 학부모·학생 본문은 `{자녀 이름} 학생이 탈 버스의 운행이 시작되었습니다.` 로 **자녀(학생) 이름이 들어간다** — 형제가 같은 회차를 타면 같은 문구 2건이 와서 누구 버스인지 가를 수 없었기 때문이다(규칙 "모든 문구에 자녀 이름" — `USER_FLOWS §10.2`, `ARCHITECTURE §11`). 학부모는 그 회차를 타는 자녀마다 1건씩, 학생은 본인 이름으로 1건. 그 밖의 수신자(관계자 등)의 본문은 "배정된 회차의 운행이 시작되었습니다." 그대로다.
 
 ### 9.8 기타 enum
 

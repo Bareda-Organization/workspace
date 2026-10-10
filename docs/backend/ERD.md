@@ -565,6 +565,7 @@ erDiagram
 | `departed_at` 🆕 | timestamptz | | 도착 처리된 정차지에서 버스가 **100m** 밖으로 벗어난 최초 시점. NULL = 미출발. **2026-09-19 신설(Ruling 307, `V1`)** — 되돌리기 제한(BRD-05, Ruling 305)의 유일한 판정 기준. `proximity_notified_at` 과 같은 조건부 UPDATE 형태(`claimDeparture`)로만 채운다 |
 | `eta` | timestamptz | | 승하차지별 도착 예정 시각. **관제 전용** — 학부모·학생 응답에 미포함 |
 | `proximity_notified_at` 🆕 | timestamptz | | 근접 알림(직선 300m, NTF-04) 최초 1회 발송 시각. NULL = 미발송. **2026-09-02 신설(Ruling 207, `V3`)** — `notification_log.dedup_key` UNIQUE 는 같은 알림의 중복 적재만 막고, 스케줄러가 매 틱 같은 정차 항목을 다시 판정하지 않게 막는 것은 이 컬럼의 조건부 UPDATE 몫(Ruling 210) |
+| `near_observed_at` | timestamptz | | 도착 처리 뒤 그 승하차지 **100m 안**에서 받은 위치의 최초 시각. 출발 판정(`departed_at`)의 선행 조건이며, 100m 밖 위치는 이 값이 있은 뒤에만 출발로 본다. 조건부 UPDATE 로 최초 1회만 채우고 서버 재기동에도 남는다 (`Ruling 875`, `V1`) |
 
 **존재 이유** — 순번·변경 구분·도착 시각은 **버전마다 달라지는 값**이라 승하차지 마스터에 보관 불가. 학생 승하차지와 강제 경유지가 같은 순번 열에 섞이므로 두 참조를 한 테이블에서 배타적으로 보유. **근거** C-05 · C-12 · RTE-05·10 · RUN-04 · RST-01 · O-05
 
