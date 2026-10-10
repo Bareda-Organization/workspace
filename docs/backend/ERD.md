@@ -676,7 +676,7 @@ erDiagram
 | `reason` | varchar(200) | | 신청 사유 |
 | `requested_by` | bigint | NN | 신청 학부모 계정 |
 | `requested_at` | timestamptz | NN | |
-| `deadline_at` | timestamptz | | 승인 마감 = 회차 출발 시각. 운행이 먼저 시작되면 그 시점이 실제 마감 |
+| `deadline_at` | timestamptz | | 승인 마감 = 회차 출발 시각 + 10분(운행 시작 허용 창의 끝). 운행이 먼저 시작되면 그 시점이 실제 마감(`Ruling 870`) |
 | `decided_by` | bigint | | 처리 관계자 계정. 자동 거절은 NULL |
 | `decided_at` | timestamptz | | 처리 시각 |
 | `reject_reason` | varchar(200) | | 거절 사유 |
