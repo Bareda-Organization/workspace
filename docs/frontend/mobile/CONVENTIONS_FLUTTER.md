@@ -16,7 +16,7 @@ React 쪽 규칙은 `docs/frontend/web/CONVENTIONS_REACT.md` 이며 **두 문서
 | 라우팅 | **go_router** | 선언형 · 딥링크(푸시 알림에서 특정 회차로 진입)가 필수 |
 | HTTP | **dio** | 인터셉터로 토큰 재발급(`§2.6`)·멱등 키(`§1.7`)를 한곳에서 처리 |
 | 모델·직렬화 | **freezed** + `json_serializable` | 불변 모델 · 유니온(상태머신)·`copyWith` 자동 생성 |
-| 로컬 저장 | **flutter_secure_storage**(토큰) · **drift**(오프라인 큐) | refresh 토큰은 평문 저장 금지. 오프라인 큐(M-06)는 트랜잭션이 필요 |
+| 로컬 저장 | **flutter_secure_storage**(토큰) · **drift**(오프라인 큐) | refresh 토큰은 평문 저장 금지. 오프라인 큐(M-06)는 트랜잭션이 필요. 매니저 앱 명단 저장본은 암호화해 저장한다(`Ruling 872`) |
 | 린트 | **very_good_analysis** 11 | 기본 `flutter_lints` 보다 엄격. `analysis_options.yaml` 에 고정(4곳). 개별 규칙 예외는 `public_member_api_docs` 1종(앱 2종·`baraeda_ui` 만 끔). `unnecessary_type_name_in_constructor` 는 켜 둔다 — `Ruling 770` 이 껐다가 freezed 4.0.2 에서 재개(`Ruling 795`) |
 
 ---
