@@ -626,7 +626,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `run_status` | enum | ● | `idle` · `confirmed` · `moving` · `finished` |
 | `confirmed` | boolean | ● | 확정 노선 산출 여부 — 출발 30분 전 배치 결과 |
 | `riding` | boolean | ● | 탑승 의사 (ATT-01). 기본 `true` |
-| `rider_status` | enum | ● | `waiting` · `boarded` · `alighted` · `absent` · `no_show` |
+| `rider_status` | enum | ● | `waiting` · `boarded` · `alighted` · `absent` · `no_show`. **그 학생 승하차지를 버스가 출발하기 전의 `no_show` 는 `waiting` 으로 보낸다**(`Ruling 871`, `Ruling 854` 와 같은 취지 — 학부모 알림이 출발 때 나가므로 화면도 그때까지 "대기". 동승자가 출발 전에 되돌려도 학부모 화면에 흔적이 없다). 출발 처리(출발 판정 · 강제 발송)된 뒤에는 `no_show` 그대로. **학부모·학생 응답만** 이렇게 보내며 학원 관계자·매니저 응답(§4.2 · §5.4 등)은 실제 값 그대로다. 학부모·학생 WebSocket 채널(§7)에는 탑승 상태 메시지가 없다 |
 | `stop` | object | ● | 본인 승하차지 — `stop_id` · `name` · `address` |
 | `change_quota_left` | integer | ● | **이 회차의** ② 구간 잔여 변경 횟수. 한도는 회차당 1회이며 다른 회차와 독립 |
 
@@ -3005,7 +3005,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | `absent` | 미등원 | 스톤 | 시스템 (학부모 사전 OFF 결과) |
 | `no_show` | 미승차 | 레드 | 동승자 |
 
-**`absent` 와 `no_show` 는 반드시 구분** — `absent` 는 학부모 알림 부재·명단 행 제외, `no_show` 는 관계자 즉시 통지 + 학부모 알림(그 승하차지 출발 때) + **3분** 에스컬레이션 (C-02, `Ruling 854`).
+**`absent` 와 `no_show` 는 반드시 구분** — `absent` 는 학부모 알림 부재·명단 행 제외, `no_show` 는 관계자 즉시 통지 + 학부모 알림(그 승하차지 출발 때) + **3분** 에스컬레이션 (C-02, `Ruling 854`). 학부모·학생 화면의 `no_show` 는 그 승하차지 출발 뒤부터 보인다(§3.5 `rider_status`, `Ruling 871`).
 
 버스 간 이동으로 출발 회차에서 빠진 학생은 `absent` + `change=removed` 로 남는다 — 흐름(승하차·알림·종료 판정)은 `absent` 와 같고, 명단(§4.2·§5.4)에서는 빨강으로 보이며 "미등원 N명"(`absent_n`)에는 세지 않는다(RTE-04 · BR-016).
 
