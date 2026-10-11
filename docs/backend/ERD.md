@@ -6,7 +6,7 @@
 |---|---|
 | 문서 버전 | v1.1 |
 | 작성일 | 2026-08-24 |
-| 개정일 | 2026-10-01 — R46-LATERBE: `run_position` 일 단위 범위 파티션(PK `(id, recorded_at)` · 기본 파티션 · 만료는 파티션 DROP — `Ruling 670` 이 이 테이블에 한해 `Ruling 243` 을 뒤집음) · §4.1 학원 경계 복합 FK 11쌍(부모 `UNIQUE (id, academy_id)` — `Ruling 675`) · §5.3 `ix_run_open_service_date` 추가·`ix_run_position_retention_cutoff` 삭제(`Ruling 673`). 이전 개정 — 2026-10-01 — R46-POLISH: §3.4 `audit_log.ip` 에 계정 차단 해제 행 포함(`Ruling 595`). 이전 개정 — 2026-10-01 — R46-LAST: §3.4 `audit_log.ip` 에 계정 비밀번호 초기화 행 포함(`Ruling 580`). 이전 개정 — 2026-10-01 — R46 privacy: `student.anonymized_at`(`V15`) · §5.3 `ix_student_retention_cutoff` · §7.1·§7.2·§7.3 퇴원 학생 개인정보 파기(퇴원 90일 뒤 익명화, `Ruling 480 ②`·`520`~`523`). 이전 개정 — 2026-10-01 — §3.4 `audit_log.ip` 를 조회 행까지 확장 · §7.2·§7.3 `audit_log` 무기한 → 2년(`Ruling 445`). 이전 개정 — 2026-09-30 — §5.3 에 조회 인덱스 4개(BR-258, `V1`)와 `V8` 보존 정리 인덱스 5개(BR-259, 실제 `CREATE INDEX` 5문 — 아래 6개는 셈이 어긋난 옛 표기) 등재. 이전 개정 — 2026-09-04 — `V8` 보존 정리 인덱스 6개 반영 · §7.2 `run_position` 90일·`audit_log` 무기한 확정(Ruling 243). 이전 개정 — 2026-09-03 — `V3`~`V7` 반영: `run_stop.proximity_notified_at`(V3) · `shedlock` 테이블 신설(V4) · `notification_log.type` CHECK 확장 확인(V5·V6, 서술 변경 없음) · `emergency_alert.position_recorded_at` 및 `occurred_at`·`received_at` 서술 정정(V7, Ruling 236). DDL-ERD 컬럼 전수 대조로 `academy.lat`·`lng` · `run.consecutive_failures` 보완. `notification_log.acked` 추적 범위 명확화(Ruling 227·228), §8 갱신(X-04·X-05 신설 반영, `academy.code` 해소 반영), 공통 규칙 표기 C-01~C-18. 테이블 41개 · 그룹 5개. Ruling 190·207·210·219·227·228·236 반영 |
+| 개정일 | 2026-10-11 — R53(`Ruling 878`~`885`): §3 `student.birth_date` 노출 범위(`Ruling 883`) · `emergency_alert.acked_by` 는 학원 관계자 계정만(`Ruling 884`) · 취소 건은 확인 불가(`Ruling 885` ①) · `academy.contact` 필수 · `academy.memo` 비우면 NULL(`Ruling 885` ⑤) · `notification_log` 출발 뒤 기록 즉시 적재(`Ruling 878`) · 옛 마이그레이션 번호(V3~V15)를 `V1` 합침 표기로 정정. 이전 개정 — 2026-10-01 — R46-LATERBE: `run_position` 일 단위 범위 파티션(PK `(id, recorded_at)` · 기본 파티션 · 만료는 파티션 DROP — `Ruling 670` 이 이 테이블에 한해 `Ruling 243` 을 뒤집음) · §4.1 학원 경계 복합 FK 11쌍(부모 `UNIQUE (id, academy_id)` — `Ruling 675`) · §5.3 `ix_run_open_service_date` 추가·`ix_run_position_retention_cutoff` 삭제(`Ruling 673`). 이전 개정 — 2026-10-01 — R46-POLISH: §3.4 `audit_log.ip` 에 계정 차단 해제 행 포함(`Ruling 595`). 이전 개정 — 2026-10-01 — R46-LAST: §3.4 `audit_log.ip` 에 계정 비밀번호 초기화 행 포함(`Ruling 580`). 이전 개정 — 2026-10-01 — R46 privacy: `student.anonymized_at`(`V15`) · §5.3 `ix_student_retention_cutoff` · §7.1·§7.2·§7.3 퇴원 학생 개인정보 파기(퇴원 90일 뒤 익명화, `Ruling 480 ②`·`520`~`523`). 이전 개정 — 2026-10-01 — §3.4 `audit_log.ip` 를 조회 행까지 확장 · §7.2·§7.3 `audit_log` 무기한 → 2년(`Ruling 445`). 이전 개정 — 2026-09-30 — §5.3 에 조회 인덱스 4개(BR-258, `V1`)와 `V8` 보존 정리 인덱스 5개(BR-259, 실제 `CREATE INDEX` 5문 — 아래 6개는 셈이 어긋난 옛 표기) 등재. 이전 개정 — 2026-09-04 — `V8` 보존 정리 인덱스 6개 반영 · §7.2 `run_position` 90일·`audit_log` 무기한 확정(Ruling 243). 이전 개정 — 2026-09-03 — `V3`~`V7` 반영: `run_stop.proximity_notified_at`(V3) · `shedlock` 테이블 신설(V4) · `notification_log.type` CHECK 확장 확인(V5·V6, 서술 변경 없음) · `emergency_alert.position_recorded_at` 및 `occurred_at`·`received_at` 서술 정정(V7, Ruling 236). DDL-ERD 컬럼 전수 대조로 `academy.lat`·`lng` · `run.consecutive_failures` 보완. `notification_log.acked` 추적 범위 명확화(Ruling 227·228), §8 갱신(X-04·X-05 신설 반영, `academy.code` 해소 반영), 공통 규칙 표기 C-01~C-18. 테이블 41개 · 그룹 5개. Ruling 190·207·210·219·227·228·236 반영 |
 | 기준 | FEATURE_SPEC.md · PRD.md · USER_FLOWS.md · API_SPEC.md v1.0 (2026-08-24) |
 | DBMS | PostgreSQL |
 | 성격 | **To-Be 설계** — 현 코드베이스의 실측 기록 부재. 구현은 이 문서에 맞춰 갱신 대상 |
@@ -54,7 +54,7 @@
 42개 테이블을 5개 그룹으로 분할(2026-09-05 `delay_notice`·`run_transfer` 그룹 ④ 신설로 41→43, 2026-09-22
 Ruling 324 로 `link_request` 삭제로 43→42). 아래 소계는 §3 의 테이블 정의를 직접 센 값이며 2026-08-24 신설
 3개(`verification_code` 그룹 ② · `device_token`·`emergency_alert` 그룹 ④)와 Phase 8 신설 1개
-(`run_forced_addition` 그룹 ③), 2026-09-03 신설 1개(`shedlock` 그룹 ⑤, `V4`)가 포함된 기준.
+(`run_forced_addition` 그룹 ③), 2026-09-03 신설 1개(`shedlock` 그룹 ⑤, 당시 V4 — 2026-10-03 에 스키마를 `V1` 한 파일로 합침)가 포함된 기준.
 
 | 그룹 | 테이블 수 | 범위 |
 |---|:-:|---|
@@ -200,8 +200,8 @@ erDiagram
 | `name` | varchar(100) | NN | 학원명 |
 | `region` | varchar(50) | NN | 지역(시·군·구). 동명 학원 구분값 |
 | `address` | varchar(255) | | 학원 주소. **API 는 필수**(등록 누락·수정으로 비우기 `422`, `Ruling 450`)이나 컬럼은 NULL 허용을 유지 — 주소 없이 좌표만 가진 시드 학원(A·B)이 있고 시드 SQL 을 고치면 영속 DB 체크섬이 바뀐다 |
-| `contact` | varchar(30) | | 대표 연락처. 승인 대기 화면의 `academy_contact` |
-| `memo` | text | | 운영사 내부 메모 |
+| `contact` | varchar(30) | | 대표 연락처. 승인 대기 화면의 `academy_contact`. 수정에서 비울 수 없다(서버 `422`, `Ruling 885` ⑤) |
+| `memo` | text | | 운영사 내부 메모. 수정에서 `""` 를 보내면 NULL 로 지운다(`Ruling 885` ⑤) |
 | `status` | varchar(10) | NN | `active` · `inactive`. CHECK |
 | `lat` · `lng` | numeric(9,6) | | 노선 기준점. 확정 배치(RTE-08)가 읽음(Ruling 190). 기존 행·주소 미등록 학원이 있어 nullable — 둘 다 NULL 이거나 둘 다 NOT NULL 만 허용(짝 CHECK). 좌표가 없는 학원의 회차는 확정에 실패하고 `idle` 로 복귀 |
 | `created_at` · `updated_at` | timestamptz | NN | |
@@ -314,13 +314,13 @@ erDiagram
 | ~~`guardian_phone`~~ | — | — | **컬럼 부재.** 보호자 연락처는 `guardian_student` → `guardian` → `account.phone` 으로 조회 (A-10). 학생에 복제하면 보호자가 번호를 바꿔도 명단이 옛 값을 계속 보여줌. 계정 미연결 학생은 연락처가 비어 있는 것이 정상이며 그 상태를 관계자 화면이 드러냄 |
 | `photo_url` | varchar(255) | | 사진. **육안 확인 전용**, 얼굴인식 부재. 학부모·학생 앱 응답에 미반환 |
 | `gender` | varchar(10) | | `male` · `female`. CHECK |
-| `birth_date` | date | | 생년월일 |
+| `birth_date` | date | | 생년월일. **관계자 · 메인 관리자 화면에만 노출**(`Ruling 883` — 매니저 · 학부모 · 학생 응답에 싣지 않는다). 퇴원 90일 뒤 파기 대상 |
 | `grade` | varchar(20) | | 나이(학년) |
 | `class_name` | varchar(50) | | 반 |
 | `note` | text | | 특이사항 (STU-07) |
 | `can_go_alone` | boolean | NN default false | 혼자 귀가 가능 여부. 하원 하차 판단 근거 (STU-08) |
 | `deleted_at` | timestamptz | | 퇴원 soft delete — **오늘 명단은 유지**, 내일 회차부터 제외 (STU-04) |
-| `anonymized_at` | timestamptz | | **퇴원 90일 뒤 개인정보를 익명화한 시각**(`V15`, `Ruling 480 ②`·`520`). 채워지면 이름은 `퇴원 학생`, 연락처·사진·성별·생년월일·학년·반·특이사항·`account_id` 는 `NULL`. 파기 배치가 이 값으로 이미 처리한 학생을 거른다(멱등) — §7.2 |
+| `anonymized_at` | timestamptz | | **퇴원 90일 뒤 개인정보를 익명화한 시각**(`V1` — 당시 V15, `Ruling 480 ②`·`520`). 채워지면 이름은 `퇴원 학생`, 연락처·사진·성별·생년월일·학년·반·특이사항·`account_id` 는 `NULL`. 파기 배치가 이 값으로 이미 처리한 학생을 거른다(멱등) — §7.2 |
 | `created_at` · `updated_at` | timestamptz | NN | |
 
 **존재 이유** — 노선·명단·알림이 모두 참조하는 중심 레코드. 계정보다 먼저 생성되며 계정 연결은 승인 시점. **근거** STU-01~08 · A-10 (연락처·승하차 주소는 관계자 입력 대상 밖 — 2026-08-24 확정) · AUTH-11
@@ -564,7 +564,7 @@ erDiagram
 | `arrived_at` | timestamptz | | 기사 도착 처리 타임스탬프. 중복 처리 차단의 판정값 |
 | `departed_at` 🆕 | timestamptz | | 도착 처리된 정차지에서 버스가 **100m** 밖으로 벗어난 최초 시점. NULL = 미출발. **2026-09-19 신설(Ruling 307, `V1`)** — 되돌리기 제한(BRD-05, Ruling 305)의 유일한 판정 기준. `proximity_notified_at` 과 같은 조건부 UPDATE 형태(`claimDeparture`)로만 채운다 |
 | `eta` | timestamptz | | 승하차지별 도착 예정 시각. **관제 전용** — 학부모·학생 응답에 미포함 |
-| `proximity_notified_at` 🆕 | timestamptz | | 근접 알림(직선 300m, NTF-04) 최초 1회 발송 시각. NULL = 미발송. **2026-09-02 신설(Ruling 207, `V3`)** — `notification_log.dedup_key` UNIQUE 는 같은 알림의 중복 적재만 막고, 스케줄러가 매 틱 같은 정차 항목을 다시 판정하지 않게 막는 것은 이 컬럼의 조건부 UPDATE 몫(Ruling 210) |
+| `proximity_notified_at` 🆕 | timestamptz | | 근접 알림(직선 300m, NTF-04) 최초 1회 발송 시각. NULL = 미발송. **2026-09-02 신설(Ruling 207, `V1` — 당시 V3)** — `notification_log.dedup_key` UNIQUE 는 같은 알림의 중복 적재만 막고, 스케줄러가 매 틱 같은 정차 항목을 다시 판정하지 않게 막는 것은 이 컬럼의 조건부 UPDATE 몫(Ruling 210) |
 | `near_observed_at` | timestamptz | | 도착 처리 뒤 그 승하차지 **100m 안**에서 받은 위치의 최초 시각. 출발 판정(`departed_at`)의 선행 조건이며, 100m 밖 위치는 이 값이 있은 뒤에만 출발로 본다. 조건부 UPDATE 로 최초 1회만 채우고 서버 재기동에도 남는다 (`Ruling 875`, `V1`) |
 
 **존재 이유** — 순번·변경 구분·도착 시각은 **버전마다 달라지는 값**이라 승하차지 마스터에 보관 불가. 학생 승하차지와 강제 경유지가 같은 순번 열에 섞이므로 두 참조를 한 테이블에서 배타적으로 보유. **근거** C-05 · C-12 · RTE-05·10 · RUN-04 · RST-01 · O-05
@@ -746,12 +746,12 @@ erDiagram
 | `type` | varchar(20) | NN | `accident` · `vehicle_fault` · `student_emergency` · `etc`. CHECK |
 | `memo` | text | | 상황 메모. `type='etc'` 이면 필수 |
 | `lat` · `lng` | numeric(9,6) | | **발신 시점 위치**. 미전달 시 최신 수신 좌표로 대체 |
-| `position_recorded_at` | timestamptz | | 첨부한 좌표의 **측정 시각**(Redis 최신 좌표의 `recordedAt`). `API_SPEC §5.16` 의 `position.recorded_at` 출처. 좌표 미첨부면 NULL. **2026-09-03 Phase 13 신설(Ruling 236, `V7`)** — 정본이 응답 필드를 요구하는데 출처 컬럼이 없던 어긋남 해소 |
+| `position_recorded_at` | timestamptz | | 첨부한 좌표의 **측정 시각**(Redis 최신 좌표의 `recordedAt`). `API_SPEC §5.16` 의 `position.recorded_at` 출처. 좌표 미첨부면 NULL. **2026-09-03 Phase 13 신설(Ruling 236, `V1` — 당시 V7)** — 정본이 응답 필드를 요구하는데 출처 컬럼이 없던 어긋남 해소 |
 | `rider_count` | integer | NN | 발신 시점 회차에 배정된 라이더 전원 수(승하차 상태 무관) 스냅샷 |
 | `occurred_at` | timestamptz | NN | 단말 기록 시각. **API 응답에는 참고값으로 노출**(`Ruling 744` — `Ruling 236` 의 "미노출" 을 갱신) — 정렬·판정·취소 창에는 쓰지 않는다(조작할 수 있는 값). 단말이 안 보냈으면 `received_at` 과 같다 |
 | `received_at` | timestamptz | NN default now() | 서버 수신 시각. 오프라인 발신이면 `occurred_at` 과 벌어짐. **`API_SPEC` 응답의 `raised_at` 이 이 값을 그대로 반환**(단일 소스, Ruling 236) — `occurred_at` 은 별도 필드로만 싣는다(참고값, `Ruling 744`) |
 | `client_key` | uuid | NN UK | 오프라인 큐 멱등키 |
-| `acked_by` | bigint | | 확인한 관계자 계정 |
+| `acked_by` | bigint | | 확인한 관계자 계정 — **학원 관계자만 확인한다**(메인 관리자 계정은 확인 API 가 `403`, `Ruling 884`). 취소된 건(`canceled_at` 이 있는 행)은 확인되지 않는다(`409 EMERGENCY_CANCELED`, `Ruling 885` ①) |
 | `acked_at` | timestamptz | | 관계자 확인 시각 |
 | `ack_memo` 🆕 | varchar(200) | | 확인할 때 남긴 **조치 메모**(선택 · 2026-10-01 `Ruling 541`). 확인 전·메모 없는 확인은 NULL. `acked_at` 과 같은 조건부 UPDATE 로 써서 최초 확인자의 값만 남는다 |
 | `canceled_at` | timestamptz | | 취소 시각. **발신 +1분 이내만 가능하고 레코드는 존치** |
@@ -811,7 +811,7 @@ erDiagram
 | `push_attempts` 🆕 | integer | NN default 0 | 발송 시도 횟수. 상한 초과 시 `failed` 로 전이하고 경보 |
 | `last_attempt_at` 🆕 | timestamptz | | 마지막 시도 시각. 재시도 간격(지수 백오프) 판정 |
 | `fail_reason` 🆕 | varchar(200) | | 마지막 실패 사유 |
-| `dedup_key` 🆕 | varchar(120) | NN UK | 발송 멱등키. `{event}:{run_id}:{대상}:{판정 시각}` 형태. **대상 자리는 역할 접두로 식별자 공간을 가른다**(`staff:계정` · `guardian:계정:학생` · `student:계정` — 계정 ID 와 학생 ID 는 독립 시퀀스라 접두 없이 섞으면 값이 겹칠 때 같은 키가 된다, BR-007). 이벤트 재시도·중복 소비로 같은 알림이 두 번 나가는 것을 DB 가 차단 (ARCHITECTURE §11) |
+| `dedup_key` 🆕 | varchar(120) | NN UK | 발송 멱등키. `{event}:{run_id}:{대상}:{판정 시각}` 형태. **대상 자리는 역할 접두로 식별자 공간을 가른다**(`staff:계정` · `guardian:계정:학생` · `student:계정` — 계정 ID 와 학생 ID 는 독립 시퀀스라 접두 없이 섞으면 값이 겹칠 때 같은 키가 된다, BR-007). 이벤트 재시도·중복 소비로 같은 알림이 두 번 나가는 것을 DB 가 차단 (ARCHITECTURE §11). 이미 출발 처리된 승하차지에서 뒤늦게 기록된 승차 · 하차 · 미승차도 기록 즉시 같은 키 체계로 적재하며 출발 때 묶음 발송과 두 번 가지 않는다(`Ruling 878`) |
 | `created_at` | timestamptz | NN default now() | **레코드 생성 = 아웃박스 적재 시각.** 상태 변경과 같은 트랜잭션에서 기록 |
 | `sent_at` | timestamptz | | 발송 완료 시각. `push_state='sent'` 일 때만 |
 | `read_at` | timestamptz | | 읽음 시각 |
@@ -833,7 +833,7 @@ erDiagram
 | `revoked_at` | timestamptz | | 해지 시각. 로그아웃·무효 토큰 정리로 설정 |
 | `created_at` · `updated_at` | timestamptz | NN | |
 
-**존재 이유** — 알림이 제품의 중심 기능인데(알림 종류 20종 — `V6` 기준, C-17 팝업 병행) **서버가 발송 대상 단말을 특정할 자리**가 필요. 이 테이블이 없으면 알림 레코드는 생성되나 푸시가 전부 미발송. 한 계정이 여러 기기를 보유하므로 `(account_id, device_id)` 단위로 관리하고 토큰 갱신은 행 대체. **근거** NTF-12 · API_SPEC §2.11 · ARCHITECTURE §11
+**존재 이유** — 알림이 제품의 중심 기능인데(알림 종류 20종 — `V1` 기준(당시 V6), C-17 팝업 병행) **서버가 발송 대상 단말을 특정할 자리**가 필요. 이 테이블이 없으면 알림 레코드는 생성되나 푸시가 전부 미발송. 한 계정이 여러 기기를 보유하므로 `(account_id, device_id)` 단위로 관리하고 토큰 갱신은 행 대체. **근거** NTF-12 · API_SPEC §2.11 · ARCHITECTURE §11
 
 #### `notification_setting` 🆕 — 알림 설정
 
@@ -884,7 +884,7 @@ erDiagram
 
 #### `shedlock` 🆕 — 스케줄러 분산 락
 
-**2026-09-03 신설(`V4`)** — 사양 4종에 서술이 부재한 인프라 테이블. `@Scheduled` 배치(확정 배치·근접 알림 등)를 다중 인스턴스로 배포했을 때 같은 잡이 동시에 두 번 실행되는 것을 DB 락으로 차단(ShedLock 라이브러리 표준 스키마).
+**2026-09-03 신설(`V1` — 당시 V4)** — 사양 4종에 서술이 부재한 인프라 테이블. `@Scheduled` 배치(확정 배치·근접 알림 등)를 다중 인스턴스로 배포했을 때 같은 잡이 동시에 두 번 실행되는 것을 DB 락으로 차단(ShedLock 라이브러리 표준 스키마).
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
@@ -897,7 +897,7 @@ erDiagram
 
 #### `run_transfer` 🆕 — 버스 간 이동 대기
 
-**2026-09-05 신설(`V10`)** — `POST /staff/students/{id}/transfer`(RTE-07, A-07) 정본 해제(Ruling 256)에 딸린 테이블.
+**2026-09-05 신설(`V1` — 당시 V10)** — `POST /staff/students/{id}/transfer`(RTE-07, A-07) 정본 해제(Ruling 256)에 딸린 테이블.
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
@@ -1097,7 +1097,7 @@ erDiagram
 | `assignment(manager_id, run_id)` | 매니저의 배치 회차 판정 — API 접근 범위 검사 경로 (API_SPEC §1.5) |
 | `assignment(run_id)` | 대시보드의 배치 인력·확인 응답 표시 (MON-05). UK `(run_id, role)` 가 겸함 — 별도 인덱스 부재(BR-142) |
 | `student(academy_id, name)` partial `WHERE deleted_at IS NULL` | 학생 목록·검색, 강제 추가 자동완성 (STU-01) |
-| `student(deleted_at)` partial `WHERE deleted_at IS NOT NULL AND anonymized_at IS NULL` (`V15`, `ix_student_retention_cutoff`) | **퇴원 학생 개인정보 파기 배치**가 컷오프 이전에 퇴원한 미익명화 학생을 훑는다 — 부분 인덱스라 재학생·이미 익명화한 학생은 색인 대상 밖 (`Ruling 480 ②`·`522`) |
+| `student(deleted_at)` partial `WHERE deleted_at IS NOT NULL AND anonymized_at IS NULL` (`V1` — 당시 V15, `ix_student_retention_cutoff`) | **퇴원 학생 개인정보 파기 배치**가 컷오프 이전에 퇴원한 미익명화 학생을 훑는다 — 부분 인덱스라 재학생·이미 익명화한 학생은 색인 대상 밖 (`Ruling 480 ②`·`522`) |
 | `stop(academy_id, lat, lng)` | 주소 검증 후 **승하차지 매칭** — 좌표 근접 탐색 (STU-05) |
 | `guardian_student(guardian_id)` · `guardian_student(student_id)` | 학부모 접근 범위 판정, 자녀 목록 (P-02 · §1.5). `guardian_id` 쪽은 UK `(guardian_id, student_id)` 가 겸함(BR-142) |
 | `weekly_address(student_id, weekday, direction)` | 확정 배치의 일일 승하차지 수집. UK 가 겸함 (C-16) |
