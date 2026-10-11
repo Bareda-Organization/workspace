@@ -2895,6 +2895,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | `START_WINDOW_CLOSED` | 403 | 운행 시작 요청이 출발 시각 **±10분** 창 밖 (M-07) |
 | `APPROVAL_ALREADY_DECIDED` | 409 | 이미 처리된 승인 건 재처리 |
 | `EMERGENCY_CANCEL_WINDOW_CLOSED` | 409 | 비상 알림 취소 창(발신 +**1분**) 경과 (EXC-04) |
+| `EMERGENCY_CANCELED` | 409 | 취소된 비상 알림의 확인(`POST /staff/emergencies/{id}/ack`) — 발신자가 철회한 신고를 확인 처리하지 않는다 (EXC-04 · 2026-10-11 `Ruling 885` ①) |
 | `ALREADY_ACKED` | 409 | 이미 확인된 비상 알림 재확인 |
 | `PREVIEW_STALE` | 409 | 재최적화 미리보기 산출 후 입력(명단·승하차지·경유 지점)이 변경 — 관리자가 화면에서 본 결과와 배포될 결과가 불일치. 재조회 후 재시도 (§5.5 · §5.15) |
 
