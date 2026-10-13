@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """규칙 사본 측정·검사 (Ruling 895). 사용 — python3 rule_copies.py <저장소 루트> [--check | --lines [규칙이름|ALL] | --update-baseline] [--loose]
-정의처(FEATURE_SPEC '## 2.' ~ '## 3.' 머리 사이)·참조 줄(정의처를 가리키는 줄)·kept-lines.tsv 의 남긴 줄을 뺀 '사본' 줄 수를 규칙별로 세고, --check 는 baseline.json 을 넘으면 종료 코드 1."""
+정의처(FEATURE_SPEC '## 2.' ~ '## 3.' 머리 사이)·참조 줄(정의처를 가리키는 줄)·kept-lines.tsv 의 남긴 줄을 뺀 '사본' 줄 수를 규칙별로 세고, --check 는 baseline.json 을 넘거나 남긴 줄 목록에 낡은 기준점이 있으면 종료 코드 1.
+검사 범위 — 규칙 번호 없이 값을 다시 쓴 줄을 센다. 번호(C-04 등)가 붙은 줄은 그 규칙을 바꿀 때 `query.py goal-rows` 닿는 곳 표가 잡는다."""
 import json, os, re, sys
 sys.dont_write_bytecode = True
 
@@ -29,7 +30,7 @@ RULES = [
  ("정책 비상 취소 1분", "정책", r"(취소|발신)[^|]{0,12}1분 이내|1분 이내 (취소|에만)|발신 ?\+ ?1분"),
  ("정책 자녀코드 10분 5회", "정책", r"10분에 ?5회"),
  ("C-07 전원 자동 하차", "C-07", r"전원 자동 (하차|승차|`?(boarded|alighted))|자동 (하차|승차) 처리"),
- ("C-17 비상 알림 항상 발송", "C-17", r"항상 발송|수신 설정 항목|끌 수 없"),
+ ("C-17 비상 알림 항상 발송", "C-17", r"비상[^|]{0,40}(항상 발송|수신 설정 항목|끌 수 없)"),
  # 측정만 하는 규칙(895 ③) — 정리는 그 규칙을 고칠 때(888)
  ("C-01 form 가입·승인", "C-01", r"form 회원가입|코드 로그인|승인 대기 화면 하나만"),
  ("C-03 노선 3종", "C-03", r"노선 3종|고정 노선 ?=|확정 노선 ?=|실시간 노선 ?="),
@@ -62,7 +63,7 @@ def measure(root, kept):
     out = {n: {"copies": [], "kept": 0, "defs": 0, "refs": 0} for n, _, _ in RULES}
     # 참조 줄은 그 규칙 자신의 번호(C-04 등) 또는 정의처 표현이 있어야 한다 — 다른 규칙의 번호는 참조로 치지 않는다
     point = {n: re.compile((POINT_BASE + ("|" + grp if grp.startswith("C-") else "")) if STRICT else POINT_BASE + r"|C-\d\d") for n, grp, _ in RULES}
-    found_def = False
+    found_def, used = False, set()
     for d in DOCS:
         in_def, lines = False, open(os.path.join(root, d), encoding="utf-8").read().split("\n")
         for i, l in enumerate(lines, 1):
@@ -74,11 +75,13 @@ def measure(root, kept):
                 r = out[name]
                 if in_def: r["defs"] += 1
                 elif point[name].search(l): r["refs"] += 1
-                elif any(k[1] == d and k[0] in (name, "*") and k[2] in l for k in kept): r["kept"] += 1
+                elif any(k[1] == d and k[0] in (name, "*") and k[2] in l for k in kept):
+                    r["kept"] += 1
+                    used.update(j for j, k in enumerate(kept) if k[1] == d and k[0] in (name, "*") and k[2] in l)
                 else: r["copies"].append((d, i, l))
     if not found_def: sys.exit("정의처 머리('## 2. 공통 규칙')를 FEATURE_SPEC 에서 찾지 못했다 — 절 머리가 바뀌었으면 DEF_START 를 고친다")
-    stale = [k for k in kept if k[2] not in open(os.path.join(root, k[1]), encoding="utf-8").read()]
-    if stale: print("경고: kept-lines.tsv 에 문서에 없는 앵커", [k[2][:30] for k in stale])
+    # 낡은 기준점 — 문서에서 사라졌거나 아무 규칙에도 더는 걸리지 않는 남긴 줄은 면제로 쌓이지 않게 실패시킨다
+    out["__stale__"] = [k for j, k in enumerate(kept) if j not in used]
     return out
 
 def by_group(res):
@@ -102,6 +105,7 @@ def main():
                 for d, i, l in res[name]["copies"]: print(f"[{name}] {d}:{i}: {l.strip()[:160]}")
         return
     over = 0
+    stale = res["__stale__"]
     for name, _, _ in RULES:
         n, b = len(res[name]["copies"]), base.get(name, 0)
         mark = "" if n <= b else f"  ← 기준치 {b} 초과"
@@ -109,8 +113,9 @@ def main():
         if n > b:
             over += 1
             for d, i, l in res[name]["copies"]: print(f"    {d}:{i}: {l.strip()[:140]}")
-    print("묶음별 사본:", by_group(res), "· 합계", sum(len(r["copies"]) for r in res.values()))
-    if "--check" in flags and over:
-        print(f"기준치를 넘은 규칙 {over}개 — 정의처 참조로 바꾸거나 kept-lines.tsv 에 이유와 함께 남긴다"); sys.exit(1)
+    print("묶음별 사본:", by_group(res), "· 합계", sum(len(res[n]["copies"]) for n, _, _ in RULES))
+    for k in stale: print(f"낡은 기준점: {k[1]} 「{k[2][:40]}」 — 문서에 없거나 어떤 규칙에도 걸리지 않는다. kept-lines.tsv 에서 지운다")
+    if "--check" in flags and (over or stale):
+        print(f"기준치를 넘은 규칙 {over}개 · 낡은 기준점 {len(stale)}개 — 정의처 참조로 바꾸거나 kept-lines.tsv 에 이유와 함께 남기고, 낡은 기준점은 지운다"); sys.exit(1)
 
 if __name__ == "__main__": main()

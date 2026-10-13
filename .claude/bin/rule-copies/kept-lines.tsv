@@ -1,30 +1,19 @@
 # 남긴 줄 목록 — 규칙(이름 또는 *)	문서	줄 안의 앵커 문자열(줄 번호가 아니라 줄 내용으로 맞춤)	남긴 이유
 # 여기 적은 줄은 사본 수에서 빠진다. 새로 적을 때는 이유를 반드시 쓴다 — 이유가 「값을 풀어 쓴 문장」이면 남기지 말고 정의처 참조로 바꾼다(Ruling 888·895)
 *	docs/backend/ERD.md	조건부 UPDATE 로 최초 1회만 채우고	패턴 오탐 — 근접 관측 시각 컬럼의 기록 방식(최초 1회)이라 C-04 변경 한도와 무관
-*	docs/planning/API_SPEC.md	**지연 알림은 설정 항목 자체가 부재** — 항상 발송 (NTF-07)	다른 규칙 — 지연 알림 항상 발송(NTF-07). 비상 알림 C-17 아님
-*	docs/planning/API_SPEC.md	**수신 설정 대상 밖** — 지연 알림은	다른 규칙 — 지연 알림 항상 발송(NTF-07)
-*	docs/planning/API_SPEC.md	| `delay` | `POST /runs/{runId}/delay`	다른 규칙 — 알림 종류 표의 지연 알림 on/off 칸(NTF-07)
-*	docs/planning/API_SPEC.md	| `run_started` | `Run` → `moving`	다른 규칙 — 운행 시작 알림의 수신 설정(NTF-05·NTF-07)
-*	docs/planning/FEATURE_SPEC.md	| NTF-06 | 도착 지연 알림 전송	다른 규칙 — 지연 알림 항상 발송(NTF-07). 비상 알림 C-17 아님
-*	docs/planning/FEATURE_SPEC.md	NTF-12(푸시 단말 등록·해지)는 계층 기능 ID 부재	다른 규칙 — 매니저·관계자 알림 on/off 권한 부재(§6.1 · NTF-07). 비상 알림 C-17 자체가 아님
 *	docs/planning/FEATURE_SPEC.md	| A-05 | 30분 안쪽 변경 승인 |	기능 이름(목록 제목) — 값을 풀어 쓴 문장이 아니라 표시 이름. 이름을 바꾸면 다른 문서의 기능 이름 인용이 어긋난다
 *	docs/planning/FEATURE_SPEC.md	| 학원 설정 (미승차 대기) |	설정 항목 이름 — 값이 아니다
 *	docs/planning/FEATURE_SPEC.md	| ~~X-01~~ |	해소 기록 원문 — 판정·라운드 기록은 원문 보존(Ruling 888)
 *	docs/planning/FEATURE_SPEC.md	| ~~X-06~~ |	해소 기록 원문 — Ruling 888
 *	docs/planning/FEATURE_SPEC.md	| ~~X-09~~ |	해소 기록 원문 — Ruling 888
-*	docs/planning/PRD.md	| 운행 시작 알림은 **항상 발송**, 설정은	다른 규칙 — 운행 시작 알림(NTF-05). 비상 알림 C-17 아님
-*	docs/planning/PRD.md	| **N** | 운행 시작 알림은 **항상 발송**하되	다른 규칙 — 결정 N(운행 시작 알림)
 *	docs/planning/PRD.md	| ~~X-01~~ |	해소 기록 원문 — Ruling 888
 *	docs/planning/PRD.md	| ~~X-02~~ |	해소 기록 원문 — Ruling 888
 *	docs/planning/PRD.md	| ~~X-06~~ |	해소 기록 원문 — Ruling 888
 *	docs/planning/PRD.md	| ~~X-09~~ |	해소 기록 원문 — Ruling 888
 *	docs/planning/PRD.md	| **D-21** |	정정 기록 원문 — Ruling 888
 *	docs/planning/USER_FLOWS.md	| 개정일 | 2026-10-13 — R56	개정 이력 — 지난 개정 문장은 원문 보존
-*	docs/planning/USER_FLOWS.md	- (지연 알림) → 설정 항목 자체가 부재	다른 규칙 — 지연 알림 항상 발송(NTF-07)
 *	docs/planning/USER_FLOWS.md	현재 값(미승차 대기 시간 등) 표시	설정 항목 이름 — 값이 아니다
-*	docs/planning/USER_FLOWS.md	| 운행 시작 | `Run.status` → `moving` | 학부모 · 학생 · 관계자 | **항상 발송**	다른 규칙 — 운행 시작 알림(NTF-05)
 *	docs/qa/QA_SCENARIOS.md	| 개정 | 2026-10-13 — R55	개정 이력 — 지난 개정 문장은 원문 보존
 *	docs/qa/QA_SCENARIOS.md	끝난 운행 54회 · **임시 취소 1회**	패턴 오탐 — 시드 통계의 회차 수(C-04 한도와 무관)
 *	docs/planning/FEATURE_SPEC.md	| 미승차 대기 만료 판정 (EXC-01) |	기능 이름(목록 제목) — 값이 아니라 표시 이름
 *	docs/planning/PRD.md	| D | 미승차 대기 시간 | **기본 3분**	결정 기록 원문 — PRD §10 결정 D(판정·결정 기록은 원문 보존, Ruling 888)
-*	docs/planning/PRD.md	| 안전 알림은 레코드가 항상 존치 | **지연** 알림은	다른 규칙 — 지연 알림 항상 발송(NTF-07). 비상 알림 C-17 아님
