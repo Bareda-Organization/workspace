@@ -64,6 +64,8 @@
 grep -n '🔸' docs/planning/FEATURE_SPEC.md docs/planning/PRD.md docs/planning/USER_FLOWS.md docs/planning/API_SPEC.md
 ```
 
+**정의처 한 곳**(`Ruling 888`) — 규칙의 조건 · 수치 · 예외는 정의처 한 곳에만 쓴다. 기능 규칙의 정의처는 `FEATURE_SPEC`(공통 규칙 · 기능 표 · §4.15 같은 규칙 블록), 화면 흐름 · 안내 규칙은 `USER_FLOWS`. 다른 문서와 같은 문서의 다른 절은 결론 한 마디와 정의처만 쓴다 — `PRD` 는 채택 이유를, `API_SPEC` 은 요청 · 응답 계약(필드 · 코드)을, 설계 문서(`ARCHITECTURE` · `ERD`)는 구현 수단(어느 컬럼 · 어느 배치)을 남긴다. QA 시나리오는 기대 결과를 구체로 쓰되 정의처를 붙인다. 판정 · 라운드 기록은 원문 보존. 줄이면서 뜻을 바꾸지 않는다 — 정의처에 없는 사실이 사본에만 있으면 지우지 말고 정의처로 옮기거나 보고한다. 규칙을 고칠 때 닿는 곳은 `python3 ~/.claude/tools/docgraph/query.py <repo> goal-rows '<대상>, "<문구>"'` 로 찾는다(ID · 절 번호 없이 풀어 쓴 곳은 따옴표 문구를 함께 넣어야 잡힌다).
+
 ---
 
 ## 3. 설계 문서
@@ -72,7 +74,7 @@ grep -n '🔸' docs/planning/FEATURE_SPEC.md docs/planning/PRD.md docs/planning/
 |---|---|
 | **[ARCHITECTURE.md](backend/ARCHITECTURE.md)** | 모듈 경계 · 계층 규칙 · 인가 3층 · **노선 계산 파이프라인** · **시간 기반 배치**(출발 30분 전 도래) · 실시간 전달 · 인프라 · 리스크 |
 | **[ERD.md](backend/ERD.md)** | 테이블 42개 · 컬럼 · 관계 · 제약 · 인덱스 · 학원 격리 · 보존 정책. Mermaid ERD 5장 |
-| **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** | **구현 추적의 메인 문서** — 현 코드 처분 방침 · Flyway 재작성 · Mock/Swagger 일치 · 테스트·부하 테스트 전략 · **기능 단위 TDD 사이클(§4.6)** · 횡단 규칙 **25개** · 진행 추적 표 · 열린 항목 · **Ruling 색인(§11)** · 최근 라운드(`R46-*`). 끝난 Phase 0~14·F1~F4·라운드 기록은 [archive/rounds/](archive/rounds/README.md)(원문 그대로). **세션 재개 시 여기부터** |
+| **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** | **구현 추적의 메인 문서** — 현 코드 처분 방침 · Flyway 재작성 · Mock/Swagger 일치 · 테스트·부하 테스트 전략 · **기능 단위 TDD 사이클(§4.6)** · 횡단 규칙 **26개** · 진행 추적 표 · 열린 항목 · **Ruling 색인(§11)** · 최근 라운드(`R46-*`). 끝난 Phase 0~14·F1~F4·라운드 기록은 [archive/rounds/](archive/rounds/README.md)(원문 그대로). **세션 재개 시 여기부터** |
 | **[TECH_DECISIONS.md](backend/TECH_DECISIONS.md)** | **기술 선택과 불채택** — Security 경계 · 배치 · 상태 전이 · 시각 주입 · 운영 · 관측 · 장애 대응. 왜 그 라이브러리를 **안 쓰기로** 했는지의 근거 |
 
 
