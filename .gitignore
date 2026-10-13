@@ -13,6 +13,11 @@
 .claude/*
 !.claude/PROJECT_NOTES.md
 !.claude/settings.json
+# 2026-10-13 — 손으로 쓴 도구도 추적한다(목표 표 차단 훅 · 검증 워크플로 · 에이전트 정의). 사본이 /tmp 뿐이던 것.
+!.claude/bin/
+.claude/bin/__pycache__/
+!.claude/workflows/
+!.claude/agents/
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/baraeda-screen-check/

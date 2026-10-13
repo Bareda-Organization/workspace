@@ -20,7 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **API 를 바꾸는 작업은 문서 → backend → web·mobile 순으로 병합한다.** 사양(`docs/planning/API_SPEC.md`)이 먼저, 서버가 다음, 클라이언트가 마지막
 - **세 저장소를 상대 경로로 잇는 곳** — web 의 에러 코드 대조 시험이 `../docs/planning/API_SPEC.md`, mobile 의 문구 대조 시험이 `../web/…`, backend compose 의 `web` 이 `../web` 을 읽는다. ⚠ **워크트리는 다른 위치에 생기므로** 그 안의 에이전트에는 `API_SPEC_PATH` · `WEB_REPO_DIR` 를 절대 경로로 준다
 - ⚠ **원격은 모두 공개 저장소다.** push 전에는 `backend/backend/.env` · `web/.env.local` 의 실제 값이 커밋에 없는지 검사한다
-- **추적 범위(이 저장소)** — `docs/**/*.md` · `CLAUDE.md` · `.claude/{settings.json,PROJECT_NOTES.md}` · 손으로 쓴 스킬 2개. 사람용 렌더(`docs/render/`) · 기획 원본(`docs/planning/source/` 의 `.docx`) · 보고서(`report/`) · 라운드별 작업 기록(`.claude/` 나머지) · 색인(`graft/` · `.docgraph/`)은 추적 밖
+- **추적 범위(이 저장소)** — `docs/**/*.md` · `CLAUDE.md` · `.claude/{settings.json,PROJECT_NOTES.md}` · 손으로 쓴 스킬 2개 · `.claude/{bin,workflows,agents}/`(2026-10-13 — 목표 표 차단 훅 · 검증 워크플로 · 에이전트 정의. 훅 등록은 추적 밖 `settings.local.json`). `~/.claude` 의 전역 설정은 원격 없는 별도 저장소 `~/.claude-config.git` 에 기록한다(`claude-cfg status` · `claude-cfg diff`). 사람용 렌더(`docs/render/`) · 기획 원본(`docs/planning/source/` 의 `.docx`) · 보고서(`report/`) · 라운드별 작업 기록(`.claude/` 나머지) · 색인(`graft/` · `.docgraph/`)은 추적 밖
 - 색인 — **문서는 docgraph**(이 폴더의 `.docgraph/`, 편집 훅이 자동 갱신) · **코드는 graft 를 저장소마다 따로**(`backend/graft/` · `web/graft/` · `mobile/graft/`). 이 폴더의 `.mcp.json` 이 셋을 `graft-backend` · `graft-web` · `graft-mobile` 로 띄운다 — 질문할 저장소의 도구를 고른다. CLI 는 `graft ask "…" web` 처럼 폴더를 준다
   - 한 색인으로 묶지 않은 이유(2026-10-02 실측) — graft 는 git 이 무시하는 하위 저장소를 건너뛴다. 묶으려면 이 저장소가 세 폴더를 무시하지 않아야 하는데, 그러면 `git add -A` 한 번에 세 저장소가 하위 저장소 링크로 잘못 추가된다
 
