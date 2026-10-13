@@ -2080,7 +2080,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 | `GET /staff/managers?q=&role=&linked=&assigned_today=` | MGR-01 | 목록·검색 — `role`(`driver`·`escort`, 선택) · `linked`(boolean, 선택 — `true` 면 계정이 연결된 매니저만, `false` 면 미연결만. 가입 승인의 매니저 후보 고르기용, `Ruling 391`) · `assigned_today`(boolean, 선택 — 오늘 미취소 회차 배치 유무, `Ruling 817`) |
 | `POST /staff/managers` | MGR-02 | 등록 |
 | `PATCH /staff/managers/{id}` | MGR-03 | 수정 |
-| `DELETE /staff/managers/{id}` | MGR-04 | 삭제 — 배치 중이면 `409 MANAGER_ASSIGNED`. 성공 `204`(본문 부재, §1.1) |
+| `DELETE /staff/managers/{id}` | MGR-04 | 삭제 — 배치 중이면 `409 MANAGER_ASSIGNED`. 성공 `204`(본문 부재, §1.1). 삭제하면 연결된 계정의 유효 refresh 토큰을 전량 무효화하고 푸시 단말 행을 지운다(`Ruling 891`). 연결된 계정이 없으면 해당 없음. `409 MANAGER_ASSIGNED` 로 거절되면 둘 다 그대로 |
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
