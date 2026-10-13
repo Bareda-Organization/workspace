@@ -18,5 +18,8 @@
       "Bash(orca terminal:*)"
     ]
   },
-  "includeCoAuthoredBy": false
+  "includeCoAuthoredBy": false,
+  "enabledPlugins": {
+    "vercel@claude-plugins-official": true
+  }
 }
