@@ -2,7 +2,7 @@
 
 전역 에이전트 7개(`convention-auditor` · `debugger` · `diff-reviewer` · `docs-drift-auditor` · `security-reviewer` · `test-runner` · `test-writer`)가 이 저장소에서 동작할 때 참조하는 **사실 노트**다. 절차·판단기준은 전역 에이전트 정의(`~/.claude/agents/*.md`)에 있고, 여기에는 **이 프로젝트에서만 참인 값**만 적는다. 에이전트를 프로젝트에 복제하지 않는다.
 
-**프로젝트 전용 에이전트 2종이 `.claude/agents/` 에 있다**(`7aa44be` 로 신설) — `task-gate-reviewer` · `goal-verifier`. **둘 다 `model: sonnet` 을 정의에 달고 있다.** 나머지는 전역 정의(`~/.claude/agents/`)를 쓴다.
+**`task-gate-reviewer` · `goal-verifier` 는 2026-10-13 전역(`~/.claude/agents/`)으로 옮겼다**(원래 `7aa44be` 로 이 저장소에 신설) — backend·web·mobile 작업 창에서도 보이게 하려는 것. **둘 다 `model: sonnet` 을 정의에 달고 있다.** 나머지는 전역 정의(`~/.claude/agents/`)를 쓴다.
 
 ⚠ **모델 자리를 채울 때 정의 파일을 `grep -m1 '^model:'` 로 확인한다**(전역 규칙 `parallel-agents-git.md §4.1`). **`head`·`sed` 로 훑으면 전역 rtk hook 이 출력을 압축해 `model:` 줄을 삼킨다** — 2026-08-29 에 실제로 "정의에 `model` 이 없다" 로 잘못 읽었다(아래 "알려진 함정" 의 rtk 압축 항목과 같은 기제다).
 
@@ -213,25 +213,7 @@ flutter test --dart-define=API_BASE_URL=http://localhost:<포트>/api/v1
 
 ## 에이전트 명명 규칙 (사용자 지시 2026-08-25)
 
-에이전트를 띄울 때 **`name` 파라미터를 반드시 채운다.**
-
-**형식 — `p{Phase}-t{Task}-{역할}-{에이전트}-{모델}`**
-
-| 자리 | 값 |
-|---|---|
-| 역할 | `impl` 구현 · `fix{N}` 수정 라운드 N · `review` 태스크 게이트 리뷰 · `rereview{N}` 라운드 N 재리뷰 · `goalverify` 완료 조건 실증 |
-| 에이전트 | `gp`(general-purpose — **내장 타입이라 지침이 0줄이고 `PROJECT_NOTES.md` 를 자동으로 읽지 않는다**) · `gate`(task-gate-reviewer) · `goal`(goal-verifier) · `diff`·`sec`·`conv`·`dbg`·`tw`·`tr`·`drift`(전역 7종) |
-| 모델 | `opus` · `sonnet` · `haiku` · `fable` |
-
-예 — `p1-t5-review-gate-sonnet` · `p1-t6-impl-gp-sonnet` · `p1-t3-fix2-gp-sonnet` · `p1-goalverify-goal-sonnet`
-
-이름은 **영문·숫자·`_`·`-`만 허용**(`^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$`)이라 한글 불가. 이름이 있으면 화면에서 좌석·모델이 식별되고 `SendMessage({to: 이름})` 으로 재개할 수 있다 — 내부 id 불요.
-
-⚠ **실행 중인 에이전트는 이름을 바꿀 수 없다.** 띄우는 시점에 정한다.
-
-- **라운드 작업(R46~)은 Phase 자리에 라운드를 쓴다** — `r{라운드}-t{작업}-{역할}-{에이전트}-{모델}` (예 `r52-t5-review-gp-haiku` · `r51-t2-impl-gp-sonnet`). 역할에 `audit`(사양 대조) · `docs`(문서 반영)도 쓴다
-- ⚠ **2026-10-10 기준 Agent 도구에 `name` 파라미터가 없다**(입력은 `description` · `model` · `prompt` · `subagent_type` 등). **그래서 `description` 칸에 위 형식 이름을 그대로 넣는다** — Claude Code 터미널의 백그라운드 에이전트 목록(`↓ to manage`)·완료 알림에 보이는 이름이 이 칸이다. ⚠ **Orca 좌측의 서브에이전트 줄은 실행 중에 `general-purpose` 로 보인다**(2026-10-10 앱 코드 확인) — Orca 는 시작 신호(`SubagentStart`)의 `agent_type` 으로 줄을 만들고, 이름(`description`)은 그 창의 **턴이 끝날 때** 오는 백그라운드 작업 목록에서만 채운다. 이름 규칙 위반이 아니다 — 확인은 대화 기록의 `Agent` 호출 `description` Orca 작업 창은 `worker-start --spec` 머리의 창 이름과 원장 표에 같은 형식을 쓴다
-- ⚠ 2026-10-10 R51 에서 **세 번째 재발** — 이 파일을 안 읽고 서브에이전트 약 30개를 영어 설명으로 띄웠다(사용자 지적 *"에이전트 이름 규칙 준수해달라고 했었는데 현재 안되고 있네"*)
+**2026-10-13 전역 Skill `agent-workflow` › Naming 으로 이관** — 형식 `r{라운드}-t{작업}-{역할}-{에이전트}-{모델}` · Agent 도구는 `description` 칸에 · ASCII 만. 본문은 그 스킬이 기준이다(두 벌이 되면 한쪽이 낡는다).
 
 ---
 
