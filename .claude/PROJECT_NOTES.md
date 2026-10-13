@@ -10,6 +10,20 @@
 
 ---
 
+## Stack profile (Skill `project-stack` · declared 2026-10-13)
+
+| Where sessions run | Stack | Plugins (project) | Skills it sees |
+|---|---|---|---|
+| Workspace root `baraeda/` (main session) | docs · coordination · all three repos below | `vercel@claude-plugins-official` (workspace `.claude/settings.json`) | workspace `.claude/skills/` — untracked ECC copies: springboot-patterns · springboot-tdd · springboot-verification · jpa-patterns · java-coding-standards · postgres-patterns · docker-patterns · react-patterns · react-testing · dart-flutter-patterns · flutter-dart-code-review · playwright-cli · graft; tracked: baraeda-screen-check · orca-baraeda |
+| `backend` + worktrees `.claude/wt/<r>-backend` | Java 25 · Spring Boot 4.1.1 · PostgreSQL · Redis · Docker (continuing) · **Rust backend module (planned)** | — | ⚠ **none of the workspace skills** (nested repo — verified 2026-10-13). Fix pending user decision: tracked copies in `backend/.claude/skills/` or `--add-dir /Users/mskim/Desktop/PJ/baraeda` at launch |
+| `web` + worktrees | Next.js on Vercel | — | `web/.claude/skills/` untracked design skills (design windows only, via `--add-dir`) |
+| `mobile` + worktrees | Flutter | — | `mobile/.claude/skills/` untracked design skills (design windows only) |
+
+- Java/Spring rules load anyway from `~/.claude/rules/ecc/java/` by `paths:`; reviewers `java-reviewer` · `java-build-resolver` · `database-reviewer` are global agents
+- Rust module, when it starts: copy `rust-patterns` · `rust-testing` into the repo that holds it; `rust-build` · `rust-review` · `rust-test` commands are already on globally
+
+---
+
 ## 현재 작업 범위 — **백엔드 + 프론트엔드** (2026-09-10 프론트 복귀 · `CLAUDE.md` 가 기준)
 
 이 절을 가장 먼저 읽는다. 아래 4개가 세션 시작 시점의 전제다.
@@ -451,6 +465,12 @@ Phase 11 T4 실측. 시험의 `tearDown` 이 `DELETE FROM shedlock WHERE name = 
 
 - **재발 방지** — 시험 간 격리는 **행을 지우지 말고 `lock_until` 을 과거 시각으로 `UPDATE`** 한다. 심는 헬퍼도 `ON CONFLICT (name) DO UPDATE` 로 멱등하게 만든다
 - ⚠ **증상이 코드 결함과 구별되지 않는다** — "스케줄러가 안 불린다" 로 보여 스케줄러 쪽을 파게 된다. `shedlock` 테이블의 행 유무를 먼저 봐라
+
+### `@Transactional` 시험에서 `@SchedulerLock` 메서드를 부르면 **시험 트랜잭션이 커밋된다** (2026-10-13 R56)
+
+- **증상** — 단독으로는 통과하는 `DomainEventCounterWiringTest` 가 전체 실행에서만 `expected: 1.0 but was: 3.0`(남의 만료 미승차 케이스까지 에스컬레이션). 원인은 R56 새 시험 `IdempotencyKeyExpiryTest` · `IdempotencyKeyScopeTest` · `DelayNoticeRetentionTest` 가 `@Transactional` 안에서 `RetentionCleanupScheduler.cleanUp()` 을 부른 것
+- **기제** — ShedLock 프록시가 락 행(`INSERT INTO shedlock`)을 쓰며 **같은 연결의 시험 트랜잭션을 COMMIT** 한다(Postgres `log_statement` 로 확인). 그 앞에 심은 행이 롤백되지 않고 남아 이후 클래스의 전역 집계를 바꾼다
+- **재발 방지** — 시험에서 배치 본문만 부를 때는 `AopTestUtils.getUltimateTargetObject(scheduler)` 로 락 프록시를 벗긴다(커밋 `7e2fa352`). 락 동작 자체를 보는 시험은 `@Transactional` 을 쓰지 않고 `@AfterEach` 로 지운다
 
 ### `shedlock.lock_until` 은 **무시간대 `TIMESTAMP`** 라 `Timestamp.from(Instant)` 로 바인딩하면 KST 만큼 밀린다
 
