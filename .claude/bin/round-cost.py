@@ -17,25 +17,29 @@ PRICE = {"opus": (4, 20, 8, 5, 0.2), "sonnet": (2, 10, 4, 2.5, 0.1), "haiku": (0
 
 
 def tally(path, start, end, acc):
-    seen = set()
+    # 같은 응답의 줄마다 usage 가 다를 수 있다 — 첫 줄의 출력 수가 덜 찬 채 기록된다(2026-10-13 실측 16 → 247). 항목마다 최댓값
+    per = {}
     for line in open(path, encoding="utf-8", errors="replace"):
         if '"usage"' not in line:
             continue
         d = json.loads(line)
         m, ts = d.get("message") or {}, d.get("timestamp", "")
-        if d.get("type") != "assistant" or not m.get("usage") or m.get("id") in seen:
+        if d.get("type") != "assistant" or not m.get("usage"):
             continue
         if (start and ts < start) or (end and ts >= end):
             continue
-        seen.add(m["id"])
-        tier = next((k for k in PRICE if k in m.get("model", "")), "opus")
         u, cc = m["usage"], m["usage"].get("cache_creation") or {}
         w1h = cc.get("ephemeral_1h_input_tokens", 0)
-        w5m = cc.get("ephemeral_5m_input_tokens", u.get("cache_creation_input_tokens", 0) - w1h)
-        a = acc[tier]
-        for k, v in (("요청", 1), ("입력", u.get("input_tokens", 0)), ("출력", u.get("output_tokens", 0)),
-                     ("쓰기1h", w1h), ("쓰기5m", w5m), ("읽기", u.get("cache_read_input_tokens", 0))):
-            a[k] += v
+        row = {"입력": u.get("input_tokens", 0), "출력": u.get("output_tokens", 0), "쓰기1h": w1h,
+               "쓰기5m": cc.get("ephemeral_5m_input_tokens", u.get("cache_creation_input_tokens", 0) - w1h),
+               "읽기": u.get("cache_read_input_tokens", 0)}
+        tier = next((k for k in PRICE if k in m.get("model", "")), "opus")
+        old = per.get(m["id"], (tier, {}))[1]
+        per[m["id"]] = (tier, {k: max(v, old.get(k, 0)) for k, v in row.items()})
+    for tier, row in per.values():
+        acc[tier]["요청"] += 1
+        for k, v in row.items():
+            acc[tier][k] += v
 
 
 def main(argv):
