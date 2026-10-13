@@ -213,7 +213,7 @@ flutter test --dart-define=API_BASE_URL=http://localhost:<포트>/api/v1
 
 ## 에이전트 명명 규칙 (사용자 지시 2026-08-25)
 
-**2026-10-13 전역 Skill `agent-workflow` › Naming 으로 이관** — 형식 `r{라운드}-t{작업}-{역할}-{에이전트}-{모델}` · Agent 도구는 `description` 칸에 · ASCII 만. 본문은 그 스킬이 기준이다(두 벌이 되면 한쪽이 낡는다).
+**2026-10-13 전역 Skill `cascade` › Naming 으로 이관** — 형식 `r{라운드}-t{작업}-{역할}-{에이전트}-{모델}` · Agent 도구는 `description` 칸에 · ASCII 만. 본문은 그 스킬이 기준이다(두 벌이 되면 한쪽이 낡는다).
 
 ---
 
