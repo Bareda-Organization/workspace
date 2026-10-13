@@ -2,7 +2,8 @@
   "model": "opus[1m]",
   "effortLevel": "xhigh",
   "env": {
-    "ECC_DISABLED_HOOKS": "pre:bash:gateguard-fact-force,pre:edit-write:gateguard-fact-force",
+    "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force",
+    "GATEGUARD_BASH_ROUTINE_DISABLED": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "0"
   },
   "footerLinksRegexes": [
