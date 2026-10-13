@@ -696,7 +696,7 @@ erDiagram
 | `is_revert` 🆕 | boolean | NN default false | 되돌리기 여부 |
 | `reason` 🆕 | varchar(200) | | 되돌리기 사유 |
 | `verify_method` | varchar(10) | | `photo` · `manual`. CHECK |
-| `client_key` | uuid | UK | 오프라인 큐 멱등키. 재수신 시 최초 결과 반환 |
+| `client_key` | uuid | UK (NULL 허용) | 오프라인 큐 멱등키. 재수신 시 최초 결과 반환. **회차 종료 24시간 뒤 NULL 로 비운다**(§7.2 · `Ruling 894` ⑥) |
 | `occurred_at` | timestamptz | | 단말 기록 시각. 오프라인 처리분의 실제 시각 |
 | `changed_at` | timestamptz | NN | 서버 반영 시각 |
 | `actor_type` 🆕 | varchar(10) | NN | `escort` · `system`. 자동 전이(하원 시작 시 전원 `boarded` · 등원 종료 시 전원 `alighted` · ③구간 미등원 토글과 ②구간 취소 승인이 부여하는 `absent`)의 주체를 구분. 확정 배치가 처음부터 `absent` 로 만드는 행(OFF 학생 · 버스 이동)은 전이가 아니라 초기 상태라 이력을 만들지 않는다. CHECK |
@@ -730,6 +730,7 @@ erDiagram
 | `decision` | varchar(10) | | `depart` · `retry` |
 | `attempted_at` 🆕 | timestamptz | NN | 시도 시각 |
 | `attempted_by` 🆕 | bigint | NN | 시도한 동승자 계정 |
+| `client_key` | uuid | UK (NULL 허용) | 오프라인 큐 멱등키(`Ruling 894` ⑧). 키 없는 요청은 NULL. **회차 종료 24시간 뒤 NULL 로 비운다**(§7.2 · `Ruling 894` ⑥) |
 
 **존재 이유** — 연락 시도가 **복수 회** 발생하고 각 시도의 결과가 카운트다운 중단 판정에 쓰이므로 케이스에 1:N 로 매달림. **근거** EXC-01 · API_SPEC §4.8 · UF-E-03
 
@@ -750,7 +751,7 @@ erDiagram
 | `rider_count` | integer | NN | 발신 시점 회차에 배정된 라이더 전원 수(승하차 상태 무관) 스냅샷 |
 | `occurred_at` | timestamptz | NN | 단말 기록 시각. **API 응답에는 참고값으로 노출**(`Ruling 744` — `Ruling 236` 의 "미노출" 을 갱신) — 정렬·판정·취소 창에는 쓰지 않는다(조작할 수 있는 값). 단말이 안 보냈으면 `received_at` 과 같다 |
 | `received_at` | timestamptz | NN default now() | 서버 수신 시각. 오프라인 발신이면 `occurred_at` 과 벌어짐. **`API_SPEC` 응답의 `raised_at` 이 이 값을 그대로 반환**(단일 소스, Ruling 236) — `occurred_at` 은 별도 필드로만 싣는다(참고값, `Ruling 744`) |
-| `client_key` | uuid | NN UK | 오프라인 큐 멱등키 |
+| `client_key` | uuid | NN UK | 오프라인 큐 멱등키. **비우지 않는다** — 종료된 회차도 받는 발신이라 키를 비우면 늦은 재전송이 새 신고가 된다(§7.2 · 판정 A) |
 | `acked_by` | bigint | | 확인한 관계자 계정 — **학원 관계자만 확인한다**(메인 관리자 계정은 확인 API 가 `403`, `Ruling 884`). 취소된 건(`canceled_at` 이 있는 행)은 확인되지 않는다(`409 EMERGENCY_CANCELED`, `Ruling 885` ①) |
 | `acked_at` | timestamptz | | 관계자 확인 시각 |
 | `ack_memo` 🆕 | varchar(200) | | 확인할 때 남긴 **조치 메모**(선택 · 2026-10-01 `Ruling 541`). 확인 전·메모 없는 확인은 NULL. `acked_at` 과 같은 조건부 UPDATE 로 써서 최초 확인자의 값만 남는다 |
@@ -770,6 +771,7 @@ erDiagram
 | `memo` | text | NN | 상황 기술 |
 | `reported_by` | bigint | NN | 보고자 계정 |
 | `reported_at` | timestamptz | NN | |
+| `client_key` | uuid | UK (NULL 허용) | 오프라인 큐 멱등키(`Ruling 894` ⑧). 키 없는 요청은 NULL. **비우지 않는다** — 종료된 회차도 받는 보고라 키를 비우면 늦은 재전송이 새 보고 · 보호자 알림이 된다(§7.2 · 판정 A) |
 | `handled_at` | timestamptz | | 관계자가 처리됨으로 표시한 시각 — 미처리면 NULL(`Ruling 814` · API_SPEC §5.20) |
 | `handled_by` | bigint | | 처리 표시한 관계자 계정. `handled_at` 과 함께 채워진다 — CHECK `(handled_at IS NULL) = (handled_by IS NULL)` |
 
@@ -833,7 +835,7 @@ erDiagram
 | `revoked_at` | timestamptz | | 해지 시각. 로그아웃·무효 토큰 정리로 설정 |
 | `created_at` · `updated_at` | timestamptz | NN | |
 
-**존재 이유** — 알림이 제품의 중심 기능인데(알림 종류 20종 — `V1` 기준(당시 V6), C-17 팝업 병행) **서버가 발송 대상 단말을 특정할 자리**가 필요. 이 테이블이 없으면 알림 레코드는 생성되나 푸시가 전부 미발송. 한 계정이 여러 기기를 보유하므로 `(account_id, device_id)` 단위로 관리하고 토큰 갱신은 행 대체. **근거** NTF-12 · API_SPEC §2.11 · ARCHITECTURE §11
+**존재 이유** — 알림이 제품의 중심 기능인데(알림 종류 21종 — `V1` 기준(당시 V6, `run_canceled` 는 `Ruling 894` ⑤), C-17 팝업 병행) **서버가 발송 대상 단말을 특정할 자리**가 필요. 이 테이블이 없으면 알림 레코드는 생성되나 푸시가 전부 미발송. 한 계정이 여러 기기를 보유하므로 `(account_id, device_id)` 단위로 관리하고 토큰 갱신은 행 대체. **근거** NTF-12 · API_SPEC §2.11 · ARCHITECTURE §11
 
 #### `notification_setting` 🆕 — 알림 설정
 
@@ -1021,11 +1023,12 @@ erDiagram
 | `run_rider(run_id, student_id)` | UK | 회차당 학생 1행 — **동일 학생 중복 탑승 방지** (NFR-04) |
 | `assignment(run_id, role)` | UK | 회차당 기사 1명 · 동승자 1명 (MGR-05) |
 | `run_transfer(student_id)` | UK (partial, `WHERE status = 'staged'`) | **같은 학생의 처리 대기 이동 신청은 1건** — 위반은 `409 TRANSFER_ALREADY_STAGED`. 선검사는 잠금 밖이라 같은 학생에 대한 요청 둘이 동시에 오면 둘 다 통과하므로 최종 판정은 DB 다. 반영된(`applied`) 이동은 몇 건이든 남는다 — `uk_run_transfer_student_staged` (`Ruling 633`) |
-| `emergency_alert(client_key)` | UK | **멱등** — 통신 두절 상태 발신이 복구 후 중복 도착하는 것을 차단 (EXC-04 · API_SPEC §1.7) |
+| `emergency_alert(client_key)` | UK | **멱등** — 통신 두절 상태 발신이 복구 후 중복 도착하는 것을 차단 (EXC-04 · API_SPEC §1.7). 키를 비우지 않는다(§7.2) |
+| `exception_report(client_key)` · `no_show_contact(client_key)` | UK (NULL 허용) | **멱등** — 오프라인 큐 재전송분 중복 무시 (BRD-06 · `Ruling 894` ⑧ · API_SPEC §1.7). `no_show_contact` 만 회차 종료 24시간 뒤 비운다 |
 | `device_token(account_id, device_id)` | UK | 같은 기기 재등록은 토큰을 덮어씀 — 행이 늘지 않음 (NTF-12) |
 | `boarding_intent(run_id, student_id)` | UK | 회차 × 학생당 의사 1행. ②구간 한도 카운터의 유일성도 함께 강제 (C-04) |
 | `no_show_case(run_rider_id)` | UK | `no_show` 는 종결 상태 — 회차당 케이스 1건 (C-02) |
-| `rider_status_history(client_key)` | UK | **멱등** — 오프라인 큐 재전송분 중복 무시 (BRD-06 · API_SPEC §1.7) |
+| `rider_status_history(client_key)` | UK (NULL 허용) | **멱등** — 오프라인 큐 재전송분 중복 무시 (BRD-06 · API_SPEC §1.7). 회차 종료 24시간 뒤 비운다(§7.2) |
 | `route_version(confirmed_route_id, version_no)` | UK | 버전 번호 유일 (A-05 · A-15) |
 | `refresh_token(token_hash)` | UK | |
 | `notification_setting(account_id)` | PK | 계정당 설정 1행 (NTF-07) |
@@ -1185,7 +1188,8 @@ erDiagram
 | `student` (퇴원 학생 개인정보) | **퇴원(`deleted_at`) 90일 뒤 익명화 (2026-10-01 사용자 결정 · `Ruling 480 ②`·`520`~`523`)** — 코드 상수 `RetentionPolicy.WITHDRAWN_STUDENT_RETENTION`. **행은 남긴다**: `run_rider` · `boarding_intent` · `change_request` · `run_forced_addition` 이 `ON DELETE RESTRICT` 로 참조하고 승하차 이력은 무기한 보존이라 행을 지우면 이력이 함께 사라진다. 바뀌는 것 — `name` → `퇴원 학생` · `student_phone` · `photo_url` · `gender` · `birth_date` · `grade` · `class_name` · `note` · `account_id` → `NULL`, `anonymized_at` 기록. 같은 트랜잭션에서 `weekly_address`(요일별 주소·좌표) · `link_code` · **`guardian_student`(보호자 연결, `Ruling 610`)** 는 **행 삭제**, `change_request` 의 `new_address`(→ `(파기됨)`, `ck_change_request_new_address` 가 relocate 의 NOT NULL 을 요구) · `new_lat` · `new_lng` · `reason` 은 익명화, **사진 파일은 삭제**(트랜잭션 전에 — 지웠다고 확인하지 못한 학생은 그 묶음의 파기에서 빼 다음 틱에 다시 시도, `Ruling 797`). 학생의 앱 계정(`account.role='student'`)은 행을 남기고 `login_id` → `withdrawn-<id>` · `name` · `phone` · `email` 익명화 · 비밀번호 해시 무효화 · 상태 `blocked` · `refresh_token` · `device_token` 삭제. 시스템 처리 감사 1행(`category=data_access` · `action=delete` · `target_type=student` · 행위자 없음 · `detail.purged_students`) | 개인정보 최소 보유 — 퇴원 학생 정보를 이력 보존 기간 동안 쥘 이유가 부재. 기간은 법률 검토(L-06~08)에서 재조정할 여지 존치. **대상 밖** — `guardian`(별개 정보주체 · 자체 계정 · 다른 자녀 연결 가능, `Ruling 523`) · `stop` 마스터(공유 승하차지) · 자유 문구(`exception_report.memo` 등) · `notification_log`(알림 보관 기간 — FEATURE_SPEC §2.1 — 이 지나 먼저 지움) · `audit_log`(학생 이름 컬럼 부재, 2년 보존) |
 | `notification_log` | FEATURE_SPEC §2.1 「알림 보관」의 값 | 알림 보관 기간 (NTF-08) |
 | `delay_notice` | **`notification_log` 와 같은 보존 주기**(`Ruling 894` ⑦) | 학부모에게 간 지연 알림의 기록이라 같은 성격. 컷오프는 `sent_at`. 같은 회차 직전 발신과의 중복 판정(`409 DELAY_DUPLICATE`)은 회차 안에서만 쓰여 보존 기간이 지난 행은 근거가 아니다 |
-| 멱등 키(`client_key`) | **회차 종료 후 24시간**(`Ruling 894` ⑥) | `API_SPEC §1.7` 「보존」. 키 값만 정리하고 이력 행(`rider_status_history` 등 무기한 보존)은 그대로 둔다 |
+| 멱등 키(`client_key`) — `rider_status_history` · `no_show_contact` | **회차 종료 후 24시간 뒤 NULL**(`Ruling 894` ⑥) | `API_SPEC §1.7` 「보존」. 키 값만 비우고 행(무기한 보존)은 그대로 둔다 |
+| 멱등 키(`client_key`) — `emergency_alert` · `exception_report` | **비우지 않음**(판정 A) | 두 발신은 종료된 회차도 받아, 키를 비우면 하루 넘게 두절됐던 기기의 늦은 재전송이 새 비상 신고 · 보호자 알림으로 다시 나간다. 행이 드물어 계속 보존해도 부담이 작다 |
 | `rider_status_history` | 무기한 (아카이빙 대상) | 되돌리기 이력 보존 요건 (BRD-05 · NFR-07) |
 | `no_show_case` · `no_show_contact` · `exception_report` · `emergency_alert` | 무기한 (아카이빙 대상) | 사건 대응 이력. 비상 알림은 **사고 시각 판정 근거**(`occurred_at`)라 정리 대상 밖 (EXC-04) |
 | `audit_log` | **2년 (2026-10-01 사용자 결정 · `Ruling 445`)** — 두 category 모두, 코드 상수 `RetentionPolicy.AUDIT_LOG_RETENTION`(달력 기준 2년). 2026-09-04 `Ruling 243` 의 "무기한" 을 바꾼다 | 개인정보 안전성 확보조치 기준의 접속기록 보관(1년 이상 · 대규모·민감정보 2년 이상 — 조율 시점의 기억 기준이라 **L-06~08 법률 검토에서 재확인**) (NFR-08). 삭제는 category 별로 기존 `(category, occurred_at desc)` 인덱스를 탄다 |
@@ -1202,7 +1206,7 @@ erDiagram
 | `run_position` | 회차당 **1,350행 안팎** (송신 **2초** × 운행 45분. 옛 5초 기준 540행의 2.5배) | **일 단위 파티션 + 만료 파티션 DROP**(`Ruling 670`). ① **미리 만들기** — `RunPositionPartitionScheduler` 가 기동 직후 한 번과 매일 00:10(ShedLock `run-position-partition`)에 오늘부터 **7일 앞까지** 없는 파티션을 만든다(멈춰도 며칠은 파티션이 남아 있고, 그동안 못 만들어도 **기본 파티션**이 받아 위치 수신은 이어진다). 기본 파티션에 이미 그 날짜 행이 있으면 PostgreSQL 이 파티션 생성을 거절하므로 같은 트랜잭션에서 그 범위 행을 id 보존한 채 새 파티션으로 옮긴다. 실패는 스케줄러 지표 체계(`schoolbus_scheduler_failures_total` · `schoolbus_scheduler_last_success_age_seconds{scheduler="run-position-partition"}`)로 드러난다. ② **만료** — 보존 정리(00:15)가 상한이 컷오프(90일 전) 이하인 일 파티션을 통째로 DROP 하고 기본 파티션의 컷오프 이전 행을 지운다. **컷오프가 걸친 날의 파티션은 남는다 — 실제 보관은 90일 이상 91일 미만**(경계 정렬 · 판정 `Ruling 670`). 행 DELETE 도, 삭제 전용 인덱스도, 표 단위 autovacuum 설정(옛 `Ruling 630`)도 불필요. **대체 조회**(Redis 장애 때 `findLatestByRunIdIn`)는 파티션마다 인덱스를 점 조회한다 — 100개 파티션에서 합성 100회차 계획 7.2ms + 실행 7.9ms(Redis 장애 때만 쓰는 경로). **전환 근거 보존**: 월·주 단위는 경계에 걸친 파티션이 최대 30·7일 더 남고, 맞추려면 행 DELETE 가 되살아난다 |
 | `notification_log` | 승하차 처리 1건당 학부모·관계자 다중 행 | 행 단위 DELETE 배치. 보관 기간은 §7.2 |
 | `delay_notice` | 회차당 지연 알림 발신 횟수 | 행 단위 DELETE 배치. 보관 기간은 §7.2(`notification_log` 와 같은 주기, `Ruling 894` ⑦) |
-| 멱등 키(`client_key`) | 처리 1건당 키 1개 | 회차 종료 후 24시간이 지난 키를 같은 배치가 정리(§7.2 — `Ruling 894` ⑥) |
+| 멱등 키(`client_key`) | 처리 1건당 키 1개 | `rider_status_history` · `no_show_contact` 만 회차 종료 24시간 뒤 같은 배치가 비운다(§7.2 — `Ruling 894` ⑥ · 판정 A). `emergency_alert` · `exception_report` 는 남긴다 |
 | `refresh_token` · `link_code` | 계정·인증 흐름당 소량 | 행 단위 DELETE 배치. 만료·폐기 기준(§7.2) |
 | `audit_log` | 개인정보 조회마다 1행 — 같은 행위자·학생은 10분 안에 묶어 1행(`Ruling 445`) | 행 단위 DELETE 배치. 보유 **2년**(§7.2 · `Ruling 445`) |
 | `rider_status_history` | 탑승자 수 × 상태 전이 수 | 정리 배치 대상 밖 — 무기한 보존. 회차 단위 조회가 지배적이라 인덱스로 충분 |
