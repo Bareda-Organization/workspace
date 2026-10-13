@@ -274,6 +274,14 @@ flutter test --dart-define=API_BASE_URL=http://localhost:<포트>/api/v1
 
 ---
 
+## round-verify (전역 워크플로 · 2026-10-13 R55 뒤 이전)
+
+작업 창이 `worker_done` 을 보내면 `Workflow({scriptPath: '/Users/mskim/.claude/workflows/round-verify.js', args})` — 이름 호출은 세션 시작 사본이 돈다. 바래다는 `args.notes` 에 아래를 그대로 준다:
+
+`backend 시험은 backend/scripts/test.sh(실행마다 전용 DB · --tests 로 고친 부분만)로만. 워크트리의 backend·web 시험에는 API_SPEC_PATH=/Users/mskim/Desktop/PJ/baraeda/docs/planning/API_SPEC.md, 앱 시험에는 WEB_REPO_DIR=/Users/mskim/Desktop/PJ/baraeda/web 와 --exclude-tags real_backend 를 붙인다. 공용 서버는 localhost:3000(컨테이너) · 8080`
+
+창별 `base` 는 그 저장소의 기준 커밋(저장소마다 다르다). 결과의 `report_only` 가 비어 있지 않으면 조율자가 하나를 골라 직접 재현한다.
+
 ## 알려진 함정
 
 ### 🔴 `FATAL: sorry, too many clients already` — Postgres 커넥션이 여러 좌석에 걸쳐 공유 소진된다
