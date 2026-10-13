@@ -64,6 +64,8 @@
 grep -n '🔸' docs/planning/FEATURE_SPEC.md docs/planning/PRD.md docs/planning/USER_FLOWS.md docs/planning/API_SPEC.md
 ```
 
+**정의처 한 곳**(`Ruling 888`) — 규칙의 조건 · 수치 · 예외는 정의처 한 곳에만 쓴다. 기능 규칙의 정의처는 `FEATURE_SPEC`(공통 규칙 · 기능 표 · §4.15 같은 규칙 블록), 화면 흐름 · 안내 규칙은 `USER_FLOWS`. 다른 문서와 같은 문서의 다른 절은 결론 한 마디와 정의처만 쓴다 — `PRD` 는 채택 이유를, `API_SPEC` 은 요청 · 응답 계약(필드 · 코드)을, 설계 문서(`ARCHITECTURE` · `ERD`)는 구현 수단(어느 컬럼 · 어느 배치)을 남긴다. QA 시나리오는 기대 결과를 구체로 쓰되 정의처를 붙인다. 판정 · 라운드 기록은 원문 보존. 줄이면서 뜻을 바꾸지 않는다 — 정의처에 없는 사실이 사본에만 있으면 지우지 말고 정의처로 옮기거나 보고한다. 규칙을 고칠 때 닿는 곳은 `python3 ~/.claude/tools/docgraph/query.py <repo> goal-rows '<대상>, "<문구>"'` 로 찾는다(ID · 절 번호 없이 풀어 쓴 곳은 따옴표 문구를 함께 넣어야 잡힌다).
+
 ---
 
 ## 3. 설계 문서
