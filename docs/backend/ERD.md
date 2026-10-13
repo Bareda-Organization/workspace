@@ -811,7 +811,7 @@ erDiagram
 | `push_attempts` 🆕 | integer | NN default 0 | 발송 시도 횟수. 상한 초과 시 `failed` 로 전이하고 경보 |
 | `last_attempt_at` 🆕 | timestamptz | | 마지막 시도 시각. 재시도 간격(지수 백오프) 판정 |
 | `fail_reason` 🆕 | varchar(200) | | 마지막 실패 사유 |
-| `dedup_key` 🆕 | varchar(120) | NN UK | 발송 멱등키. `{event}:{run_id}:{대상}:{판정 시각}` 형태. **대상 자리는 역할 접두로 식별자 공간을 가른다**(`staff:계정` · `guardian:계정:학생` · `student:계정` — 계정 ID 와 학생 ID 는 독립 시퀀스라 접두 없이 섞으면 값이 겹칠 때 같은 키가 된다, BR-007). 이벤트 재시도·중복 소비로 같은 알림이 두 번 나가는 것을 DB 가 차단 (ARCHITECTURE §11). 이미 출발 처리된 승하차지에서 뒤늦게 기록된 승차 · 하차 · 미승차도 기록 즉시 같은 키 체계로 적재한다(`Ruling 878`). 다만 두 경로(출발 때 묶음 · 기록 즉시)는 키 접두가 달라 이 UNIQUE 가 서로의 중복을 막지 못한다 — 둘이 두 번 가지 않게 하는 것은 `run_stop` 행 잠금 아래에서 출발 여부를 읽고 발행하는 쪽이다(ARCHITECTURE §9.7 · §11) |
+| `dedup_key` 🆕 | varchar(120) | NN UK | 발송 멱등키. `{event}:{run_id}:{대상}:{판정 시각}` 형태. **대상 자리는 역할 접두로 식별자 공간을 가른다**(`staff:계정` · `guardian:계정:학생` · `student:계정` — 계정 ID 와 학생 ID 는 독립 시퀀스라 접두 없이 섞으면 값이 겹칠 때 같은 키가 된다, BR-007). 이벤트 재시도·중복 소비로 같은 알림이 두 번 나가는 것을 DB 가 차단 (ARCHITECTURE §11). 출발 뒤 기록의 즉시 발송(FEATURE_SPEC §4.15 「승하차 알림의 발송 시점」, `Ruling 878`)도 같은 키 체계로 적재한다. 다만 두 경로(출발 때 묶음 · 기록 즉시)는 키 접두가 달라 이 UNIQUE 가 서로의 중복을 막지 못한다 — 둘이 두 번 가지 않게 하는 것은 `run_stop` 행 잠금 아래에서 출발 여부를 읽고 발행하는 쪽이다(ARCHITECTURE §9.7 · §11) |
 | `created_at` | timestamptz | NN default now() | **레코드 생성 = 아웃박스 적재 시각.** 상태 변경과 같은 트랜잭션에서 기록 |
 | `sent_at` | timestamptz | | 발송 완료 시각. `push_state='sent'` 일 때만 |
 | `read_at` | timestamptz | | 읽음 시각 |
