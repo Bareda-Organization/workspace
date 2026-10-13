@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""규칙 사본 측정·검사 (Ruling 895). 사용 — python3 rule_copies.py <저장소 루트> [--check | --lines [규칙이름|ALL] | --update-baseline] [--loose]
+"""규칙 사본 측정·검사 (Ruling 895). 사용 — python3 rule_copies.py <저장소 루트> [--check | --lines [규칙이름|ALL] | --update-baseline | --selftest] [--loose]
 정의처(FEATURE_SPEC '## 2.' ~ '## 3.' 머리 사이)·참조 줄(정의처를 가리키는 줄)·kept-lines.tsv 의 남긴 줄을 뺀 '사본' 줄 수를 규칙별로 세고, --check 는 baseline.json 을 넘거나 남긴 줄 목록에 낡은 기준점이 있으면 종료 코드 1.
-검사 범위 — 규칙 번호 없이 값을 다시 쓴 줄을 센다. 번호(C-04 등)가 붙은 줄은 그 규칙을 바꿀 때 `query.py goal-rows` 닿는 곳 표가 잡는다."""
+검사 범위 — 규칙 번호 없이 값을 다시 쓴 줄을 센다. 규칙 번호가 붙은 줄은 값을 다시 써도 이 검사에서 빠진다 — 그 규칙을 바꾸는 라운드의 목표 표에 `query.py goal-rows '<규칙 번호>'` 닿는 곳 표를 붙여 처리한다(Skill phase-goal-loop §1.1)."""
 import json, os, re, sys
 sys.dont_write_bytecode = True
 
@@ -11,6 +11,12 @@ DEF_DOC, DEF_START, DEF_END = DOCS[0], re.compile(r"^## 2\. 공통 규칙"), re.
 # 정의처를 가리키는 줄은 사본이 아니라 참조로 센다
 POINT_BASE = r"§ ?2\.1|§ ?2\b|정의처|정책 상수|FEATURE_SPEC\.md|정본"
 STRICT = "--loose" not in sys.argv  # --loose 는 Ruling 895 이전 측정(어느 C-번호든 있으면 참조)과 맞출 때만
+# C-17: 같은 줄(표 칸 경계 무시)에 비상 토큰과 「끌 수 없음」 표현이 함께 있어야 한다. 지연·운행 시작 알림 행은 비상 토큰이 없어 빠진다
+C17_PAT = r"^(?=.*(?:비상|emergency|EXC-04)).*(?:항상 발송|수신 설정 항목|끌 수 없|설정 항목[^|]{0,6}부재|on/off 항목 부재)"
+# 자체 확인(--selftest) 표본: 규칙 이름 → (잡혀야 하는 줄, 안 잡혀야 하는 줄)
+SELFTEST = {"C-17 비상 알림 항상 발송": (
+    ["| 비상 알림 | 수신 설정 항목 부재 |", "| 비상 알림 | 끌 수 없음 |", "항상 발송되는 비상 알림", "| emergency | EXC-04 | 관계자 | 항상 발송 |"],
+    ["| `delay` | `POST /runs/{runId}/delay` | **관계자** + 학생·학부모 (M-05) | **부재 — 항상 발송** |", "| 운행 시작 | `Run.status` → `moving` | 학부모 · 학생 · 관계자 | **항상 발송**하되 단말 푸시 수신은 `boarding` 토글로 조절 |"])}
 # (규칙 이름, 묶음, 패턴) — 묶음이 같으면 한 규칙이다(895 ① 의 5개 규칙)
 RULES = [
  ("C-04 ②한도 1회", "C-04", r"회차당 ?1회|회차 ?1회|1회만|1회씩|한도는 회차당"),
@@ -30,7 +36,7 @@ RULES = [
  ("정책 비상 취소 1분", "정책", r"(취소|발신)[^|]{0,12}1분 이내|1분 이내 (취소|에만)|발신 ?\+ ?1분"),
  ("정책 자녀코드 10분 5회", "정책", r"10분에 ?5회"),
  ("C-07 전원 자동 하차", "C-07", r"전원 자동 (하차|승차|`?(boarded|alighted))|자동 (하차|승차) 처리"),
- ("C-17 비상 알림 항상 발송", "C-17", r"비상[^|]{0,40}(항상 발송|수신 설정 항목|끌 수 없)"),
+ ("C-17 비상 알림 항상 발송", "C-17", C17_PAT),
  # 측정만 하는 규칙(895 ③) — 정리는 그 규칙을 고칠 때(888)
  ("C-01 form 가입·승인", "C-01", r"form 회원가입|코드 로그인|승인 대기 화면 하나만"),
  ("C-03 노선 3종", "C-03", r"노선 3종|고정 노선 ?=|확정 노선 ?=|실시간 노선 ?="),
@@ -90,9 +96,22 @@ def by_group(res):
         g[grp] = g.get(grp, 0) + len(res[name]["copies"])
     return g
 
+def selftest():
+    """패턴이 표본을 제대로 가르는지 본다 — 못 가르면 종료 코드 1"""
+    bad = []
+    for name, _, pat in RULES:
+        if name not in SELFTEST: continue
+        pos, neg = SELFTEST[name]
+        bad += [f"[{name}] 못 잡음: {l}" for l in pos if not re.search(pat, l)]
+        bad += [f"[{name}] 오탐: {l}" for l in neg if re.search(pat, l)]
+    for b in bad: print(b)
+    print("selftest", "실패" if bad else f"통과 (규칙 {len(SELFTEST)}개 · 표본 {sum(len(p)+len(n) for p, n in SELFTEST.values())}개)")
+    sys.exit(1 if bad else 0)
+
 def main():
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
     flags = [x for x in sys.argv[1:] if x.startswith("--")]
+    if "--selftest" in flags: selftest()
     if not a: sys.exit(__doc__)
     root = a[0]; kept, base = load(root); res = measure(root, kept)
     if "--update-baseline" in flags:
