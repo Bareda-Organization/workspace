@@ -12,7 +12,7 @@
 
 **자매 문서** — [FEATURE_SPEC.md](FEATURE_SPEC.md) · [PRD.md](PRD.md) · [USER_FLOWS.md](USER_FLOWS.md) · [ARCHITECTURE.md](../backend/ARCHITECTURE.md) · [ERD.md](../backend/ERD.md) · [TECH_DECISIONS.md](../backend/TECH_DECISIONS.md)
 
-**신규 설계 결정 (2026-08-24 승인 완료)** — 아래는 기획 원본에 근거가 부재하나 API 구현에 필요해 이 문서에서 처음 정한 값. 베이스 경로·필드 명명·시각/좌표 표기(§1.1) · `X-Client-Version`·`X-Request-Id`(§1.3) · 멱등키 보존 24시간(§1.7) · 페이징 규약(§1.8) · `INVALID_CREDENTIALS.details.remaining_attempts` · 에러 코드 명칭 `STAFF_QUOTA_EXCEEDED`·`MANAGER_ASSIGNED`.
+**신규 설계 결정 (2026-08-24 승인 완료)** — 아래는 기획 원본에 근거가 부재하나 API 구현에 필요해 이 문서에서 처음 정한 값. 베이스 경로·필드 명명·시각/좌표 표기(§1.1) · `X-Client-Version`·`X-Request-Id`(§1.3) · 멱등키 보존(§1.7 「보존」) · 페이징 규약(§1.8) · `INVALID_CREDENTIALS.details.remaining_attempts` · 에러 코드 명칭 `STAFF_QUOTA_EXCEEDED`·`MANAGER_ASSIGNED`.
 
 **[조정 중] 표기** — 노선 최적화·배차 정책이 미확정이라 **경로 · 권한 · 목적만 예약**. 요청·응답 세부는 배차 정책 확정 후 기술.
 
@@ -156,7 +156,7 @@
 | 키 | 요청 본문 `client_key` — 단말이 생성하는 UUID |
 | 재전송 | 동일 `client_key` 재수신 시 **중복 무시**하고 최초 처리 결과를 `200` 으로 반환 |
 | 키 충돌 | 같은 `client_key` 가 **다른 대상**으로 오면(승하차 — 다른 회차·탑승자·`status` / 비상 — 다른 회차·`type` / 예외 보고 — 다른 회차·`type` / 연락 기록 — 다른 회차·탑승자) 재생하지 않고 `422 VALIDATION_FAILED`. 대조는 배치·학원 범위 확인 뒤 |
-| 클라이언트의 재생 | 오프라인 대기열 재생(자동 · 쓰기 직전 · 수동) 중 서버가 응답 본문이 에러 규격 JSON(`{"error":{…}}`)인 `4xx`(401 · 408 · 429 제외)로 확정 거절하면 클라이언트는 그 행을 대기열에서 지우되 **지운 내용(학생 · 처리 · 이유)을 사용자가 확인할 때까지 화면에 남기고, 비상 발신 행이면 "비상 신고가 전송되지 않았어요" 와 학원 전화 안내를 함께 보인다**(USER_FLOWS §12.7 「학원 전화 안내」)(`Ruling 882`). **예외 보고 · 미승차 연락 기록 행도 같은 규칙이다** — JSON `4xx` 는 지우고 안내하며 `5xx` · 게이트웨이 HTML · 빈 본문 `4xx` 는 행을 남긴다. 비상 신고가 아니므로 「비상 신고가 전송되지 않았어요」 와 학원 전화 안내는 붙지 않는다(`Ruling 894` ⑧). 게이트웨이 HTML · 빈 본문 `4xx` 는 `5xx` 처럼 행을 남기고 재시도한다(`Ruling 887` ④) |
+| 클라이언트의 재생 | 오프라인 대기열 재생(자동 · 쓰기 직전 · 수동) 중 서버가 응답 본문이 에러 규격 JSON(`{"error":{…}}`)인 `4xx`(401 · 408 · 429 제외)로 확정 거절하면 클라이언트는 그 행을 대기열에서 지우되 **지운 내용(학생 · 처리 · 이유)을 사용자가 확인할 때까지 화면에 남기고, 비상 발신 행이면 "비상 신고가 전송되지 않았어요" 와 학원 전화 안내를 함께 보인다**(USER_FLOWS §12.7 「학원 전화 안내」)(`Ruling 882`). 게이트웨이 HTML · 빈 본문 `4xx` 는 `5xx` 처럼 행을 남기고 재시도한다(`Ruling 887` ④). **예외 보고 · 미승차 연락 기록 행도 같은 규칙이다** — 다만 비상 신고가 아니므로 「비상 신고가 전송되지 않았어요」 와 학원 전화 안내는 붙지 않는다(`Ruling 894` ⑧) |
 | 보존 | **회차 종료(`finished_at`, 미종료 회차는 출발 시각) 후 24시간이 지나면 승하차 처리(`rider_status_history`)와 미승차 연락 기록(`no_show_contact`)의 키 값만 매일 00:15 보존 정리 배치(`ERD §7.2`·`§7.3`)가 비운다**(`Ruling 894` ⑥ · 판정 A — `R52` 의 「정리 없이 계속 보존」을 대체. 행은 무기한 보존이라 지우지 않는다). 이 둘은 종료된 회차를 `409 RUN_NOT_MOVING` 으로 거절하므로 키를 비운 뒤의 재전송이 새 행을 만들지 못한다. **비상 발신(`emergency_alert`)과 예외 보고(`exception_report`)의 키는 비우지 않는다** — 둘은 종료된 회차도 받으므로, 키를 비우면 하루 넘게 두절됐던 기기의 늦은 재전송이 새 비상 신고 · 보호자 알림으로 다시 나간다(행이 드물어 계속 보존해도 부담이 작다) |
 
 ### 1.8 페이징
@@ -1992,7 +1992,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **쿼리**(`Ruling 815`) — `q`(이름) · `class_name`(반 이름 일치) · `filter`(`guardian_unlinked` = `guardian_count` 0 · `address_missing` = `weekly_address_status` 가 `none`). 그 밖의 `filter` 값은 `422 VALIDATION_FAILED`.
 
-**응답 최상위 `summary`**(`Ruling 815`) — `total`(재원 학생 수) · `class_count`(반 종류 수) · `guardian_unlinked` · `address_missing` · `can_go_alone` · **`class_names`**(string 배열 — 학원 전체 재원 학생의 반 이름 · 중복 제거 · 가나다순 · 반이 없는 학생은 제외 — `Ruling 894` ⑪ · 판정 C. 관계자 웹 반 필터 선택지가 이 값을 써서 첫 쪽에 없는 반도 고를 수 있다). **쿼리와 쪽에 무관한 학원 전체 값**이라 지표 칸이 필터를 걸어도 바뀌지 않는다.
+**응답 최상위 `summary`**(`Ruling 815`) — `total`(재원 학생 수) · `class_count`(반 종류 수) · `guardian_unlinked` · `address_missing` · `can_go_alone` · **`class_names`**(string 배열 — 학원 전체 재원 학생의 반 이름 · 중복 제거 · 이름 자연 정렬(학생 이름 정렬과 같은 `NaturalNameOrder` — 숫자는 크기순) · **저장된 반 이름 그대로**(앞뒤 공백을 떼지 않는다 — 반 필터가 정확 일치라 떼면 공백이 붙은 반을 골랐을 때 0건이 된다) · 빈 값과 반이 없는 학생은 제외 — `Ruling 894` ⑪ · 판정 C. 관계자 웹 반 필터 선택지가 이 값을 써서 첫 쪽에 없는 반도 고를 수 있다). **쿼리와 쪽에 무관한 학원 전체 값**이라 지표 칸이 필터를 걸어도 바뀌지 않는다.
 
 **`GET /staff/students/{id}/withdrawal-preview` 응답**(`Ruling 815`) — `today_runs[]` · `tomorrow_runs[]`, 각 항목 `run_id` · `bus_no` · `direction` · `depart_time` · `status` · `stop_name`(그 학생의 승하차지, 확정 전 예정 명단이면 예정 승하차지). **그 학생이 탑승자(확정 뒤 `run_rider`, 확정 전 예정 명단 — §5.4 와 같은 계산)인 미취소 · 미종료 회차**만 싣는다. 그 회차에서 **미등원(`absent`)인 행은 뺀다** — 그 승하차지 인원에 이미 세지 않는 학생이라 퇴원해도 인원이 줄지 않는다. 퇴원하면 `today_runs` 는 그대로 운행되고(오늘 명단 유지) `tomorrow_runs` 에서 빠진다 — 화면은 그 승하차지 인원 −1 을 보인다. 권한·에러는 상세와 같다(`404 STUDENT_NOT_FOUND`).
 
