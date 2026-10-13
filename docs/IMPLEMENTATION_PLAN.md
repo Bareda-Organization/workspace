@@ -2338,7 +2338,7 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 
 | 갈래 | 커밋 | 결과 |
 |---|---|---|
-| backend | `ecfc8451` · `82af3250` · `595fcfaa` · `cb84eda1` | 891 — `LoginSettlement` 이 비밀번호 대조 뒤 `AccountStanding.isLost` 한 곳을 불러 `880` 요청 거절과 같은 기준으로 판정(한 계정의 매니저 행은 `uk_manager_account_id` 로 하나뿐). 매니저 삭제 → `ManagerDeletedEvent` → refresh 전량 무효화 · 푸시 단말 삭제. `isUnprocessableEntity()` 9곳 → `isUnprocessableContent()`(spring-test 7.0 폐기 예정 · R47 잔여 닫음). 학원 전화 2행 — 관리자 응답은 §12.7 대상 아님 · 시험 자바독 1곳 정정 |
+| backend | `ecfc8451` · `82af3250` · `595fcfaa` · `cb84eda1` | 891 — `LoginSettlement` 이 비밀번호 대조 뒤 `AccountStanding.isLost` 한 곳을 불러 `880` 요청 거절과 같은 기준으로 판정(한 계정의 매니저 행은 `uk_manager_account_id` 로 하나뿐). 매니저 삭제 → `ManagerDeletedEvent` → refresh 전량 무효화 · 푸시 단말 삭제. `isUnprocessableEntity()` 9곳 → `isUnprocessableContent()`(spring-test 7.0 폐기 예정 · R47 잔여 닫음). 학원 전화 2행 — 관리자 응답은 `USER_FLOWS §12.7` 대상 아님 · 시험 자바독 1곳 정정 |
 | web | `f4755b7` | 연결 안내 제목 `재연결 시도 중`. R47 잔여 "관제 화면 시험 간헐 실패" 는 `52547ef`(2026-10-03)가 이미 고친 것을 확인해 닫음(단독 20회 · 전체 3회 실패 0 · 그 줄을 되돌리면 회귀 시험 1건 실패). 학원 전화 4행 — 메인 관리자 콘솔(UF-O-08)이라 대상 아님 |
 | 매니저 앱 | `7b91a00` · `95ae692` · `7fae97a` · `254b3f6` | 892 기기 저장(건수 · 마지막 시각 · 다른 계정 로그인에도 보임 — 886 과 같은 기준) · R53 경합 4건(읽기 실패 뒤 덮어쓰기 · 늦은 읽기 이중 가산 · 닫기 경합 · 재생 중 로그아웃)을 시험으로 재현한 뒤 수정 · 891 로그인 안내 · 해요체 합쇼체 리터럴 66 → 0 · 학원 전화 19행 규칙 준수 확인 |
 | 학부모 앱 · 공용 패키지 | `ef1453c` | 해요체 75건(학부모 앱 68 · `baraeda_core` 2 · `baraeda_ui` 5) → 0 · 연결 안내 제목 · 학원 전화 8행 규칙 준수 확인 |
