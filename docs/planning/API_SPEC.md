@@ -6,7 +6,7 @@
 |---|---|
 | 문서 버전 | v1.0 |
 | 작성일 | 2026-08-24 |
-| 최근 개정 | 2026-10-13 — R56(`Ruling 893`~`894`): §1.7 멱등 대상(예외 보고 · 연락 기록)·키 24시간 정리 · §4.3 · §5.19 `stops[].waypoint_id` · §4.8 · §4.13 `client_key` · §5.10 확정 후 취소 알림 · §5.11 사진 삭제 `DELETE …/photo` · §6.7 퇴사 단말 삭제 · §9.7 `run_canceled`. 이전 개정 — 2026-10-13 — R55(`Ruling 890`~`891`): §2.5 · §8.1 삭제된 매니저 로그인 `403 AUTH_STAFF_INACTIVE` · 앱 인용 문구 해요체. 이전 개정 — 2026-10-11 — R53 전체 사양 재대조 반영(`Ruling 878`~`885`) · 최종 대조 정정(`Ruling 886`~`887`): §1.2 · §1.8 `sort` 허용 필드 표 · §1.11 · §3.6 ③ · §3.7 · §4.7 · §4.6 출발 뒤 기록 알림 · §5.3 `boarded_count` · §5.12 · §5.16 · §5.21 · §6.3 · §6.7 · §9.7 · §1.13 `sent_at` 해소 · 목록 기본 정렬(§5.9 · §5.10). 이전 개정 — 2026-10-10 — R51 사양 대조 반영(`Ruling 853`~`862`): §3.10 `stops[].address` · §4.5 재전송 · §4.6 · §4.9 수신자 · §5.11 · §5.16 · §6.4 · §6.15~6.16 · §7 구독 · §12 운영 경로 신설 · 표기 정리(§3.7 `stop_id` · §5.9 · §6.7 응답 표). 이전 개정 — 2026-10-04 — R48 리디자인 반영(`Ruling 801`~`824`): `API_SPEC §6.18` 대시보드 신설 · `API_SPEC §5.20` 처리 표시 신설 · `API_SPEC §5.11` 퇴원 미리보기 신설 · 응답 필드 추가(§3.1·3.9·3.10·3.11 · §4.1·4.2 · §5.1·5.3·5.4·5.5·5.9~5.13·5.17·5.21 · §6.1·6.3·6.4·6.6·6.8·6.13·6.15·6.16) |
+| 최근 개정 | 2026-10-16 — `Ruling 896`(사용자 요청: 팀 QA 전 사양을 현재 코드에 맞춤): §1.2 refresh 14일 · §1.3 `X-Request-Id` 형식 · §1.8 페이징 하한 · §1.10 예시 · §1.11 `UNAUTHORIZED` · 길이 상한 · §2.8 `204` · §4.3 `waypoint_id` 문자열 · §5.12 정원 경고 · §5.15 `200` · §5.16 확인 응답 · §7.1 `counts` · §8 `CAPACITY_EXCEEDED` · `UNAUTHORIZED`. 이전 개정 — 2026-10-13 — R56(`Ruling 893`~`894`): §1.7 멱등 대상(예외 보고 · 연락 기록)·키 24시간 정리 · §4.3 · §5.19 `stops[].waypoint_id` · §4.8 · §4.13 `client_key` · §5.10 확정 후 취소 알림 · §5.11 사진 삭제 `DELETE …/photo` · §6.7 퇴사 단말 삭제 · §9.7 `run_canceled`. 이전 개정 — 2026-10-13 — R55(`Ruling 890`~`891`): §2.5 · §8.1 삭제된 매니저 로그인 `403 AUTH_STAFF_INACTIVE` · 앱 인용 문구 해요체. 이전 개정 — 2026-10-11 — R53 전체 사양 재대조 반영(`Ruling 878`~`885`) · 최종 대조 정정(`Ruling 886`~`887`): §1.2 · §1.8 `sort` 허용 필드 표 · §1.11 · §3.6 ③ · §3.7 · §4.7 · §4.6 출발 뒤 기록 알림 · §5.3 `boarded_count` · §5.12 · §5.16 · §5.21 · §6.3 · §6.7 · §9.7 · §1.13 `sent_at` 해소 · 목록 기본 정렬(§5.9 · §5.10). 이전 개정 — 2026-10-10 — R51 사양 대조 반영(`Ruling 853`~`862`): §3.10 `stops[].address` · §4.5 재전송 · §4.6 · §4.9 수신자 · §5.11 · §5.16 · §6.4 · §6.15~6.16 · §7 구독 · §12 운영 경로 신설 · 표기 정리(§3.7 `stop_id` · §5.9 · §6.7 응답 표). 이전 개정 — 2026-10-04 — R48 리디자인 반영(`Ruling 801`~`824`): `API_SPEC §6.18` 대시보드 신설 · `API_SPEC §5.20` 처리 표시 신설 · `API_SPEC §5.11` 퇴원 미리보기 신설 · 응답 필드 추가(§3.1·3.9·3.10·3.11 · §4.1·4.2 · §5.1·5.3·5.4·5.5·5.9~5.13·5.17·5.21 · §6.1·6.3·6.4·6.6·6.8·6.13·6.15·6.16) |
 | 기준 | 바래다 API명세서 v2.1 · 기능정의서 v2.1 · PRD v2.1 · 유저플로우 v2.1 (2026-08-24) |
 | 프로토콜 | REST + JSON, Bearer 토큰. 실시간은 WebSocket 병행 |
 
@@ -72,7 +72,7 @@
 |---|---|
 | 인증 헤더 | `Authorization: Bearer {access_token}` — **앱·웹 공통.** access 토큰은 쿠키로 전송하지 않음 |
 | access 토큰 | 단기(15분). 만료 시 `401 TOKEN_EXPIRED`. **권한을 잃은 계정의 토큰도 다음 요청부터 같은 코드로 거절**한다(`Ruling 880` — 아래 "무효화") |
-| refresh 토큰 | 장기. `POST /auth/refresh` 로 access 재발급 — 자동 로그인의 근거. **전달 수단은 클라이언트 종류로 가름** (§1.2.1) |
+| refresh 토큰 | 장기(14일 — 쿠키 `Max-Age` 도 같은 값, `Ruling 896`). `POST /auth/refresh` 로 access 재발급 — 자동 로그인의 근거. **전달 수단은 클라이언트 종류로 가름** (§1.2.1) |
 | 무효화 | refresh 만료 · 로그아웃 · 계정 차단 시 무효화 후 재로그인 요구 (`401`). **권한을 잃은 계정 — 퇴사(`academy_staff.status=inactive`) · 차단(`account.status=blocked`) · 삭제된 매니저 계정 — 은 refresh 무효화에 더해 서버가 요청마다 계정의 현재 상태를 확인해, 이미 받은 access 토큰(최대 15분)도 다음 요청부터 `401 TOKEN_EXPIRED` 로 거절한다**(`Ruling 880`). 클라이언트는 재발급을 시도하고 재발급이 `401` 이라 로그인으로 간다(§2.6 — 재로그인 신호는 하나). WebSocket(§7)은 새 연결 · 구독 · 송신을 같은 규칙으로 거절하고, 이미 열린 세션은 **최대 30초마다 한 번 계정 상태를 점검해 끊는다**(그 사이 방송을 받을 수 있다 · 점검이 DB 장애로 실패하면 다음 점검까지 30초 더 늦어진다). 로그아웃은 그 기기의 refresh 만 무효화한다(다른 기기의 access 를 끊지 않는다). `pending` · `rejected` 의 허용 목록 게이트(§1.4)와 `must_change_password` 게이트는 이 규칙의 대상이 아니다(권한을 잃은 상태가 아니다). **삭제된 매니저의 계정은 로그인은 `200` 이지만 이후 모든 요청과 재발급이 `401 TOKEN_EXPIRED` 이고, 앱은 재발급 `401` 에서 로그인 화면으로 돌아간다**(`Ruling 880`) |
 | 비인증 허용 경로 | `GET /academies/search` · `POST /auth/signup` · `POST /auth/login` · `POST /auth/refresh` · `POST /auth/recover` **5개만** |
 
@@ -108,7 +108,7 @@
 | `Content-Type` | 요청 | ● | 본문이 있는 요청에 `application/json` |
 | `X-Client-Version` | 요청 | ○ | 앱 버전. 강제 업데이트 판정용 |
 | `X-Client-Type` | 요청 | ○ | `app` · `web`. **`POST /auth/login` 에서만 의미를 가짐** — refresh 를 본문으로 줄지 쿠키로 줄지 판정 (§1.2.1). 미전달 시 `app`. `refresh`·`logout` 은 쿠키 존재 여부로 판정하므로 불필요 |
-| `X-Request-Id` | 요청·응답 | ○ | 요청 추적 식별자. 미전달 시 서버 생성 후 응답에 반영 |
+| `X-Request-Id` | 요청·응답 | ○ | 요청 추적 식별자. 미전달 또는 형식 위반(영문·숫자·`.`·`_`·`-` 1~64자 밖)이면 서버가 UUID 를 생성해 응답에 반영 (`Ruling 896`) |
 
 ### 1.4 계정 상태 게이트 (C-01 · 3.6)
 
@@ -169,7 +169,7 @@
 | `size` | integer | 20 | 최대 100 |
 | `sort` | string | 엔드포인트별 | `{필드}:{asc\|desc}` |
 
-응답 봉투 — `items[]` · `page` · `size` · `total_count` · `has_next`.
+응답 봉투 — `items[]` · `page` · `size` · `total_count` · `has_next`. `page` < 0 또는 `size` < 1 이거나 상한을 넘으면 `422 VALIDATION_FAILED`(`Ruling 896`).
 
 **`sort` 허용 필드**(`Ruling 885` ⑪ 결과 표 — 코드에 있던 목록을 사양에 모음). 목록에 없는 필드 이름은 `422 VALIDATION_FAILED` 이고 엔티티 필드명은 응답에 싣지 않는다. 관리자 콘솔 목록 3개(§6.1 · §6.6 · §6.10)와 학생 목록은 같은 값의 행을 `id` 오름차순으로 마저 가른다(쪽을 넘겨도 행이 겹치거나 빠지지 않게). **일정(§5.10) · 노선(§5.9) 목록은 요청한 정렬 뒤의 마지막 보조 키로 `id` 오름차순을 붙인다**(`Ruling 887` ⑦ — 같은 요일 · 시각의 행이 쪽을 넘길 때 겹치거나 빠지지 않게).
 
@@ -200,12 +200,10 @@ HTTP 상태 코드 + 본문. 본문 형태는 전 엔드포인트 공통.
 ```json
 {
   "error": {
-    "code": "CHANGE_LIMIT_REACHED",
-    "message": "금일은 변경할 수 없습니다",
+    "code": "INVALID_CREDENTIALS",
+    "message": "아이디 또는 비밀번호가 올바르지 않습니다",
     "details": {
-      "run_id": "run_20260824_3_am",
-      "used_count": 1,
-      "limit": 1
+      "remaining_attempts": 3
     }
   }
 }
@@ -215,7 +213,7 @@ HTTP 상태 코드 + 본문. 본문 형태는 전 엔드포인트 공통.
 |---|---|:-:|---|
 | `error.code` | string | ● | 에러 코드 사전(§8)의 값 |
 | `error.message` | string | ● | 사용자 노출 문구 (한국어) |
-| `error.details` | object | ○ | 코드별 부가 정보. 구조는 코드마다 상이 |
+| `error.details` | object | ○ | 코드별 부가 정보. 구조는 코드마다 상이. **`details` 를 싣는 코드는 3종뿐** — `INVALID_CREDENTIALS`(`remaining_attempts`) · `ADDRESS_VERIFICATION_FAILED`(`failed_entries`) · 버스 간 이동의 `CAPACITY_EXCEEDED`(`current` · `capacity`, §5.8). 나머지 코드는 `details` 를 싣지 않는다(`Ruling 896`) |
 
 ### 1.11 모든 엔드포인트 공통 에러
 
@@ -223,6 +221,7 @@ HTTP 상태 코드 + 본문. 본문 형태는 전 엔드포인트 공통.
 
 | 코드 | HTTP | 발생 조건 |
 |---|:-:|---|
+| `UNAUTHORIZED` | 401 | `Authorization` 헤더 없음 · 위조 · access 가 아닌 토큰(refresh 등) · 필수 클레임 누락 — 만료(`TOKEN_EXPIRED`)와 구별되며 클라이언트는 재발급이 아니라 로그인으로 간다 (§8.1, `Ruling 896`) |
 | `TOKEN_EXPIRED` | 401 | access·refresh 만료 · 로그아웃·차단으로 무효화 · **권한을 잃은 계정(퇴사 · 차단 · 삭제된 매니저)의 요청**(`Ruling 880`) → 클라이언트는 재발급을 시도하고 재발급이 `401` 이면 재로그인 (§1.2 · §2.6) |
 | `AUTH_PENDING` | 403 | `pending` 계정이 **허용 5개**(`GET /auth/signup-status` · `POST /auth/logout` · `GET /me` · `POST /me/devices` · `DELETE /me/devices/{token}`) 밖 호출. `rejected` 는 `POST /auth/signup/reapply` 1개 추가(허용 6개, `AUTH_REJECTED`) (§1.4 · §8.1) |
 | `AUTH_ACCOUNT_BLOCKED` | 403 | `blocked` 계정의 호출 — 해제는 메인 관리자 (C-11) |
@@ -232,7 +231,7 @@ HTTP 상태 코드 + 본문. 본문 형태는 전 엔드포인트 공통.
 | `SERVER_BUSY` | 503 | DB 연결을 얻지 못함(풀 고갈 · 연결 끊김) · 잠금 대기 5초 초과 · 쿼리 취소 — 서버 결함이 아닌 일시 과부하. 응답에 `Retry-After: 3`(초) 가 실리고 **클라이언트는 같은 요청을 잠시 뒤 다시 보낸다**(`Ruling 620`) |
 
 - **비인증 허용 경로 5개**(§1.2)에는 위 401·403 항목이 미적용 — `VALIDATION_FAILED` 만 해당.
-- **자유 입력 메모·비고 문자열의 최대 길이는 200자**(2026-09-30 BR-255 · BR-257) — `note`(학생 등록·수정 §5.11, 강제 추가 §5.7) · `memo`(학원 등록·수정 §6.2·§6.3, 비상 신고 §4.14, 현장 예외 보고 §4.13). 넘으면 `422 VALIDATION_FAILED`. 경유 지점·버스 간 이동의 `note` 는 원래 200자였고 그 값에 맞췄다. **그 밖의 사유·문자열 필드의 상한**(`R52` 에서 코드 값을 사양에 모음) — 사유류는 200자: 가입·변경 거절 사유(`reject_reason`) · 되돌리기 `reason`(§4.7) · 강제 확정·종료 `reason`(§6.14·§6.12) · 변경 신청 `reason`(§3.8), 변경 신청 `new_address` 255자, 지연 알림 `message` 500자(`reason` 은 프리셋 키라 길이 상한 없이 공백만 거부). 이름·연락처류 — 학생 `name` 50 · `student_phone` 30 · `grade` 20 · `class_name` 50, 학원 `name` 100 · `region` 50 · `address` 255 · `contact` 30, 매니저 `name` 50 · `phone` 30, 차량 `bus_no` 20 · `plate_no` 20, 가입 `login_id` 50 · `name` 50 · `phone` 30, 노선·승하차지 `name` 100 · `address` 255, 경유 지점 `address` 255 · `label` 100, 요일별 주소 `address` · `address_detail` 255, 회차 `origin_name` · `destination_name` 100. 넘으면 모두 `422 VALIDATION_FAILED` DB 는 `text` 라 자리 부족이 아니라 수 MB 저장을 막는 상한이다.
+- **자유 입력 메모·비고 문자열의 최대 길이는 200자**(2026-09-30 BR-255 · BR-257) — `note`(학생 등록·수정 §5.11, 강제 추가 §5.7) · `memo`(학원 등록·수정 §6.2·§6.3, 비상 신고 §4.14, 현장 예외 보고 §4.13). 넘으면 `422 VALIDATION_FAILED`. 경유 지점·버스 간 이동의 `note` 는 원래 200자였고 그 값에 맞췄다. **그 밖의 사유·문자열 필드의 상한**(`R52` 에서 코드 값을 사양에 모음) — 사유류는 200자: 가입·변경 거절 사유(`reject_reason`) · 되돌리기 `reason`(§4.7) · 강제 확정·종료 `reason`(§6.14·§6.12) · 변경 신청 `reason`(§3.8), 변경 신청 `new_address` 255자, 지연 알림 `message` 500자(`reason` 은 프리셋 키라 길이 상한 없이 공백만 거부). 이름·연락처류 — 학생 `name` 50 · `student_phone` 30 · `grade` 20 · `class_name` 50, 학원 `name` 100 · `region` 50 · `address` 255 · `contact` 30, 매니저 `name` 50 · `phone` 30, 차량 `bus_no` 20 · `plate_no` 20, 가입 `login_id` 50 · `name` 50 · `phone` 30, 노선·승하차지 `name` 100 · `address` 255, 경유 지점 `address` 255 · `label` 100, 요일별 주소 `address` · `address_detail` 255, 회차 `origin_name` · `destination_name` 100, 단말 등록 `device_id` 100 · `app_version` 20, 로그아웃 `device_id` 100. 넘으면 모두 `422 VALIDATION_FAILED` DB 는 `text` 라 자리 부족이 아니라 수 MB 저장을 막는 상한이다.
 - **교착(deadlock · SQLSTATE `40P01`)·직렬화 실패(`40001`)는 `503 SERVER_BUSY` 가 아니라 `500 INTERNAL_ERROR`** 다 — 일시 과부하가 아니라 잠금 순서 결함이라 스택을 남긴다(`Ruling 792` · BR-352).
 - **인증 필터의 계정 상태 조회**(요청마다 실행 — `Ruling 880`)**가 DB 자원 오류**(연결 풀 고갈 · 연결 끊김 · 잠금 대기 초과 · 쿼리 시간 초과)**로 실패해도 `503 SERVER_BUSY`(`Retry-After: 3`)다. 그 밖의 DB 예외(교착 · 직렬화 실패 · SQL 오류)는 `500 INTERNAL_ERROR` 다. 어느 쪽도 인증을 세우지 않는다 — 모르는 계정 상태는 통과시키지 않는다(`Ruling 880`).
 - `503 SERVER_BUSY` 는 과부하라 **요청이 처리되지 않았다는 것만 확정**이다(재시도 안전 — 쓰기 요청은 `client_key` 멱등 키로 중복을 막는 경로가 이미 있다). 서버 로그에는 스택 없는 `warn` 한 줄(`[db-unavailable]`)만 남아 `5xx` 경보에서 서버 결함(`500`)과 갈라 볼 수 있다.
@@ -475,7 +474,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 | `current_password` | string | ● | 현재 비밀번호 |
 | `new_password` | string | ● | 새 비밀번호 — UTF-8 72바이트 이하(§2.2) |
 
-**에러** — `401 INVALID_CREDENTIALS` · `422 VALIDATION_FAILED`. 성공 시 기존 refresh 토큰 전량 무효화 — 웹 호출이면 §2.7 과 같은 쿠키 삭제 지시를 함께 반환.
+**에러** — `401 INVALID_CREDENTIALS` · `422 VALIDATION_FAILED`. 성공 `204`(본문 부재). 성공 시 기존 refresh 토큰 전량 무효화 — 웹 호출이면 §2.7 과 같은 쿠키 삭제 지시를 함께 반환.
 
 **임시 비밀번호 강제 변경 표식(`must_change_password`)이 켜진 계정도 이 호출은 허용**되고(§1.4), **성공하면 표식이 내려간다**(`Ruling 540`). refresh 토큰이 끊기므로 새 비밀번호로 다시 로그인해야 하고, 그 로그인의 토큰에는 표식이 없다.
 
@@ -958,7 +957,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
       "seq": 4,
       "name": "한빛아파트 정문",
       "change": "skipped",
-      "skip_notice": "이 승하차지는 오늘 탑승자가 없어 미정차",
+      "skip_notice": "운행 중 미승차로 전원 미탑승",
       "students": []
     },
     {
@@ -1040,7 +1039,7 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 |---|---|:-:|---|
 | `stops[]` | array | ● | `stop_id` · `seq` · `name` · `address` · `lat` · `lng` · `change` · `student_count` · `is_destination` · `is_waypoint` |
 | `stops[].is_waypoint` | boolean | ● | **강제 경유 지점(§5.15) 항목만 `true`**(`Ruling 400`, 2026-09-30) — 승하차지·학원 항목은 `false`. 경유 지점은 `stop_id`(=`run_stop.id`)·`student_count`(0) 등 다른 필드가 승하차지와 같은 모양이라 이 값으로만 가른다. 지도가 경유 지점을 번호 없는 "경유" 마커로 그리고 승하차지 번호에서 뺀다. 배포 후 제거돼 좌표가 `null` 인 행도 경유 지점이면 `true` |
-| `stops[].waypoint_id` | integer, null 가능 | ◐ | **경유 지점 항목(`is_waypoint=true`)에서만 값이 있고 나머지는 `null`**(`Ruling 893`) — `DELETE /staff/runs/{runId}/waypoints/{waypointId}`(§5.15)의 경로 값이다. 관계자 웹 경유 지점 패널이 지울 행을 이 값으로 고른다 |
+| `stops[].waypoint_id` | string, null 가능 | ◐ | **경유 지점 항목(`is_waypoint=true`)에서만 값이 있고 나머지는 `null`**(`Ruling 893`). 식별자라 JSON 문자열이다(§1.1, `Ruling 896`) — `DELETE /staff/runs/{runId}/waypoints/{waypointId}`(§5.15)의 경로 값이다. 관계자 웹 경유 지점 패널이 지울 행을 이 값으로 고른다 |
 | `stops[].is_destination` | boolean | ● | **등원 회차의 마지막 항목(학원)만 `true`** — 이 항목의 도착 처리(§4.5)가 운행 종료(C-15). 이름·좌표는 학원, `student_count` 0. 하원 회차에는 부재(학원이 출발지) (2026-09-25 `Ruling 327`) |
 | `current_stop` | object | ○ | **마지막으로 도착한** 승하차지 — 도착 기록이 없으면 부재. 다음에 설 곳은 `next_stop` 이다 (2026-09-14 문면 정정, `Ruling 281`) |
 | `next_stop` | object | ○ | 다음 승하차지. **`skipped` 는 건너뛰고 실제 경유지를 반환** |
@@ -1722,7 +1721,7 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 | 목적 | 학생 1명을 출발 회차 명단에서 제외하고 도착 회차 명단에 추가 |
 | 구간 | **① 구간 전용** — 둘 중 한 회차라도 ② 구간이면 `403 CHANGE_WINDOW_CLOSED`(UF-M-04) |
 | 대상 | 학생이 출발 회차의 당일 명단(확정 전이면 `boarding_intent`·요일별 주소 기준 예정 명단)에 있어야 함 — 없으면 `409 STUDENT_NOT_IN_RUN`. **도착 회차 명단(예정 명단 포함)에 이미 있으면 `409 STUDENT_ALREADY_IN_RUN`**(`Ruling 392` — 옮길 것이 없는데 `201` 이 나가고 `impact` 가 부풀던 결함) |
-| 정원 | 도착 회차 초과 시 `409 CAPACITY_EXCEEDED`(현재 인원·정원 병기) |
+| 정원 | 도착 회차 초과 시 `409 CAPACITY_EXCEEDED`(`details` 에 `current` · `capacity` 병기) |
 | 반영 시점 | 저장만 하고 끝난다 — 그날 두 회차 명단에 실제로 합쳐지는 것은 각 회차의 확정 배치다(Ruling 198) |
 
 **요청**
@@ -1853,7 +1852,7 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 `nearby[]`(`stop_id` · `name` · `address` · `lat` · `lng` · `distance_m`). `nearby` 는 **50m 안**의 기존 승하차지다(근접 병합 임계와 같은 값,
 STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같은 자리에 둘째를 만들지 않게 한다.
 
-- **후보가 없으면 빈 목록이다** — 입력하는 동안에는 흔한 상태라 오류가 아니다(`422` 아님)
+- **후보가 없으면 빈 목록이다** — 입력하는 동안에는 흔한 상태라 오류가 아니다(`422` 아님). 단 `query` 가 비었거나 공백뿐이거나 100자를 넘으면 `422 VALIDATION_FAILED`(후보 없음과 다름, `Ruling 896`)
 - 공급자에 못 닿으면 `503 ADDRESS_VERIFICATION_UNAVAILABLE`("그런 주소가 없다" 와 "지금 물어볼 수 없다" 는 화면 안내가 다르다)
 - 후보는 **장소 검색(최대 5건) → 주소 검색** 차례다. 장소 후보는 `place_name`(장소 이름 — 표시명 기본값)을 더 싣고,
   `display_name` 은 도로명 주소다. 주소 후보에는 `place_name` 이 없다
@@ -2061,7 +2060,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **등록 · 수정의 `capacity` 는 기사 + 동승자 수(기본 1 + 1 = 2)보다 커야 한다** — `capacity` ≤ 기사 + 동승자 면 학생 탑승 가능 인원이 0 이하라 `422 VALIDATION_FAILED`(0명짜리 버스를 편성하지 않게 저장 전에 거절, DB `ck_bus_capacity` 와 같은 조건).
 
-정원 검증의 기준은 `student_capacity`. 초과 시 `409 CAPACITY_EXCEEDED` — 현재 인원과 정원을 `details` 에 반환 (BUS-04). 정원 축소로 기배정 인원이 초과하면 경고.
+정원 검증의 기준은 `student_capacity` (BUS-04). 정원 축소로 기배정 인원이 초과하면 거절이 아니라 경고(`warnings[]` 의 `CAPACITY_BELOW_ASSIGNED`)이고, 차량 등록·수정은 `CAPACITY_EXCEEDED` 를 내지 않는다(`Ruling 896`).
 
 **`PATCH` 응답의 `warnings[]`**(2026-09-25, BR-116) — 그 차량의 **오늘 이후 · 미취소 · `idle`·`confirmed`** 회차 중 배정 인원이 수정 후 `student_capacity` 를 넘는 회차마다 1건. 배정 인원은 확정 회차면 `absent` 를 뺀 명단, 확정 전이면 예정 명단(§5.7·§5.8 정원 판정과 같은 규칙). **경고이고 차단이 아니다**(§5.14 와 같은 축) — 수정은 저장되고, 없으면 빈 배열. 목록·등록 응답에는 이 필드가 없다.
 
@@ -2075,7 +2074,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 **`PATCH` 의 필수 항목**(`Ruling 791`) — `bus_no`·`plate_no` 는 보내면 공백 아닌 글자가 있어야 한다. 빈 문자열·공백뿐은 `422 VALIDATION_FAILED`(미전송·`null` 은 유지, §1.14). 등록(`@NotBlank`)과 같은 규칙.
 
-**에러** — `422 VALIDATION_FAILED`(필수 항목 빈 문자열 · `capacity` ≤ 기사 + 동승자) · `409 CAPACITY_EXCEEDED`(학생 탑승 가능 인원 초과 — `details` 에 현재 인원·정원) · `409 DUPLICATE_BUS_NO`(같은 학원에 같은 호차 — 등록·수정 공통, 2026-08-26 신설 · Ruling 164) · `404 BUS_NOT_FOUND`(`PATCH` 대상 부재 · 타 학원 — 존재 비노출, Ruling 163)
+**에러** — `422 VALIDATION_FAILED`(필수 항목 빈 문자열 · `capacity` ≤ 기사 + 동승자) · `409 DUPLICATE_BUS_NO`(같은 학원에 같은 호차 — 등록·수정 공통, 2026-08-26 신설 · Ruling 164) · `404 BUS_NOT_FOUND`(`PATCH` 대상 부재 · 타 학원 — 존재 비노출, Ruling 163)
 
 ### 5.13 매니저 관리 (MGR-01~04, A-12)
 
@@ -2179,7 +2178,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 | `apply` | boolean | ● | `false` = 미리보기만, `true` = 재최적화 결과 배포 |
 | `preview_token` | string | 조건부 | `apply=true` 필수 — 미리보기 응답에서 받은 값. **배포는 그 미리보기의 지점·순번·계산을 그대로 쓴다**(본문의 지점 값은 쓰지 않음). 없거나 낡았으면 `409 PREVIEW_STALE` — 승인(§5.6)과 같은 형태(2026-09-25 `BR-051`, `ARCHITECTURE §8.4`) |
 
-**응답** — `waypoint_id` · `preview_token`(미리보기일 때만 — 배포 요청에 그대로 돌려보낸다. 회차당 가장 최근 미리보기 하나만 유효) · `route_preview`(§5.5 상세와 동일 구조 — `stops_before[]` · `stops_after[]` · `reordered[]` · `road_path_before[]`·`road_path_after[]` 포함, 근거는 §5.5 참조) · `est_time_before`·`est_time_after` · `est_distance_before`·`est_distance_after` · `est_duration_before`·`est_duration_after`(노선 전체 소요·분, §5.5 와 같은 이유·같은 값 출처 — `Ruling 318`, 2026-09-19) · `applied`(boolean)
+**응답** `200`(미리보기·배포 공통 — 생성 `201` 규약(§1.1)의 예외, 구분은 `applied`, `Ruling 896`) — `waypoint_id` · `preview_token`(미리보기일 때만 — 배포 요청에 그대로 돌려보낸다. 회차당 가장 최근 미리보기 하나만 유효) · `route_preview`(§5.5 상세와 동일 구조 — `stops_before[]` · `stops_after[]` · `reordered[]` · `road_path_before[]`·`road_path_after[]` 포함, 근거는 §5.5 참조) · `est_time_before`·`est_time_after` · `est_distance_before`·`est_distance_after` · `est_duration_before`·`est_duration_after`(노선 전체 소요·분, §5.5 와 같은 이유·같은 값 출처 — `Ruling 318`, 2026-09-19) · `applied`(boolean)
 
 | 처리 | 내용 |
 |---|---|
@@ -2224,7 +2223,7 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 | `occurred_at` | datetime | ● | **단말이 누른 시각 — 참고값**(`Ruling 744`, `Ruling 236` 의 "미노출" 을 갱신). 단말 시각은 조작할 수 있어 정렬·판정·취소 창에 쓰지 않는다. 오프라인 큐로 늦게 도착한 비상(`Ruling 616`)에서 `raised_at` 과 벌어진다 — 관계자·메인 관리자 웹은 두 시각이 **1분을 넘게** 다를 때만 "단말 기록 HH:mm(참고)" 를 덧붙인다. 단말이 시각을 안 보냈으면 `raised_at` 과 같다. 클라이언트는 없거나 `null` 이어도 견딘다 |
 | `acked_by` | object | ○ | 확인한 관계자 — `name` · **`memo`**(확인할 때 남긴 **조치 메모**, 없으면 `null` · `Ruling 541`) |
 
-`POST /staff/emergencies/{id}/ack` — 접수 응답. 발신자 앱에 "학원이 확인했어요" 표시. 확인 이력(누가·언제) 저장. **이미 확인된 건 재확인은 `409 ALREADY_ACKED`**. **발신자가 취소한 건은 확인할 수 없다 — `409 EMERGENCY_CANCELED`**(`Ruling 885` ①. 철회된 신고가 확인 처리되고 발신자에게 "학원이 확인했어요" 가 가던 것을 막는다). 관계자 웹은 취소 건에 [확인] 을 그리지 않고 상세 타임라인에 "취소됨" 을 보인다.
+`POST /staff/emergencies/{id}/ack` — 접수 응답(`200` — `emergency_id` · `acked_at`, `Ruling 896`). 발신자 앱에 "학원이 확인했어요" 표시. 확인 이력(누가·언제) 저장. **이미 확인된 건 재확인은 `409 ALREADY_ACKED`**. **발신자가 취소한 건은 확인할 수 없다 — `409 EMERGENCY_CANCELED`**(`Ruling 885` ①. 철회된 신고가 확인 처리되고 발신자에게 "학원이 확인했어요" 가 가던 것을 막는다). 관계자 웹은 취소 건에 [확인] 을 그리지 않고 상세 타임라인에 "취소됨" 을 보인다.
 **취소와 확인이 동시에 오면 먼저 커밋된 쪽이 이긴다** — 취소가 먼저면 확인은 `409 EMERGENCY_CANCELED`, 확인 이력과 `emergency_acked` 방송은 남지 않는다. **확인이 먼저고 그 뒤 발신 1분 안에 취소하면** 취소가 마지막 사건이라 어느 화면(관계자 웹 · 메인 관리자 웹)에서나 **"취소됨" 으로 그리고**("확인됨" 보다 우선), 확인 기록(`acked_by` · `acked_at`)은 상세 타임라인에 그대로 남긴다(`Ruling 887` ①).
 
 **요청 본문(선택)** — `memo`(string, 선택, **200자 이하**) — 확인과 함께 남기는 **조치 메모**(`Ruling 541`, `119 신고 완료` 같은 사후 조치 기록). **본문 자체가 없어도, `memo` 가 없거나 공백뿐이어도 확인은 그대로 동작**하고 그때 메모는 `null`. 앞뒤 공백은 지우고 저장하며, 최초 확인자의 메모만 남는다(확인과 같은 조건부 UPDATE 한 문장). `[확인]` 은 알림을 봤다는 표시이지 조치를 마쳤다는 뜻이 아니라는 `R46-WEBF Ruling 494` 의 문구는 그대로다 — 조치 내용을 남기고 싶을 때만 메모를 쓴다.
@@ -2853,7 +2852,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 |---|---|---|
 | `position` | `POST /runs/{runId}/position` (**2초** 주기 · 옛값 5~10초) | `lat` · `lng` · `received_at` · `current_stop_name`(§4.3 `current_stop` 과 같은 판정 — **마지막으로 도착한** 승하차지 이름, 도착 기록이 없으면 부재, 2026-09-17 문면 정정 `Ruling 304`). **학부모·학생 채널은 ETA 부재** (C-08), 관제 채널만 `eta` 포함 |
 | `stop_arrived` | `POST /runs/{runId}/stops/{stopId}/arrive` | `stop_id` · `seq` · `name` · `arrived_at` · `next_stop_id`(둘 다 `run_stop.id`, `Ruling 327`). 기사 포인터 전진의 방송 — 동승자 처리 명단은 불변 |
-| `rider_changed` | `PATCH /runs/{runId}/riders/{riderId}` · `revert` · **§3.6 ③구간 `riding=false`**(`status=absent` · `stop_skipped`, `Ruling 334`) | `rider_id` · `student_id` · `student_name` · `status` · `stop_id` · `changed_at` · `counts` · `stop_skipped`. **5초** 이내 반영 |
+| `rider_changed` | `PATCH /runs/{runId}/riders/{riderId}` · `revert` · **§3.6 ③구간 `riding=false`**(`status=absent` · `stop_skipped`, `Ruling 334`) | `rider_id` · `student_id` · `student_name` · `status` · `stop_id` · `changed_at` · `counts`(`waiting` · `boarded` · `alighted` · `absent` · `no_show` 5종 — 각각 지금 그 상태인 인원, `boarded` 는 이미 내린 학생 제외, `Ruling 896`) · `stop_skipped`. **5초** 이내 반영 |
 | `run_started` | `POST /runs/{runId}/start` | `run_status`(`moving`) · `started_at` · `auto_boarded_count`. **학생 채널은 `auto_boarded_count` 부재** (C-08 · §1.12, `Ruling 335`) |
 | `run_ended` | 서버의 `finished` 전이 (§4.10) | `run_status`(`finished`) · `finished_at` · `auto_alighted_count`(등원 종료 때 자동 하차 처리된 수 · **하원 종료는 어느 경로든 `0`**). **학생 채널은 `auto_alighted_count` 부재** (C-08 · §1.12, `Ruling 335`) |
 | `emergency_raised` | `POST /runs/{runId}/emergency` | `emergency_id` · **`academy_id` · `academy_name`**(그 회차의 학원 — 메인 관리자 전체 관제 배너가 어느 학원 신고인지 표시, `Ruling 395`. 관계자 채널도 같은 페이로드) · `type` · `bus_no` · `raised_by{name, role, phone}` · `position{lat, lng}` · `rider_count`(발신 시점 회차에 배정된 라이더 전원 수, 승하차 상태 무관) · `raised_at`. **관계자·메인 관리자 채널 전용** (C-17) |
@@ -2895,7 +2894,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 
 | 코드 | HTTP | 발생 조건 |
 |---|:-:|---|
-| `UNAUTHORIZED` | 401 | 자격 증명이 **아예 없는** 접근 — 토큰 미동봉 STOMP `CONNECT` 등. `TOKEN_EXPIRED` 와 합치지 않는 이유는 클라이언트의 다음 동작이 갈리기 때문 — 만료는 재발급을 시도할 자리이고, 부재는 로그인부터 해야 할 자리다 (2026-08-25 등재) |
+| `UNAUTHORIZED` | 401 | 자격 증명이 **아예 없거나 유효하지 않은** 접근 — 토큰 미동봉 STOMP `CONNECT`, REST 의 `Authorization` 헤더 없음 · 위조 · access 가 아닌 토큰(refresh 등) · 필수 클레임 누락 등 (`Ruling 896`). `TOKEN_EXPIRED` 와 합치지 않는 이유는 클라이언트의 다음 동작이 갈리기 때문 — 만료는 재발급을 시도할 자리이고, 부재는 로그인부터 해야 할 자리다 (2026-08-25 등재) |
 | `INVALID_CREDENTIALS` | 401 | 아이디·비밀번호 불일치. `details.remaining_attempts` 로 잔여 시도 안내 |
 | `TOKEN_EXPIRED` | 401 | access·refresh 만료 · 로그아웃·차단으로 무효화 · **권한을 잃은 계정(퇴사 · 차단 · 삭제된 매니저)의 요청**(`Ruling 880`) → 클라이언트는 재발급을 시도하고 재발급이 `401` 이면 재로그인 (§1.2 · §1.11) |
 | `AUTH_PENDING` | 403 | `pending` 계정이 **허용 목록**(`GET /auth/signup-status` · `POST /auth/logout` · `GET /me` · `POST /me/devices`·`DELETE /me/devices/{token}`, §1.4) 밖 호출. `rejected` 는 `POST /auth/signup/reapply` **1개 추가** (C-01 · §1.4). ⚠ **`pending` 에게 재신청은 허용되지 않는다** — `AUTH-03` 이 "재신청은 거절 이후에만" 을 규정 |
@@ -2968,7 +2967,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 
 | 코드 | HTTP | 발생 조건 |
 |---|:-:|---|
-| `CAPACITY_EXCEEDED` | 409 | 학생 탑승 가능 인원(= 정원 − 기사 − 동승자) 초과. `details` 에 현재 인원·정원 (BUS-04) |
+| `CAPACITY_EXCEEDED` | 409 | 학생 탑승 가능 인원(= 정원 − 기사 − 동승자) 초과 (BUS-04) — 강제 추가(§5.7)·버스 간 이동(§5.8)에서 발생. `details` 는 버스 간 이동에만 `current`(반영 전 투영 인원)·`capacity`(도착 버스 `student_capacity`)를 싣고, 강제 추가는 `details` 가 없다. 차량 등록·수정(§5.12)은 이 코드를 내지 않는다(경고 `CAPACITY_BELOW_ASSIGNED`) (`Ruling 896`) |
 | `ADDRESS_VERIFICATION_FAILED` | 422 | 주소 좌표 변환·유효성 검증 실패 — **저장 보류** (STU-05) |
 | `STAFF_QUOTA_EXCEEDED` | 409 | 학원당 관계자 **1명** 초과 승인 (ACAD-05) |
 | `MANAGER_ASSIGNED` | 409 | 회차에 배치된 매니저 삭제 시도 (MGR-04) |
@@ -2993,7 +2992,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 | `DUPLICATE_ROUTE` | 409 | 같은 `bus_id`·`weekday`·`direction` 조합의 고정 노선 중복 편성·수정 — 유일성 근거는 `route(bus_id, weekday, direction)` UNIQUE(`uk_route_bus_weekday_direction`)이고 애플리케이션 선검사가 아니다 (RTE-01 · §5.9). **동시 2요청은 서로의 미커밋 INSERT 를 보지 못한 채 둘 다 선검사를 지나므로**, 제약 위반을 이 코드로 번역하지 않으면 그 경합이 500 으로 샌다. 422 가 아니라 409 인 것은 `DUPLICATE_SCHEDULE`·`DUPLICATE_BUS_NO` 와 같은 형태다 (2026-08-29 신설, Ruling 180) |
 | `ADDRESS_VERIFICATION_UNAVAILABLE` | 503 | 주소 좌표 변환 서비스(네이버 지오코딩)에 연결 불가 — 주소 검증을 거치는 경로(§3.7 · §3.8 · §5.7 · §5.8 · §5.9 승하차지 검색 · §5.15). ⚠ **`ADDRESS_VERIFICATION_FAILED`(422)와 합치지 않는다** — 그쪽은 주소를 고쳐 다시 보낼 자리, 이쪽은 같은 주소를 잠시 뒤 다시 보낼 자리 |
 | `DUPLICATE_WEEKLY_ADDRESS` | 409 | 한 요청 안에 같은 요일·방향의 주소가 둘 이상 — 유일성 근거는 DB UNIQUE (§3.7). 같은 칸을 나중에 다시 고치는 것은 덮어쓰기라 이 코드가 아님 |
-| `ACADEMY_COORDINATES_MISSING` | 422 | 학원 좌표(`academy.lat`·`lng`) 미등록 상태의 노선 계산 — ② 구간 승인 미리보기·처리(§5.5) · 고정 노선 최적화(§5.9) · 경유 지점 지정(§5.15). 확정 배치에서는 그 회차만 실패하고 다음 틱에 재시도 (Ruling 190) |
+| `ACADEMY_COORDINATES_MISSING` | 422 | 학원 좌표(`academy.lat`·`lng`) 미등록 상태의 노선 계산 — ② 구간 승인 미리보기·처리(§5.5) · 고정 노선 최적화(§5.9) · 경유 지점 지정(§5.15). 확정 배치에서는 그 회차만 실패하고 실패 횟수에 따라 30초→최대 10분 간격으로 재시도 (Ruling 190 · Ruling 703) |
 | `WAYPOINT_NOT_FOUND` | 404 | 미존재·이미 제거된 강제 경유 지점 지정 · 다른 회차 소속 — 존재 비노출 (§5.15 · RTE-10) |
 
 ---
