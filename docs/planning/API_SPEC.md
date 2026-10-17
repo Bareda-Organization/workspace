@@ -2900,7 +2900,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 |---|---|---|
 | 구독 거절 | 종료 코드 `4403 SUBSCRIPTION_FORBIDDEN` | 재연결하지 않는다 — `ERROR` 프레임을 못 받아도 닫힘 코드가 `4403` 이면 같다 |
 | 토큰 만료 | STOMP `ERROR` 프레임(`message: TOKEN_EXPIRED`) 뒤 종료 코드 `1002` | 재발급 후 새 토큰으로 재연결 |
-| 자격 증명 없음 · 무효 | `ERROR` 프레임(`message: UNAUTHORIZED`) 뒤 종료 코드 `1002` | 재발급을 **한 번** 시도해 새 토큰으로 접속 — 재발급이 실패하거나 재발급한 토큰으로도 `UNAUTHORIZED` 면 세션 만료 처리(로그인 화면 · 재시도 없음 · 30초 간격 재시도 루프 없음). 토큰 부재 · 위조는 같은 토큰으로 다시 붙어도 같은 거절이다 |
+| 자격 증명 없음 · 무효 | `ERROR` 프레임(`message: UNAUTHORIZED`) 뒤 종료 코드 `1002` | 재발급을 **한 번** 시도해 새 토큰으로 접속한다(30초 간격 재시도 루프 없음). **"재발급 실패" 의 뜻(`Ruling 905`, 앱 기준)** — ① 재발급이 **거절**됨(토큰을 못 받음 · `401`) 또는 ② 재발급한 토큰으로 다시 `UNAUTHORIZED` 를 받음 → 세션 만료 처리(로그인 화면 · 재시도 없음). ③ 재발급 요청이 **네트워크 · `5xx` · 시간 초과**로 실패한 것은 자격이 거절된 것이 아니므로 세션을 만료시키지 않고 **일반 백오프로 계속 다시 붙는다**. 한 번 쓴 재발급 기회는 `CONNECTED` 뿐 아니라 사용자의 수동 연결 끊기 · 다시 연결에서도 새로 얻는다. ⚠ **웹은 현재 ③ 도 세션 만료로 처리한다**(R57 W-5 구현 — 재발급 실패 원인을 가르지 않음; `handleUnauthorized()` 의 `catch` 에서 `ApiError` `401` 만 만료로 넘기면 앱과 같아진다). 토큰 부재 · 위조는 같은 토큰으로 다시 붙어도 같은 거절이다 |
 | 송신 · 권한 거부 | `ERROR` 프레임(`message: FORBIDDEN`) 뒤 종료 코드 `1002` | 재연결하지 않는다 |
 | 채널 권한 상실(`Ruling 899` B) | 종료 코드 **`4500 SESSION_REVOKED`** | 첫 백오프 단계(1초)에서 재접속 · 재구독 — 아직 금지된 채널은 `4403` |
 | CONNECT 마감 초과(`Ruling 899` D) | 종료 코드 `1008` | 일반 백오프로 재접속 |
@@ -2913,7 +2913,7 @@ REST 조회의 보완. 접속 시 `Authorization: Bearer {access_token}` 로 인
 
 | 코드 | HTTP | 발생 조건 |
 |---|:-:|---|
-| `UNAUTHORIZED` | 401 | 자격 증명이 **아예 없거나 유효하지 않은** 접근 — 토큰 미동봉 STOMP `CONNECT`, REST 의 `Authorization` 헤더 없음 · 위조 · access 가 아닌 토큰(refresh 등) · 필수 클레임 누락 등 (`Ruling 896`). `TOKEN_EXPIRED` 와 합치지 않는 이유는 클라이언트의 다음 동작이 갈리기 때문 — 만료는 재발급을 시도할 자리이고, 부재는 로그인부터 해야 할 자리다 (2026-08-25 등재). **WebSocket `ERROR` 프레임 `UNAUTHORIZED` 는 예외로 재발급을 한 번 시도한 뒤 실패하면 로그인으로 간다**(§7.2 종료·`ERROR` 분기 표) |
+| `UNAUTHORIZED` | 401 | 자격 증명이 **아예 없거나 유효하지 않은** 접근 — 토큰 미동봉 STOMP `CONNECT`, REST 의 `Authorization` 헤더 없음 · 위조 · access 가 아닌 토큰(refresh 등) · 필수 클레임 누락 등 (`Ruling 896`). `TOKEN_EXPIRED` 와 합치지 않는 이유는 클라이언트의 다음 동작이 갈리기 때문 — 만료는 재발급을 시도할 자리이고, 부재는 로그인부터 해야 할 자리다 (2026-08-25 등재). **WebSocket `ERROR` 프레임 `UNAUTHORIZED` 는 예외로 재발급을 한 번 시도한 뒤 재발급이 거절되면 로그인으로 간다**(일시적 네트워크 오류는 제외 — §7.2 종료·`ERROR` 분기 표, `Ruling 905`) |
 | `INVALID_CREDENTIALS` | 401 | 아이디·비밀번호 불일치. `details.remaining_attempts` 로 잔여 시도 안내 |
 | `TOKEN_EXPIRED` | 401 | access·refresh 만료 · 로그아웃·차단으로 무효화 · **권한을 잃은 계정(퇴사 · 차단 · 삭제된 매니저)의 요청**(`Ruling 880`) → 클라이언트는 재발급을 시도하고 재발급이 `401` 이면 재로그인 (§1.2 · §1.11) |
 | `AUTH_PENDING` | 403 | `pending` 계정이 **허용 목록**(`GET /auth/signup-status` · `POST /auth/logout` · `GET /me` · `POST /me/devices`·`DELETE /me/devices/{token}`, §1.4) 밖 호출. `rejected` 는 `POST /auth/signup/reapply` **1개 추가** (C-01 · §1.4). ⚠ **`pending` 에게 재신청은 허용되지 않는다** — `AUTH-03` 이 "재신청은 거절 이후에만" 을 규정 |
