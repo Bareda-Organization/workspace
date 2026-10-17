@@ -52,7 +52,7 @@ location/
 
 같은 이유로 **여러 모듈이 공유하는 순수 조회 규칙**도 `query/` 밖에 둔다 — 호출자에 Command 서비스가 섞이는 순간 `query/`는 §7 위반을 만든다. 판정이면 `access/`, 명단·집계 같은 읽기 규칙이면 그 이름의 패키지를 만든다(`attendance/roster/ActiveRosterReader` = "당일 실제 명단" 규칙, 기사 앱·노선 계산·시뮬레이션 3곳이 공유). 표준 레이아웃에 항상 있는 패키지가 아니라 필요한 모듈에만 둔다.
 
-`global/security/authz/`는 **인가 어휘**를 모아 둔 곳이다 — permission 문자열 상수(`Permissions`), 역할→permission 부여표(`RolePermissions`), 그리고 컨트롤러가 실제로 붙이는 메타 애너테이션 20개(`@CanManageStudents` 등). **컨트롤러는 역할 문자열을 쓰지 않는다** — `@PreAuthorize("hasAnyRole('ACADEMY_ADMIN', 'PLATFORM_ADMIN')")` 대신 "무엇을 할 수 있는가"로 이름 붙은 애너테이션을 쓰고, 어느 역할이 그 권한을 갖는지는 부여표 한 곳에서만 정한다. 그래야 새 역할 추가가 컨트롤러 14개가 아니라 부여표 1파일로 끝난다(`ControllerAuthorizationConventionTest`가 되돌아가는 것을 막는다).
+`global/security/authz/`는 **인가 어휘**를 모아 둔 곳이다 — permission 문자열 상수(`Permissions`), 역할→permission 부여표(`RolePermissions`), 그리고 컨트롤러가 붙이는 애너테이션(`@Can` · `@AuthenticatedOnly` · `@PublicEndpoint`). 권한은 `@Can(Permissions.X)` 하나로 적는다. 권한 카탈로그에 항목이 없는 엔드포인트는 `@AuthenticatedOnly`. **컨트롤러는 역할 문자열을 쓰지 않는다** — `@PreAuthorize("hasAnyRole('ACADEMY_ADMIN', 'PLATFORM_ADMIN')")` 대신 "무엇을 할 수 있는가"를 `Permissions` 상수로 적고, 어느 역할이 그 권한을 갖는지는 부여표 한 곳에서만 정한다. 그래야 새 역할 추가가 컨트롤러 14개가 아니라 부여표 1파일로 끝난다(`ControllerAuthorizationConventionTest`가 되돌아가는 것을 막는다).
 
 `access/`와 달리 `global/` 아래인 이유: `access/`는 "이 사용자가 **이 리소스**를 만질 수 있는가"라서 판정 대상 엔티티를 소유한 도메인에 속하지만, `authz/`의 판정 대상은 특정 도메인이 아니라 **인가 어휘 자체**다. 어떤 도메인 Repository에도 의존하지 않고 14개 도메인 컨트롤러가 전부 참조하므로 `global/security/access/AcademyScope`와 같은 근거로 `global`에 둔다.
 
