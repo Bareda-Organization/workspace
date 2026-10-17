@@ -2447,6 +2447,26 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 - **창마다 자원** — 전용 시험 DB(`-PtestDbUrl`) · 포트. Redis 를 재기동하거나 비우는 시험은 금지(이름 공간이 없어 다른 창의 시험을 깬다)
 - **띄우기 전** — 창이 쓸 Bash 명령의 허용 규칙을 사용자와 먼저 정한다(RQA 에서 창이 승인 창에 멈췄고 조율자는 권한 설정을 못 바꿨다) · `cascade` 착수 전 점검 명령 실행
 - **추정 비용 · 시간** — 약 $70~100 · 2.5~3시간(R56 창 4개 $66 · 2h02m 기준 · 추정)
+- **도구 조건 · 모델 · 잴 것** — 아래 「도구 조건」 절
+
+### 작업 지시서 맨 앞 「도구 조건」 (R57 · R58 · R59 공통 · 2026-10-17 사용자 "1,2,3,4 전부 진행")
+
+규칙 목록 끝의 "탐색은 graft 먼저" 한 줄은 조사 에이전트 5개에서 0회 쓰였고(도구 호출 255회), 질문 맨 앞에 둔 "도구 조건" 은 쓰였다(Skill `parallel-agents` §4.3). 그래서 작업 지시서 · 서브에이전트 지시마다 **맨 앞**에 아래 절을 그대로 붙인다.
+
+```
+## Tooling condition (read before anything else)
+Code navigation uses the graft CLI with the repo folder as the last argument (`backend` · `web` · `mobile`, or the worktree path).
+- Before renaming a symbol or editing it in several files: `graft callers <Symbol> --depth all <repo>` — list every file it prints in your plan.
+- "Is X used anywhere / used only once?": `graft callers <Symbol> <repo>` (real references, not text matches); confirm a zero with `graft grep "<name>" <repo>`.
+- "How does X work / where is Y": `graft ask "<question in English>" --source <repo>` (search ignores Korean).
+- A file's API: `graft skeleton <file>`.
+- `grep` / `sed -n` only to confirm a line graft already pointed to. If graft fails, say so in report item 2.
+```
+
+- **목표 표 행에 명령을 단다** — `graft callers --depth all` 먼저: R57 AR-3(알림 문구 22개) · AR-4(참조 제거) · RT-4 · RT-9(방송 리스너) · R58 B-1(`Can*` 39개) · B-4(시험 도우미) · B-7 · B-8(DTO 합치기) · W-1(`Raw*` · `to*`) · W-2 · W-3 · M-1(앱 공통 패키지) · M-6 · M-7(`guardDio`) · R59 S-1(방송 게이트웨이). 사용처 0 판정을 `graft callers` 로: R58 W-4 · M-2 · M-8 · M-10
+- **작업 공간에 `graft/` 를 복사한다** — 무시 대상이라 `git worktree add` 가 가져오지 않는다. 복사하지 않으면 첫 조회가 요약 층(deep layer) 없이 색인을 새로 만든다(Orca 는 `orca-launch` 의 작업 공간 준비 단계에 더한다)
+- **서브에이전트 모델** — 찾기 · 세기 · 시험 실행 · 결과 집계 · 결함 심기는 haiku(`effort: medium`), 판단(동시성 · 인가 · 설계 · 원인 미상)만 sonnet(Skill `parallel-agents` §4.1). 2026-10-17 점검 세션은 서브에이전트 12개를 전부 sonnet 으로 띄웠다 — 그중 세기 · 찾기 위주였던 7개는 haiku 몫이었다
+- **잴 것** — 라운드가 끝나면 작업 창 · 서브에이전트마다 ① graft 호출 수(Bash 의 `graft (ask|grep|callers|skeleton|map)` · `mcp__graft-*` 도구 호출)와 grep · sed · cat 호출 수 ② 서브에이전트 모델 분포를 대화 기록에서 센다. graft 0 이거나 세기 일에 sonnet 을 쓴 창은 다음 라운드 지시서를 고친다(도는 창에 재지시 없음)
 
 ### R57 목표 표 (초안 — 착수 때 `.claude/r57/` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
 
@@ -2538,6 +2558,7 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 - **병합 순서** — 문서 → BE-CODE · WEB · MOBILE(서버 API 변화 없음 — 셋 사이 순서 무관) → BE-COMMENT
 - **줄 수는 목표가 아니다** — 기록만 한다(G-5). 줄 수를 맞추려 남길 주석 · 시험을 지우지 않는다
 - **추정 비용 · 시간** — 단계 1 약 $50~70 · 2시간 + 단계 2 약 $25~40 · 1.5시간(백엔드 약 900파일의 주석을 읽어 판단 · 추정)
+- **도구 조건 · 모델 · 잴 것** — §8.108 「도구 조건」 절을 그대로 쓴다. BE-COMMENT 의 경위 문단 후보 뽑기 · 전후 계수는 haiku 서브에이전트, 지울지 판단은 창(sonnet)
 
 ### R58 목표 표 (초안 — 착수 때 `.claude/r58/` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
 
@@ -2613,6 +2634,7 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 - **겹침** — 없음(BE-SCALE 은 자바 · 경보 규칙, INFRA 는 compose · nginx · 배포 스크립트 · 부하 스크립트). 병합 순서 문서 → BE-SCALE → INFRA → 단계 2
 - **자원** — 부하 회차는 `load` 프로파일의 지도 가짜 응답만 쓴다(네이버 실호출 0). Docker 를 쓰는 갈래는 둘 다 컨테이너 이름에 갈래 이름을 붙이고, 다른 갈래의 컨테이너 · Redis 를 재기동하지 않는다. `-v` 금지
 - **추정 비용 · 시간** — 단계 1 약 $40~60 · 2시간 + 단계 2 약 $20~40 · 2~3시간(측정 회차가 길다 · 추정)
+- **도구 조건 · 모델 · 잴 것** — §8.108 「도구 조건」 절을 그대로 쓴다. 단계 2 측정 창의 회차 실행 · 결과 집계는 haiku 서브에이전트
 
 ### R59 목표 표 (초안 — 착수 때 `.claude/r59/` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
 
