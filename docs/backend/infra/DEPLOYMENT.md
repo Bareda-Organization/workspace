@@ -1125,6 +1125,17 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 - 위 쿼리는 Prometheus(SSM 포트 포워딩 — §11.1)에서 본다. 전용 대시보드 패널은 두지 않았다 — 하루 1회 값이라 쿼리 한 줄이면 충분하고, 대시보드 `3. 데이터 계층` 은 exporter 가 없는 운영에서 비어 있다
 - 게이지는 정리 끝에 `count(*)` 1회로 채운다(정상 상태에서도 부담 없는 하루 1회). 수천만 행이 되면 `pg_class.reltuples` 추정으로 바꾼다
 
+### 11.10 DB 세션 시간 상한 (`Ruling 899` L)
+
+| 연결 | 설정 | 값 |
+|---|---|---|
+| 앱 풀(prod · demo · staging) | 풀 `data-source-properties.options` | `statement_timeout` **30초** · `lock_timeout` · `idle_in_transaction_session_timeout` |
+| 보존 정리 · 익명화 트랜잭션 | 트랜잭션 안 `SET LOCAL statement_timeout = 0` | 상한 없음 — 큰 삭제용 |
+| Flyway | 별도 연결 `spring.flyway.url` + `spring.flyway.init-sqls` | `lock_timeout` **5초** · `idle_in_transaction_session_timeout` **30초** · `statement_timeout` 없음(긴 마이그레이션) |
+
+- 확인: `SHOW statement_timeout`(`DbSessionTimeoutsTest` 가 프로파일별로 고정). 스테이징의 `clean()` 도 Flyway 연결이라 잠금을 5초까지만 기다린다
+- 위치 이력 파티션 삭제(`dropExpired`)는 DDL 이라 정리 래퍼 밖 — 기본 파티션에 수십만 건이 쌓인 채 지우면 30초 상한에 걸릴 수 있다
+
 ---
 
 ## 12. 관계자 웹 배포 — Vercel (2026-10-01 · `Ruling 481` · `502` · `503`)

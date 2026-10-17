@@ -263,7 +263,7 @@ account → academy
   | `run↔student` | `StopRepository` · `Student` | `Run` · `RunLookup` |
 
   이 표는 `ModuleMutualDependencyTest`(소스 스캔, 외부 라이브러리 없음)가 지킨다 — **표에 없는 새 양방향 쌍이 생기거나, 표에 남았는데 끊어진 쌍이 있으면 실패한다.** 새 쌍이 정말 필요하면 이유를 위 표와 시험의 목록에 같이 적는다. 이미 있는 쌍을 코드에서 없애는 리팩터링(`RunRiderReader`·`RouteStopReader` 같은 포트로 끊기)은 별도 작업이고, 끊는 순간 이 표와 시험 목록에서 지운다. `routing↔student` 는 R57 에 끊었다 — 이제 `routing → student` 한 방향이고, 학생 쪽은 `student.access.RouteStopSource` 포트로 길 정보를 읽으며 `routing.stops.RouteStopReader` 가 그 포트를 구현한다.
-- **3개 이상 모듈에 걸친 순환도 시험이 잡는다**(`Ruling 898` · R57 AR-4) — 위 `ModuleMutualDependencyTest` 는 두 모듈이 서로를 import 하는 쌍만 본다. 새 아키텍처 시험이 모듈 의존 그래프에서 **3개 이상 모듈로 이어진 순환**(A→B→C→A)을 찾아 **현재 순환 묶음을 기준치로 고정**하고, 기준치(순환 묶음 안 간선 57개 — `ModuleCycleBaselineTest`)에 없는 **새 간선이 묶음 안에 생기면 실패**한다. 기준치에 남았는데 이미 끊어진 항목은 실패가 아니라 경고로 알려 끊는 순간 목록에서 지우게 한다. R57 은 `student → routing` 참조를 포트(`student.access.RouteStopSource`)로 끊고 `location → boarding` 참조도 끊는다 — 끊은 간선은 기준치에서 같이 지운다(남아 있으면 경고).
+- **3개 이상 모듈에 걸친 순환도 시험이 잡는다**(`Ruling 898` · R57 AR-4) — 위 `ModuleMutualDependencyTest` 는 두 모듈이 서로를 import 하는 쌍만 본다. 새 아키텍처 시험이 모듈 의존 그래프에서 **3개 이상 모듈로 이어진 순환**(A→B→C→A)을 찾아 **현재 순환 묶음을 기준치로 고정**하고, 기준치(순환 묶음 안 간선 57개 — `ModuleCycleBaselineTest`)에 없는 **새 간선이 묶음 안에 생기면 실패**한다. 기준치에 남았는데 이미 끊어진 항목은 실패가 아니라 경고로 알려 끊는 순간 목록에서 지우게 한다. R57 은 `student → routing` 참조를 포트(`student.access.RouteStopSource`)로 끊고 `location → boarding` 참조도 끊는다 — 끊은 간선은 기준치에서 같이 지운다(남아 있으면 경고). `location` 은 `boarding` 을 import 하지 않는다: 탑승 학생을 묻는 포트 `RunRiderDirectory` 와 승차 명단이 바뀐 사실을 알리는 `RunRidersChangedEvent` 는 모듈 그래프 밖인 **`global.location`** 에 있고, `boarding` 이 `boarding.query.RunRiderDirectoryAdapter` 로 구현·발행한다(`global/sms/spec/SmsSender` 와 같은 선례).
 - **비상 알림의 소유는 `exception` 모듈** — 발신은 매니저 앱(기사·동승자 **둘 다**), 수신은 관계자·메인 관리자. 승하차와 달리 역할을 제한하지 않는 유일한 쓰기 경로 (EXC-04).
 - **`run` 테이블은 세 모듈이 쓴다** — `schedule` 이 생성(SCH-02), `routing` 이 확정 전이(§9.3), `run` 이 시작·종료. 소유는 `run` 모듈이고 나머지 둘은 **상태 전이 메서드를 통해서만** 접근. 다른 모듈이 컬럼을 직접 갱신하면 §9.3 의 조건부 UPDATE 규칙이 우회됨.
 - **승하차지 마스터(`stop`)의 소유는 `student` 모듈** — 생성 계기가 주소 검증(STU-05)이기 때문. `routing`·`boarding` 은 읽기만.
@@ -523,8 +523,8 @@ access(단기 15분) + refresh(장기). 실행·새로고침 시 refresh 로 자
 
 | 항목 | 조치 |
 |---|---|
-| 확정 배치 | §9.3 조건부 UPDATE 로 이미 안전. 추가 조치 부재 |
-| 다른 스케줄러 | **이미 분산 락(ShedLock — `shedlock` 테이블, DB 시각 기준) 적용** — 미승차 에스컬레이션 · 근접 알림 · 알림 아웃박스 · ②구간 자동 거절 · 일일 회차 생성 · 위치 이력 파티션 · 보존 정리 · 계기판이 `@SchedulerLock` 으로 한 인스턴스만 돈다. 확정 배치는 조건부 UPDATE 로 락 없이 안전. 증설할 때 추가 조치 부재 (R51) |
+| 확정 배치 | §9.3 조건부 UPDATE 로 이미 안전. R57 에서 `@SchedulerLock(run-confirmation, PT5M)` 도 달았다(`Ruling 899` J) — 조건부 UPDATE 는 정합성 안전장치로 유지. 추가 조치 부재 |
+| 다른 스케줄러 | **이미 분산 락(ShedLock — `shedlock` 테이블, DB 시각 기준) 적용** — 미승차 에스컬레이션 · 근접 알림 · 알림 아웃박스 · ②구간 자동 거절 · 일일 회차 생성 · 위치 이력 파티션 · 보존 정리 · 계기판이 `@SchedulerLock` 으로 한 인스턴스만 돈다. 확정 배치도 R57 부터 `@SchedulerLock` 을 쓰며 조건부 UPDATE 와 겹쳐 안전하다. 증설할 때 추가 조치 부재 (R51) |
 | WebSocket 세션 | 인메모리 보관이라 인스턴스 간 미공유 — 외부 브로커(Redis Pub/Sub 등)로 팬아웃 (**R59**). 세션 만료 점검(30초 주기 계정 상태 일괄 조회)은 세션이 인스턴스마다 따로라 `@SchedulerLock` 없이 인스턴스마다 돈다 — 예외 목록에 이유를 적는다(`Ruling 899` M) |
 | 최신 좌표 | Redis 에 두면 이미 공유됨 |
 | 인스턴스 안 캐시 | R57 이 더한 계정 상태 캐시(최대 5초 · `Ruling 899` A)와 위치 경로 캐시(`Ruling 899` K)는 인스턴스마다 따로이며 비움이 다른 인스턴스에 전해지지 않는다 — 1대에서는 `Ruling 880` 이 그대로 유지되고, 2대에서는 5초 만료가 상한이다. 비움 신호를 Redis 채널로 모든 인스턴스에 보내는 것은 R59 |
@@ -575,6 +575,7 @@ access(단기 15분) + refresh(장기). 실행·새로고침 시 refresh 로 자
 ```
 
 - **"곧 도착합니다" 알림의 트리거는 서버의 위치 판정.** 기사의 도착 처리가 아님 (NTF-04). 기사 조작은 기록·포인터 전진 전용 (M-11).
+- **위치 1건의 SQL 은 인증 필터의 계정 상태 확인을 빼면 3건**(인가 exists · 회차 · 위치 INSERT)이다(`Ruling 899` K — 전에는 6건). 회차별 정차 목록과 결석 제외 탑승 학생 id 는 메모리 캐시이며, 정류장 도착 · 결석 전이 · 운행 시작/종료/취소 · 노선 확정이 커밋될 때 비운다(5분 안전 만료, 1대 기준 — 2대 전파는 R59). 계정 상태 확인은 5초 캐시(`§5.4`)라 대부분 0건이다.
 - 근접 판정은 **실제 좌표 기반**. 계획 ETA 근사로 판정하면 지연 운행에서 어긋남.
 - 신호 유실 시 "마지막 확인 위치 · N분 전"으로 전환 (P-07) — 위치가 없는 것과 오래된 것을 화면에서 구분.
 
