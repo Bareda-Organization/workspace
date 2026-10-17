@@ -13,7 +13,7 @@ Code lives in the three repos below, cloned side by side inside this folder (thi
 | `./` (this folder) | `workspace` | **All documents `docs/`** · this file · `.claude/` (settings, fact notes, skills) | — |
 | `backend/` | `backend` | Spring Boot (`backend/backend/`) · `infra/` · `docker-compose*.yml` | AWS EC2 · local (home PC + Cloudflare Tunnel) |
 | `web/` | `web` | Staff web (Next.js) · `design-system/` (read-only kit copy) | Vercel |
-| `mobile/` | `mobile` | 2 apps (`apps/manager-app` · `apps/parent-app`) · shared packages `packages/baraeda_{core,ui}` | App Store · Play Store |
+| `mobile/` | `mobile` | 2 apps (`apps/manager-app` · `apps/parent-app`) · shared packages `packages/baraeda_{core,ui,app}` | App Store · Play Store |
 
 - **Split from the monorepo `mskim98/School-Bus` on 2026-10-02** (history moved with `git filter-repo`). Read old code paths in docs through the mapping table in `docs/README.md §0`
 - **git is per repo** — `git` in this folder handles only docs and settings. For code: `git -C backend …` · `git -C web …` · `git -C mobile …`. Pull all four (`git pull` + `git -C <repo> pull`)
