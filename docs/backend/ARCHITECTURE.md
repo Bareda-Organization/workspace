@@ -241,7 +241,7 @@ student · monitoring · exception → location (회차 최신 좌표 — RunPos
 account → academy
 ```
 
-- **역방향 참조를 금지가 원칙이나, 현재 코드에는 서로를 import 하는 쌍 17개가 있다**(2026-09-30 BR-232 — `import src.backend.<모듈>.` 줄을 소스에서 센 결과, 횡단 계층 `global`·`observability`·비운영 `demo` 제외). 위 화살표 표는 **의도한 방향**이고 아래 표는 **실제로 양방향인 쌍의 허용 목록**이다. `student` 가 `routing` 을 알면 주소 수정 트랜잭션 안에 외부 지도 API 호출이 포함됨. 주소 변경은 **이벤트만 발행**하고 재계산 여부는 `routing` 이 판단.
+- **역방향 참조를 금지가 원칙이나, 현재 코드에는 서로를 import 하는 쌍 16개가 있다(R57 에서 `routing↔student` 를 끊었다)**(2026-09-30 BR-232 — `import src.backend.<모듈>.` 줄을 소스에서 센 결과, 횡단 계층 `global`·`observability`·비운영 `demo` 제외). 위 화살표 표는 **의도한 방향**이고 아래 표는 **실제로 양방향인 쌍의 허용 목록**이다. `student` 가 `routing` 을 알면 주소 수정 트랜잭션 안에 외부 지도 API 호출이 포함됨. 주소 변경은 **이벤트만 발행**하고 재계산 여부는 `routing` 이 판단.
 
   | 쌍 | 앞 모듈이 뒤 모듈에서 가져다 쓰는 것(import 가 많은 타입) | 뒤 모듈이 앞 모듈에서 가져다 쓰는 것 |
   |---|---|---|
@@ -260,11 +260,10 @@ account → academy
   | `request↔run` | `Run` · `RunRepository` | `ChangeWindowPolicy` · `ChangeRequest` |
   | `request↔student` | `Student` · `StopRepository` | `BoardingIntentReadQueryService` |
   | `routing↔run` | `Run` · `RunRepository` | `ConfirmedRoute` · `ConfirmedRouteRepository` |
-  | `routing↔student` | `Stop` · `StopRepository` | `RouteStopReader` |
   | `run↔student` | `StopRepository` · `Student` | `Run` · `RunLookup` |
 
-  이 표는 `ModuleMutualDependencyTest`(소스 스캔, 외부 라이브러리 없음)가 지킨다 — **표에 없는 새 양방향 쌍이 생기거나, 표에 남았는데 끊어진 쌍이 있으면 실패한다.** 새 쌍이 정말 필요하면 이유를 위 표와 시험의 목록에 같이 적는다. 이미 있는 쌍을 코드에서 없애는 리팩터링(`RunRiderReader`·`RouteStopReader` 같은 포트로 끊기)은 별도 작업이고, 끊는 순간 이 표와 시험 목록에서 지운다.
-- **3개 이상 모듈에 걸친 순환도 시험이 잡는다**(`Ruling 898` · R57 AR-4) — 위 `ModuleMutualDependencyTest` 는 두 모듈이 서로를 import 하는 쌍만 본다. 새 아키텍처 시험이 모듈 의존 그래프에서 **3개 이상 모듈로 이어진 순환**(A→B→C→A)을 찾아 **현재 순환 묶음을 기준치로 고정**하고, 기준치에 없는 **새 고리가 생기면 실패**한다. 기준치에 남았는데 이미 끊어진 항목은 실패가 아니라 경고로 알려 끊는 순간 목록에서 지우게 한다. R57 은 순환을 만드는 `student → routing`(주소 변경 흐름) · `location → boarding` 참조를 포트 · 이벤트로 끊는다 — 끊은 뒤 위 쌍 표와 기준치에서 같이 지운다.
+  이 표는 `ModuleMutualDependencyTest`(소스 스캔, 외부 라이브러리 없음)가 지킨다 — **표에 없는 새 양방향 쌍이 생기거나, 표에 남았는데 끊어진 쌍이 있으면 실패한다.** 새 쌍이 정말 필요하면 이유를 위 표와 시험의 목록에 같이 적는다. 이미 있는 쌍을 코드에서 없애는 리팩터링(`RunRiderReader`·`RouteStopReader` 같은 포트로 끊기)은 별도 작업이고, 끊는 순간 이 표와 시험 목록에서 지운다. `routing↔student` 는 R57 에 끊었다 — 이제 `routing → student` 한 방향이고, 학생 쪽은 `student.access.RouteStopSource` 포트로 길 정보를 읽으며 `routing.stops.RouteStopReader` 가 그 포트를 구현한다.
+- **3개 이상 모듈에 걸친 순환도 시험이 잡는다**(`Ruling 898` · R57 AR-4) — 위 `ModuleMutualDependencyTest` 는 두 모듈이 서로를 import 하는 쌍만 본다. 새 아키텍처 시험이 모듈 의존 그래프에서 **3개 이상 모듈로 이어진 순환**(A→B→C→A)을 찾아 **현재 순환 묶음을 기준치로 고정**하고, 기준치(순환 묶음 안 간선 57개 — `ModuleCycleBaselineTest`)에 없는 **새 간선이 묶음 안에 생기면 실패**한다. 기준치에 남았는데 이미 끊어진 항목은 실패가 아니라 경고로 알려 끊는 순간 목록에서 지우게 한다. R57 은 `student → routing` 참조를 포트(`student.access.RouteStopSource`)로 끊고 `location → boarding` 참조도 끊는다 — 끊은 간선은 기준치에서 같이 지운다(남아 있으면 경고).
 - **비상 알림의 소유는 `exception` 모듈** — 발신은 매니저 앱(기사·동승자 **둘 다**), 수신은 관계자·메인 관리자. 승하차와 달리 역할을 제한하지 않는 유일한 쓰기 경로 (EXC-04).
 - **`run` 테이블은 세 모듈이 쓴다** — `schedule` 이 생성(SCH-02), `routing` 이 확정 전이(§9.3), `run` 이 시작·종료. 소유는 `run` 모듈이고 나머지 둘은 **상태 전이 메서드를 통해서만** 접근. 다른 모듈이 컬럼을 직접 갱신하면 §9.3 의 조건부 UPDATE 규칙이 우회됨.
 - **승하차지 마스터(`stop`)의 소유는 `student` 모듈** — 생성 계기가 주소 검증(STU-05)이기 때문. `routing`·`boarding` 은 읽기만.
@@ -588,6 +587,8 @@ access(단기 15분) + refresh(장기). 실행·새로고침 시 refresh 로 자
 **`route_changed` 는 데이터가 아니라 "다시 불러오라" 는 신호다** (`Ruling 373`). 확정 노선이 새 판본으로 바뀌면(확정 배치 · ②구간 승인 재최적화 · ③구간 미등원 반영 · 경유 지점 배포 · 강제 확정) 매니저 채널에만 `run_id`·`changed_at` 을 보내고, 받은 매니저 앱이 노선·명단 REST 를 다시 부른다. **본문에 노선을 싣지 않는 이유** — 재조회가 권한·마스킹을 그대로 지나므로 방송 경로가 새 노출 경로가 되지 않는다. 관제·관리자 채널은 폴링이 있어 대상 밖이다.
 
 **커밋 뒤 방송 리스너는 실패를 WARN 으로 기록하고 삼킨다.** `AFTER_COMMIT` 방송은 롤백된 확정이 화면에 남지 않게 하려고 커밋 뒤에 보내며, 송신 실패는 예상된 운영 상황(브로커 다운·연결 끊김)이라 리스너 안에서 WARN 한 줄로 끝낸다. 유실분은 클라이언트가 재연결 때 REST 로 전량 동기화한다. 규약·근거는 `CODE_CONVENTIONS §6.1`.
+
+**방송 리스너는 요청 스레드 밖 · 트랜잭션 밖에서 돈다**(`Ruling 899`, R57). 승하차 · 운행 시작/종료 · 정차 도착 · 노선 변경 · 승인 요청 · 비상 방송 리스너는 전용 실행기(`broadcastListenerExecutor` — 스레드 1개)에서 커밋 뒤에 돌아, 요청 트랜잭션의 DB 커넥션이 방송 전에 반납된다(상태별 인원 수 조회도 5회에서 1회로 줄였다). 비상 방송 리스너는 트랜잭션 없이 발행돼도 보낸다(`fallbackExecution`). 학생 채널 하나의 전송 예외는 나머지 채널 전송을 막지 않고 실패 카운터만 올린다(`schoolbus.ws.broadcast.failed` — `TECH_DECISIONS §13.1`). 방송 순서는 `setPreservePublishOrder(true)` 로 지킨다. 수신 채널 실행기는 스레드 8 · 큐 1,000(`app.ws.inbound.*`), 방송 큐 상한 1,000(`app.ws.broadcast.queue-capacity`), 하트비트 스케줄러 스레드 2, 구독 조회 캐시 상한 8,192 로 명시한다. 따라서 방송은 HTTP 응답보다 수 밀리초 늦게 나갈 수 있다. `PositionBroadcastListener`(위치)는 순서와 무관한 고빈도 경로라 이 실행기를 쓰지 않는다.
 
 **권한을 잃은 계정은 새 연결 · 구독 · 송신이 `TOKEN_EXPIRED` 로 거절된다** (`Ruling 880`, §5.4) — 이미 열린 세션은 **계정 상태에 한해 30초 주기 스케줄러가 한 번씩 점검해 끊는다**(`Ruling 899` M — 송신 스레드 `preSend` 에서 DB 를 조회하지 않는다 · 그 사이 방송을 받을 수 있다 · 점검이 DB 장애로 실패하면 다음 점검까지 30초 더 늦어진다 — `API_SPEC §7`). 보호자 연결 해제 · 학생 퇴원 · 회차 배정 변경은 커밋 뒤 영향받는 계정의 세션을 `4500 SESSION_REVOKED` 로 **바로 닫는다**(`Ruling 899` B · `API_SPEC §7`).
 

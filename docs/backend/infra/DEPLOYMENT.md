@@ -1084,7 +1084,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 2. 받지 못한 연결은 OS 의 TCP 대기열(`accept-count` 100)에 쌓이고, 그 대기열이 차면 OS 가 새 연결을 거절하거나 응답하지 않는다 — 클라이언트는 연결 거부 또는 연결 시간 초과(웹 · Flutter 연결 한도 10초, `API_SPEC §7.2`)
 3. **이미 맺어진 연결(세션 · 진행 중 요청)은 영향이 없다** — 막히는 것은 새 연결뿐이라 서버는 OOM 으로 죽지 않는다. 연결이 끊겨 자리가 나면 대기 중이던 연결부터 받는다. 클라이언트는 포기 없이 30초 상한 백오프로 재시도하므로(`API_SPEC §7.2`) 자리가 나면 이어서 붙는다
 4. **WebSocket 도 같은 수에 든다** — 업그레이드는 새 연결이 아니라 같은 소켓을 계속 쓰고(`AbstractProtocol` 이 같은 `SocketWrapperBase` 를 업그레이드 처리기에 넘김), 수는 소켓이 닫힐 때(`SocketWrapperBase.close`)만 줄어든다 → 세션이 끊길 때까지 점유. REST 요청도 같은 한도 안에서 센다
-5. 프록시(nginx)가 backend 로 여는 연결은 요청마다 닫힌다(`upstream backend_pool` 에 `keepalive` 없음) → 연결 수 ≈ WebSocket 세션 수 + 진행 중 HTTP 요청(요청 스레드 100 이하)
+5. **`/ws/` 는 접속자 IP 당 동시 연결 100개로 제한한다**(`limit_conn ws_conn_zone 100` — 초과 시 `503`, `Ruling 899` D). 통신사 공용 IP 뒤의 학부모 여러 명을 막지 않도록 낮게 두지 않았다. 프록시(nginx)가 backend 로 여는 연결은 요청마다 닫힌다(`upstream backend_pool` 에 `keepalive` 없음) → 연결 수 ≈ WebSocket 세션 수 + 진행 중 HTTP 요청(요청 스레드 100 이하)
 6. **서버는 거절을 기록하지 않는다** — 앱이 그 연결을 본 적이 없다. 그래서 상한 도달 전에 `StompSessionsNearCap`(3,000 = 상한의 75% · 5분 유지 · `job="backend"` 만)이 울린다. 프록시 연결 한도는 이 상한보다 먼저 닿지 않게 잡혀 있다(위 문단). nginx 오류 로그의 `worker_connections are not enough` 를 세는 CloudWatch 지표 필터 경보는 아직 없다(콘솔 설정)
 7. **헬스·지표는 관리 포트라 상한 밖이다**(§11.8) — 신규 접속·로그인은 응답이 없어도 컨테이너 헬스체크·Prometheus 스크레이프는 계속 응답한다. 대응은 이 절 끝 "울렸을 때 판단" 과 §11.8
 
