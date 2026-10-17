@@ -2,8 +2,9 @@
 """주석 경위 측정·검사 (Ruling 903 A). 사용 — python3 comment_history.py <작업 공간 루트> [--check | --lines <영역> | --update-baseline | --selftest] [--repo 이름=경로 …]
 코드 주석(//, ///, /* */) 안에서 경위 표지(라운드 · Phase · 날짜 · 경위 낱말 · 커밋 해시)가 든 줄을 영역별로 센다. 문자열 · 텍스트 블록 · 템플릿 안의 // 와 /* 는 주석이 아니다.
 `Ruling N` · `BR-N` · 기능 ID 는 표지가 아니다(남긴다 — query.py goal-rows 가 코드 주석에서 판정 번호를 찾는다). --check 는 baseline.json 을 넘거나 kept-lines.tsv 의 남긴 줄이 낡았으면 종료 코드 1.
---repo backend=<워크트리> 처럼 저장소 위치를 바꿔 워크트리를 잰다. 범위 밖 — yml · sql · sh 주석."""
-import json, os, re, sys
+--repo backend=<워크트리> 처럼 저장소 위치를 바꿔 워크트리를 잰다. --kept <파일> 은 kept-lines.tsv 대신 그 파일을 쓴다. 범위 밖 — yml · sql · sh 주석.
+--same-code <기준 커밋> (--repo backend=<경로> 와 함께) — 기준 → 작업 트리에서 바뀐 .java 마다 주석 뺀 코드 · 설명 주석(/**) 수 · Ruling/BR 표시 집합을 비교한다. 어긋나면 종료 코드 1."""
+import json, os, re, subprocess, sys
 sys.dont_write_bytecode = True
 
 MARKERS = {
@@ -23,9 +24,9 @@ AREAS = {
     "mobile": ("mobile", ["apps", "packages"], (".dart",)),
 }
 
-def comments(text):
-    """(줄 번호, 주석 본문) — 한 줄 주석은 줄마다, 블록 주석은 줄마다 나눠 낸다."""
-    i, n, line, st, buf, start = 0, len(text), 1, None, [], 1
+def comments(text, spans=None):
+    """(줄 번호, 주석 본문) — 한 줄 주석은 줄마다, 블록 주석은 줄마다 나눠 낸다. spans 를 주면 주석 (시작, 끝) 위치를 담는다."""
+    i, n, line, st, buf, start, cs = 0, len(text), 1, None, [], 1, 0
     while i < n:
         c = text[i]
         if c == "\n":
@@ -35,6 +36,8 @@ def comments(text):
             line += 1
             if st == "line":
                 st = None
+                if spans is not None:
+                    spans.append((cs, i))
             start = line
             i += 1
             continue
@@ -44,9 +47,9 @@ def comments(text):
             if c in "\"'`":
                 st = c; i += 1; continue
             if text.startswith("//", i) and not (i > 0 and text[i - 1] == ":"):
-                st, start = "line", line; i += 2; continue
+                st, start, cs = "line", line, i; i += 2; continue
             if text.startswith("/*", i):
-                st, start = "block", line; i += 2; continue
+                st, start, cs = "block", line, i; i += 2; continue
             i += 1
             continue
         if st == "line":
@@ -55,6 +58,8 @@ def comments(text):
             if text.startswith("*/", i):
                 if buf:
                     yield start, "".join(buf)
+                if spans is not None:
+                    spans.append((cs, i + 2))
                 buf, st = [], None
                 i += 2
                 continue
@@ -67,6 +72,43 @@ def comments(text):
         elif c == st or (c == "\n" and st in "\"'"):
             st = None
         i += 1
+    if st == "line" and spans is not None:
+        spans.append((cs, n))
+
+TAG = re.compile(r"Ruling \d+|BR-\d+")
+
+def code_shape(text):
+    """(주석 뺀 코드의 토큰 열, 설명 주석 /** 수, Ruling·BR 표시 집합) — 주석만 고쳤으면 앞의 것은 그대로다."""
+    spans, tags = [], set()
+    for _, c in comments(text, spans):
+        tags.update(TAG.findall(c))
+    out, k = [], 0
+    for a, b in spans:
+        out.append(text[k:a]); k = b
+    out.append(text[k:])
+    docs = sum(1 for a, _ in spans if text.startswith("/**", a) and not text.startswith("/**/", a))
+    return " ".join("".join(out).split()), docs, tags
+
+def same_code(repo, base):
+    """기준 커밋 → 작업 트리에서 바뀐 .java 를 비교해 어긋난 줄을 낸다(C-3)."""
+    git = lambda *a: subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True, check=True).stdout
+    bad, n = [], 0
+    for row in git("diff", "--name-status", base, "--", "*.java").splitlines():
+        st, *paths = row.split("\t")
+        if st != "M":
+            bad.append(f"{row} — 파일 추가 · 삭제 · 이동"); continue
+        n += 1
+        (oc, od, ot), (nc, nd, nt) = code_shape(git("show", f"{base}:{paths[0]}")), code_shape(open(os.path.join(repo, paths[0]), encoding="utf-8").read())
+        if oc != nc:
+            bad.append(f"{paths[0]} — 주석 아닌 코드가 바뀜")
+        if nd < od:
+            bad.append(f"{paths[0]} — 설명 주석 /** {od} → {nd}")
+        if ot != nt:
+            bad.append(f"{paths[0]} — 표시 빠짐 {sorted(ot - nt)} · 생김 {sorted(nt - ot)}")
+    for b in bad:
+        print("⚠", b)
+    print(f"same-code — 비교한 파일 {n} · 어긋남 {len(bad)}")
+    return 1 if bad else 0
 
 def hits(text):
     return [(ln, c.strip()) for ln, c in comments(text) if MARK.search(c)]
@@ -79,9 +121,8 @@ def files(root, sub, exts):
             if f.endswith(exts) and not f.endswith((".g.dart", ".freezed.dart")):
                 yield os.path.join(dp, f)
 
-def load_kept(here):
+def load_kept(p):
     kept = []  # (영역, 저장소 기준 경로, 줄 안 글자, 이유)
-    p = os.path.join(here, "kept-lines.tsv")
     if os.path.exists(p):
         for l in open(p, encoding="utf-8"):
             if l.strip() and not l.startswith("#"):
@@ -123,6 +164,11 @@ class A {
     ts = "const x = `line // R51 not comment\n${y} /* R52 */`;\n// 이전에는 두 연결\n"
     got = {"java": [ln for ln, _ in hits(java)], "dart": [ln for ln, _ in hits(dart)], "ts": [ln for ln, _ in hits(ts)]}
     want = {"java": [1, 4, 9], "dart": [1, 4], "ts": [3]}
+    a = "/** 설명 (R1 · Ruling 7). */\nclass A { int x = 1; // 2026-01-01 추가\n}\n"
+    shape = [code_shape(t) for t in (a, a.replace(" (R1 · Ruling 7)", " (Ruling 7)").replace(" // 2026-01-01 추가", ""),
+                                     a.replace("x = 1", "x = 2"), a.replace("/** 설명 (R1 · Ruling 7). */\n", ""), a.replace("R1 · Ruling 7", "R1"))]
+    got["shape"] = [shape[0][0] == s[0] for s in shape] + [s[1] for s in shape] + [shape[0][2] == s[2] for s in shape]
+    want["shape"] = [True, True, False, True, True] + [1, 1, 1, 0, 1] + [True, True, True, False, False]
     ok = got == want
     print("selftest", "OK" if ok else f"FAIL got={got} want={want}")
     return 0 if ok else 1
@@ -131,14 +177,16 @@ def main(argv):
     here = os.path.dirname(os.path.abspath(__file__))
     if "--selftest" in argv:
         return selftest()
-    args = [a for a in argv if not a.startswith("--")]
+    args = [a for j, a in enumerate(argv) if not a.startswith("--") and (j == 0 or argv[j - 1] not in ("--repo", "--kept", "--same-code", "--lines"))]
     ws = os.path.abspath(args[0]) if args else os.getcwd()
     repos = {r: os.path.join(ws, r) for r in ("backend", "web", "mobile")}
     for j, a in enumerate(argv):
         if a == "--repo" and j + 1 < len(argv):
             name, path = argv[j + 1].split("=", 1)
             repos[name] = os.path.abspath(path)
-    kept = load_kept(here)
+    if "--same-code" in argv:
+        return same_code(repos["backend"], argv[argv.index("--same-code") + 1])
+    kept = load_kept(argv[argv.index("--kept") + 1] if "--kept" in argv else os.path.join(here, "kept-lines.tsv"))
     res, used = measure(repos, kept)
     base_p = os.path.join(here, "baseline.json")
     if "--update-baseline" in argv:
