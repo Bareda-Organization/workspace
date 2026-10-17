@@ -11,7 +11,13 @@ MARKERS = {
     "round": r"\bR\d{2,3}\b|\bRQA\b",
     "phase": r"\bPhase ?[A-Z]?\d+",
     "date": r"\b20\d\d-\d\d-\d\d\b|\b20\d\d년",
-    "word": r"(?<!백그)라운드|당시|이전에는|원래는|바뀌기 전|예전",  # 백그라운드 는 경위가 아니다
+    "word": r"(?<!백그)라운드|당시|이전에는|원래는|바뀌기 전|예전|시절",  # 백그라운드 는 경위가 아니다
+    # R58 2단계 검증(2026-10-18): 아래는 첫 판이 세지 않아 정리 뒤에도 약 580줄 남았다 — 지난 Phase 목표 번호 · 단계 · 작업 주인 · 리뷰 · 보고서 파일
+    "goal": r"목표 ?\d",
+    "step": r"\b[A-Z]\d+ S\d+\b",
+    "owner": r"\bT\d+ ?소유",
+    "review": r"게이트 리뷰|리뷰 라운드|조율자 판단|보고서 [①-⑩]",
+    "file": r"\bp\d+-task|report-p\d+|docs/archive/rounds|Task \d+ 판단|\b[BF]E-R\d+\b",
     "hash": r"커밋 `?[0-9a-f]{7,}",
 }
 MARK = re.compile("|".join(f"(?:{v})" for v in MARKERS.values()))
@@ -76,6 +82,8 @@ def comments(text, spans=None):
         spans.append((cs, n))
 
 TAG = re.compile(r"Ruling \d+|BR-\d+")
+# 줄을 합치다 생긴 깨짐 — 글 뒤에 남은 빈 ` *` 구분 줄, 글 뒤에 붙은 닫는 `*/`(R58 2단계 검증이 4곳 찾음 · 컴파일은 된다)
+JOINED = re.compile(r"[^\s/*]\s+\*\s*$|[^\s/*]\s{2,}\*/\s*$", re.M)
 
 def code_shape(text):
     """(주석 뺀 코드의 토큰 열, 설명 주석 /** 수, Ruling·BR 표시 집합) — 주석만 고쳤으면 앞의 것은 그대로다."""
@@ -105,6 +113,12 @@ def same_code(repo, base):
             bad.append(f"{paths[0]} — 설명 주석 /** {od} → {nd}")
         if ot != nt:
             bad.append(f"{paths[0]} — 표시 빠짐 {sorted(ot - nt)} · 생김 {sorted(nt - ot)}")
+        old_text = git("show", f"{base}:{paths[0]}")
+        new_text = open(os.path.join(repo, paths[0]), encoding="utf-8").read()
+        old_lines = {l.strip() for l in old_text.splitlines()}
+        joined = [l.strip()[-30:] for l in new_text.splitlines() if JOINED.search(l) and l.strip() not in old_lines]
+        if joined:
+            bad.append(f"{paths[0]} — 주석 줄이 합쳐짐 {joined[:3]}")
     for b in bad:
         print("⚠", b)
     print(f"same-code — 비교한 파일 {n} · 어긋남 {len(bad)}")
@@ -169,6 +183,10 @@ class A {
                                      a.replace("x = 1", "x = 2"), a.replace("/** 설명 (R1 · Ruling 7). */\n", ""), a.replace("R1 · Ruling 7", "R1"))]
     got["shape"] = [shape[0][0] == s[0] for s in shape] + [s[1] for s in shape] + [shape[0][2] == s[2] for s in shape]
     want["shape"] = [True, True, False, True, True] + [1, 1, 1, 0, 1] + [True, True, True, False, False]
+    got["more"] = [bool(MARK.search(c)) for c in ("(Phase 9 목표 6·15)", "F3 S2 목표 11", "T2 소유", "게이트 리뷰 실측", "p13-task-t2.md", "그 시절엔", "목표 시각 07:30", "Ruling 239 · BR-031")]
+    want["more"] = [True, True, True, True, True, True, False, False]
+    got["joined"] = [bool(JOINED.search(t)) for t in (" * 계속 늘어난다. *", " * 성립하지 않는다.     */", " *", " */", " * <p>문단")]
+    want["joined"] = [True, True, False, False, False]
     ok = got == want
     print("selftest", "OK" if ok else f"FAIL got={got} want={want}")
     return 0 if ok else 1
