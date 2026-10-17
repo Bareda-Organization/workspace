@@ -2571,14 +2571,16 @@ Code navigation uses the graft CLI with the repo folder as the last argument (`b
 
 | 단계 · 갈래 | 모델 | 맡는 행 | 주로 닿는 곳(`…/` = `backend/backend/src/main/java/src/backend/`) |
 |---|---|---|---|
-| 문서 (조율자 · 창 띄우기 전) | opus | D-1~4 | `Ruling 680` 닿는 곳 표(아래) · `API_SPEC §7` · `§7.2` · `USER_FLOWS §12.6` · `TECH_DECISIONS §12.1` · `DEPLOYMENT §11.9` · `CODE_CONVENTIONS §19` · 시험 절 · `CONVENTIONS_REACT` · `CONVENTIONS_FLUTTER` · 새 `.claude/bin/comment-history/` |
-| 1 · BE-CODE | sonnet[1m] high | B-1~9 | `…/global/security/authz` · `…/observability` · `…/global/config/SeedExample*` · `…/global/common/SeedFixtures` · `*BroadcastListener` · `…/global/websocket/WebSocketBroadcastGateway` · `*/dto` · `application.yml` resilience4j · `src/test/**`(도우미 · `global/infra` · `global/config` 시험) · `backend/infra/observability/prometheus/alerts*.yml` |
+| 1 · DOCS (작업 창 t1 — 착수 때 조율자 결정으로 창에 넘김 · 조율자 대화를 짧게 두려고 · 병합은 맨 먼저) | sonnet[1m] high | D-1~4 | `Ruling 680` 닿는 곳 표(아래) · `API_SPEC §7` · `§7.2` · `USER_FLOWS §12.6` · `TECH_DECISIONS §12.1` · `DEPLOYMENT §11.9` · `CODE_CONVENTIONS §19` · 시험 절 · `CONVENTIONS_REACT` · `CONVENTIONS_FLUTTER` · 새 `.claude/bin/comment-history/` |
+| 1 · BE-MAIN (t2 — 착수 때 BE-CODE 를 둘로 나눔 · 백엔드가 단계 2 를 막는 가장 긴 갈래라서) | sonnet[1m] high | B-1~3 · B-6~11 | `…/global/security/authz` · `…/observability` · `…/global/config/SeedExample*` · `…/global/common/SeedFixtures` · `*BroadcastListener` · `…/global/websocket/WebSocketBroadcastGateway` · `*/dto` · `application.yml` resilience4j · `student.dto.RoadPoint` · `routing.domain.GeoPoint` · `backend/infra/observability/prometheus/alerts*.yml` · 그 행들의 시험 |
+| 1 · BE-TEST (t3) | sonnet[1m] high | B-4 · B-5 | `src/test/**` — 복사 도우미 정의 · 새 공용 시험 지원 코드 · `global/infra` · `global/config` 설정 문자열 대조 시험 |
 | 1 · WEB | sonnet[1m] high | W-1~8 | `src/features/*/api` · `src/shared/lib/http` · `src/shared/lib/ws` · 목록 화면 9개 · 저장 처리 28파일 · `src/shared/ui` · `src/**/*.test.tsx` |
 | 1 · MOBILE | sonnet[1m] high | M-1~12 | 새 `packages/baraeda_app` · `apps/*/lib/{core/auth,features/auth,app,core/map}` · `packages/baraeda_ui` · `packages/baraeda_core/lib/websocket` · 보안 저장소 감싸개 · `*_api.dart` · `*_repository_impl.dart` · `pubspec.yaml` 4개 · `offline_queue_database.dart` · 학부모 지도 이동 · `apps/*/test` |
 | 2 · BE-COMMENT (1단계 병합 뒤 새 창) | sonnet[1m] high | C-1~3 | `backend/backend/src` 전체 — **주석만**(코드 줄 변경 0) |
 
-- **겹침** — 1단계 세 창은 저장소가 달라 겹치지 않는다. BE-COMMENT 는 거의 모든 백엔드 파일을 열므로 BE-CODE 병합 뒤에 띄운다
-- **병합 순서** — 문서 → BE-CODE · WEB · MOBILE(서버 API 변화 없음 — 셋 사이 순서 무관) → BE-COMMENT
+- **겹침** — WEB · MOBILE · DOCS 는 저장소가 달라 겹치지 않는다. BE-MAIN · BE-TEST 는 같은 저장소라 시험 파일이 겹칠 수 있다 — 도우미 정의는 BE-TEST 만 고치고, 둘 다 검증을 통과하면 임시 병합으로 전체를 세는 시험을 돌린다(Skill `cascade` 수명 5.5). BE-COMMENT 는 거의 모든 백엔드 파일을 열므로 BE-CODE 병합 뒤에 띄운다
+- **병합 순서** — 문서 → BE-MAIN · BE-TEST · WEB · MOBILE(서버 API 변화 없음 — 넷 사이 순서 무관) → BE-COMMENT
+- **단계 2 는 새 세션에서**(사용자 2026-10-17 착수 때 결정) — 1단계 병합 · 기록 뒤 세션을 끝내고 "다음 라운드" 로 BE-COMMENT 를 시작한다. 비교 측정은 두 조율자 세션을 합쳐 센다
 - **줄 수는 목표가 아니다** — 기록만 한다(G-5). 줄 수를 맞추려 남길 주석 · 시험을 지우지 않는다
 - **추정 비용 · 시간** — 단계 1 약 $50~70 · 2시간 + 단계 2 약 $25~40 · 1.5시간(백엔드 약 900파일의 주석을 읽어 판단 · 추정)
 - **도구 조건 · 모델 · 잴 것** — §8.108 「도구 조건」 절을 그대로 쓴다. BE-COMMENT 의 경위 문단 후보 뽑기 · 전후 계수는 haiku 서브에이전트, 지울지 판단은 창(sonnet)
@@ -2602,6 +2604,8 @@ Code navigation uses the graft CLI with the repo folder as the last argument (`b
 | B-7 | `*BroadcastListener` 안 `try`/`catch` 0 · 목적지별 실패 처리는 게이트웨이 한 곳 · R57 RT-9 시험 통과 | `grep -c` · 시험 | ✱ 게이트웨이 예외 처리를 없앰 → RT-9 시험 실패 |
 | B-8 | 등록 · 수정 DTO 쌍 3개(`Bus` · `Manager` · `Route`) → 하나씩 · 중복 중첩 레코드(`Contact` · `RaisedBy` · `Position` · `AckedBy`) 하나씩 · 페이지 요청 하나 · 서킷 설정 `configs.default` | `grep` · 기존 컨트롤러 시험 · 웹 실서버 계약 시험 | — |
 | B-9 | 계수기 하나만 든 지표 보관 클래스 0 | `grep` | — |
+| B-10 | (R57 에서 넘김) 위치 1건 SQL 을 실제 요청 경로로 고정 — `RunPositionQueryCountTest` 가 계정 상태 캐시 5초 속성으로 돌고 데워진 요청 3건이 각각 SQL 3 이하 | 그 시험 | ✱ 위치 경로 캐시를 끔 → 시험 실패 |
+| B-11 | (R57 에서 넘김) `RoadPoint` 의 거리 계산 복제 0 — `GeoPoint` 를 `global` 로 옮겨 하나로 · 위경도 범위 검사 유지 | `graft callers` · 기존 거리 · 경로 시험 | — |
 | C-1 | 백엔드 제품 코드의 경위 문단 0 · `Ruling N` 표시 수가 바꾸기 전과 같다 | D-4 스크립트 · `grep -c 'Ruling [0-9]'` 전후 | ✱ 경위 문단 하나를 되살림 → 스크립트 종료 코드 1 |
 | C-2 | 백엔드 시험 코드도 같은 조건 | 같은 스크립트 | — |
 | C-3 | 주석 아닌 줄 변경 0 · 클래스 · 공개 메서드 한 줄 설명(`CODE_CONVENTIONS §19`) 누락 0 · 컴파일 · 전체 시험 통과 | 창이 만든 비교 스크립트 출력 · `./gradlew test --rerun` 결과 XML | — |
@@ -2609,7 +2613,7 @@ Code navigation uses the graft CLI with the repo folder as the last argument (`b
 | W-2 | 목록 화면 9개(버스 · 매니저 · 학생 · 노선 · 스케줄 · 비상 · 보고 · 변경 승인 등)가 `usePagedList` 사용 | `grep` · vitest | — |
 | W-3 | `useAction` 하나 · `instanceof ApiError ?` 61곳 → 5곳 이하 | `grep -c` · vitest | — |
 | W-4 ✔ | 안 쓰는 코드 제거 — `TabBar` · `StatCard` · 안 쓰는 `Styled*` 16 · 화면이 안 읽는 WS 메시지 해석 4개 · 웹이 부르지 않는 `registerDevice` · `unregisterDevice` · `recoverAccount` | 지운 이름마다 `grep -c` = 0 · `tsc` · vitest | — |
-| W-5 | `WsBackoffPolicy` 0 · stompjs 기본 재접속 · 시도마다 새 토큰 · 포기(`gaveUp`) 경로 0 (R57 W-6 을 옮겨 옴) | `grep` · vitest | ✱ `beforeConnect` 의 토큰 읽기를 첫 토큰 고정으로 → 시험 실패 |
+| W-5 | `WsBackoffPolicy` 0 · stompjs 기본 재접속 · 시도마다 새 토큰 · 포기(`gaveUp`) 경로 0 (R57 W-6 을 옮겨 옴) · `Ruling 905` — `UNAUTHORIZED` 뒤 재발급이 **거절**(401 · 토큰 없음)일 때만 세션 만료, 망 오류 · 5xx · 시간 초과는 재접속 계속 | `grep` · vitest | ✱ `beforeConnect` 의 토큰 읽기를 첫 토큰 고정으로 → 시험 실패 · ✱ 재발급 망 오류를 거절로 취급 → 시험 실패 |
 | W-6 | (`Ruling 901`) 두 번째 연결 0 · 만료 60초 전 재발급 → 연결 1개로 다시 접속 → 구독 복원 → REST 재조회 1회 · 실서버 시험도 같은 흐름 | 새 vitest · `wsTokenRenewalRealBackend.test.ts` 고쳐 씀 | ✱ 재접속 뒤 REST 재조회를 끔 → 시험 실패 |
 | W-7 | `envelope()` 정의 5 → 1 · `jsonResponse` 2 → 1 · 응답 · 메시지 생성기를 `shared/testing` 으로 | `grep -c` | — |
 | W-8 | `AbortSignal.timeout` · 반려 사유 대화상자 하나를 관리자 · 관계자가 공유 · `useLiveRefresh` 로 3개 화면의 재조회 분기 공유 · 한 곳만 쓰는 공용 감싸개 3개(`ConnectionBand` · `Feed` · `OptionList`) 인라인 | `grep` · vitest | — |
