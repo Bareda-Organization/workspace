@@ -13,11 +13,11 @@ MARKERS = {
     "date": r"\b20\d\d-\d\d-\d\d\b|\b20\d\d년",
     "word": r"(?<!백그)라운드|당시|이전에는|원래는|바뀌기 전|예전|시절",  # 백그라운드 는 경위가 아니다
     # R58 2단계 검증(2026-10-18): 아래는 첫 판이 세지 않아 정리 뒤에도 약 580줄 남았다 — 지난 Phase 목표 번호 · 단계 · 작업 주인 · 리뷰 · 보고서 파일
-    "goal": r"목표 ?\d",
+    "goal": r"목표 ?\d|\bgoal \d",
     "step": r"\b[A-Z]\d+ S\d+\b",
-    "owner": r"\bT\d+ ?소유",
+    "owner": r"\bT\d+ ?소유|(?<![\w.<])T\d\b(?![\w>])|\bP\d+-T\d|이 태스크|다른 좌석|이 좌석|좌석 경계|이 워크트리",  # 좌석 하나만은 버스 좌석일 수 있어 세지 않는다
     "review": r"게이트 리뷰|리뷰 라운드|조율자 판단|보고서 [①-⑩]",
-    "file": r"\bp\d+-task|report-p\d+|docs/archive/rounds|Task \d+ 판단|\b[BF]E-R\d+\b",
+    "file": r"\bp\d+-task|report-p\d+|docs/archive/rounds|Task \d+ 판단|\b[BF]E-R\d+\b|phase-goal-loop|parallel-agents",
     "hash": r"커밋 `?[0-9a-f]{7,}",
 }
 MARK = re.compile("|".join(f"(?:{v})" for v in MARKERS.values()))
@@ -183,8 +183,9 @@ class A {
                                      a.replace("x = 1", "x = 2"), a.replace("/** 설명 (R1 · Ruling 7). */\n", ""), a.replace("R1 · Ruling 7", "R1"))]
     got["shape"] = [shape[0][0] == s[0] for s in shape] + [s[1] for s in shape] + [shape[0][2] == s[2] for s in shape]
     want["shape"] = [True, True, False, True, True] + [1, 1, 1, 0, 1] + [True, True, True, False, False]
-    got["more"] = [bool(MARK.search(c)) for c in ("(Phase 9 목표 6·15)", "F3 S2 목표 11", "T2 소유", "게이트 리뷰 실측", "p13-task-t2.md", "그 시절엔", "목표 시각 07:30", "Ruling 239 · BR-031")]
-    want["more"] = [True, True, True, True, True, True, False, False]
+    got["more"] = [bool(MARK.search(c)) for c in ("(Phase 9 목표 6·15)", "F3 S2 목표 11", "T2 소유", "게이트 리뷰 실측", "p13-task-t2.md", "그 시절엔", "목표 시각 07:30", "Ruling 239 · BR-031",
+                                                "── goal 1 — type 필터", "T3 담당", "P5-T6", "이 워크트리에 없다", "버스 좌석 수", "제네릭 <T1> · Map.T1")]
+    want["more"] = [True, True, True, True, True, True, False, False, True, True, True, True, False, False]
     got["joined"] = [bool(JOINED.search(t)) for t in (" * 계속 늘어난다. *", " * 성립하지 않는다.     */", " *", " */", " * <p>문단")]
     want["joined"] = [True, True, False, False, False]
     ok = got == want
