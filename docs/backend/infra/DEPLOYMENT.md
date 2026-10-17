@@ -582,7 +582,7 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 |---|---|---|
 | `backend` | compose 의 postgres(`max_connections=300`)를 띄우고 전용 DB 를 만든 뒤 `./gradlew test -PtestDbUrl=… -PciQuiet`. Redis 는 시험이 Testcontainers 로 붙임 | `@Tag("live")` 실 네이버 API 시험 |
 | `web` | `scripts/verify.sh web` — `next typegen` · `tsc --noEmit` · `lint` · `vitest`(Node 24) | 파일명 `*realBackend*.test.ts`(실서버 계약 시험) |
-| `flutter` | `scripts/verify.sh flutter` — 4개 패키지의 `pub get` · `build_runner`(있는 곳) · `analyze` · `test`(3.47.6) | `@Tags(['real_backend'])` 시험 |
+| `flutter` | `scripts/verify.sh flutter` — 5개 패키지(`baraeda_core` · `baraeda_ui` · `baraeda_app` · 앱 2종)의 `pub get` · `build_runner`(매니저 앱만) · `analyze` · `test`(3.47.6) | `@Tags(['real_backend'])` 시험 |
 
 - **배포 워크플로(`deploy-backend.yml`)의 시험 단계도 같은 준비를 한다** — workspace 저장소에서 `API_SPEC.md` 를 sparse checkout 해 `API_SPEC_PATH` 로 주고 `-PciQuiet` 로 돈다(2026-10-03 BR-304 — 저장소 분리 뒤 `ci.yml` 만 고쳐져 배포 시험이 늘 실패하던 것). 두 워크플로의 준비가 같은지는 시험 없음 — 바꿀 때 직접 맞춘다
 
