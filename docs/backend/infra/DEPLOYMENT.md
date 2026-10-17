@@ -527,6 +527,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml \
 | `NAVER_SEARCH_CLIENT_ID` · `NAVER_SEARCH_CLIENT_SECRET` | SecureString | NCP 콘솔 → NAVER API HUB → Application(지도 키와 **다른** 애플리케이션). 없으면 장소 이름 검색이 401 로 실패해 주소 후보만 나간다 |
 | `NAVER_DIRECTIONS_PATH` · `NAVER_DIRECTIONS_MAX_POINTS` | String | **짝** — 하나만 있으면 배포 중단(`Ruling 361`). Directions 15 일일 한도(3,000)가 바닥났을 때 Directions 5 로 전환: `/map-direction/v1/driving` + `7`. 되돌리려면 두 파라미터를 함께 삭제하고 재배포 |
 | `BOOTSTRAP_ADMIN_LOGIN_ID` · `BOOTSTRAP_ADMIN_PASSWORD_HASH` | String · SecureString | **짝** — 첫 메인 관리자(`prod` 첫 배포용, 아래). 해시는 §4 절차로 만든 bcrypt 해시이며 평문이면 배포가 멈춘다 |
+| `BACKEND_INSTANCES` | String | **선택** — 백엔드 대수. `1`(기본, 값이 없어도 1) 또는 `2`. 2 이면 `deploy.sh` 가 `docker-compose.scale.yml` 을 얹고 백엔드를 한 대씩 다시 만든다(§15). 2대는 메모리 약 8GB 이상 기계가 필요하다 — 그 전에 값을 바꾸지 않는다. 그 밖의 값이면 배포가 멈춘다 |
 | `ALERT_TELEGRAM_BOT_TOKEN` · `ALERT_TELEGRAM_CHAT_ID` | SecureString · String | **짝** — 경보를 텔레그램으로 받는다(§11.3). 토큰은 `<숫자>:<문자열>`, 채팅 ID 는 숫자(그룹은 음수). 없으면 텔레그램으로 안 보낸다 |
 | `ALERT_EMAIL_TO` · `ALERT_SMTP_HOST` · `ALERT_SMTP_USER` · `ALERT_SMTP_PASSWORD` | String · String · String · SecureString | **넷이 짝** — 경보 이메일 예비 채널(§11.3). `ALERT_SMTP_HOST` 는 `호스트:포트`(예 `smtp.gmail.com:587`), 발신 주소는 SMTP 계정과 같다. 없으면 이메일로 안 보낸다. 반쪽(일부만 등록)이면 `deploy.sh` 가 배포를 멈춘다 |
 
@@ -629,6 +630,7 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 - 첫 배포 뒤 확인: 배포 로그의 `== 3-1.` 아래에 `configuration file /etc/nginx/nginx.conf test is successful` 가 있어야 한다. EC2 의 compose 는 v2.29.7 이고 위 동작(`run --no-deps`·`restart`)은 v2 공통이지만, "backend 재생성이 proxy 를 다시 만들지 않는다" 는 로컬 v5.5.1 에서만 확인했다
 - 검사용 컨테이너도 `x-logging` 을 받아 배포마다 CloudWatch 로그 스트림이 하나 늘고 2줄이 남는다
 - `.htpasswd` 는 `s3 sync` 가 건드리지 않는 EC2 직접 파일이라(§2.12) 이 단계의 대상이 아니다. 그 파일을 새로 만들었을 때의 재기동(§2.12 3번)은 그대로 필요하다
+- 백엔드 2대 모드(`BACKEND_INSTANCES=2`, §15)는 이 단계에서 검사(`nginx -t`)만 하고 **proxy 를 다시 시작하지 않는다** — 다시 시작하면 열린 WebSocket 세션 전부가 한꺼번에 끊긴다. 대신 nginx 설정 파일을 고친 배포는 반영되지 않으므로(위 마운트 이유) 점검 시간에 `docker compose -f docker-compose.prod.yml -f docker-compose.scale.yml --env-file /opt/school-bus/.env restart proxy` 를 따로 한다
 
 ---
 
@@ -1315,3 +1317,72 @@ class FirebasePushTokenSource implements PushTokenSource {
 `onMessage` 를 알림 목록 갱신에 잇는 곳은 학부모 앱 홈의 주기 갱신(`Ruling 431` 90초)과 같은 자리다 — `ref.invalidate(...)` 한 줄이며, 이어 붙이면 주기를 더 늘릴 수 있다. `google-services.json` · `GoogleService-Info.plist` 가 없는 빌드에서 `Firebase.initializeApp()` 이 실패하므로, 파일이 준비되기 전에는 의존성도 넣지 않는다(`Ruling 510`).
 
 - **문자 업체 구현체는 연결·읽기 시간 상한(예: 3초)을 둔다** — 문자 발송이 복구 트랜잭션 안에서 돌아(§2.9 원자성) 업체가 멈추면 그만큼 DB 연결을 쥔다. `SmsSender` 계약 주석에 같은 내용(BR-308).
+
+---
+
+## 15. 백엔드 2대 구성 (`Ruling 900` · `915`)
+
+백엔드는 기본 1대이고, `docker-compose.scale.yml` 을 `docker-compose.prod.yml` 에 얹으면 2대가 된다. 운영 대수는 배포 때 사용자가 정한다. 2대에서 막히던 것과 그 해소·확인은 `ARCHITECTURE §9.5`.
+
+### 15.1 무엇이 달라지나
+
+| 대상 | 1대(기본) | 2대 |
+|---|---|---|
+| compose | `docker-compose.prod.yml` | + `docker-compose.scale.yml` — `backend2` 를 더하고 두 대 모두 `cpus: 2` · `mem_limit: 3072m` · `stop_grace_period: 35s` |
+| nginx 업스트림 | `infra/proxy/backend-pool.single.conf` (서버 1개) | `backend-pool.scale.conf` — `least_conn` · 두 서버에 `max_fails=2 fail_timeout=10s` · `resolve` + `resolver 127.0.0.11 valid=5s` |
+| Prometheus 수집 대상 | `backend-targets.single.yml` (`backend:8081`) | `backend-targets.scale.yml` — 같은 job `backend` 아래 `instance` 라벨이 `backend:8081` · `backend2:8081` |
+| 학생 사진 | `photo-data` 볼륨 | 같은 볼륨을 두 대가 공유(한 호스트일 때만 맞다 — 호스트를 나누려면 오픈 이슈 W 의 S3 이전이 먼저) |
+| 배포 | `up -d` 한 번 · 재생성 중 수십 초 다운타임(§10) | 백엔드를 한 대씩 다시 만든다(§15.4) · nginx 는 다시 시작하지 않는다 |
+
+`resolve` 가 있는 이유 — 컨테이너를 다시 만들면 IP 가 바뀌는데 nginx 는 기동할 때 이름을 한 번만 풀어, `resolve` 가 없으면 배포 뒤에 옛 IP 로 계속 간다. Docker 내장 DNS 를 5초마다 다시 묻고, 멈춘 컨테이너(이름이 풀리지 않음)는 풀에서 뺀다. `max_fails=0`(실패를 세지 않는 값)으로 바꾸면 멈춘 대에 요청이 계속 가서 5초 뒤 `504` 가 난다 — `infra/scripts/check-instance-failover.sh` 가 이 값에서 실패한다.
+
+### 15.2 기계 크기 — 4GB 기계 1대(`t3.medium`)에는 안 들어간다
+
+compose 의 한도와 주석 값을 더한 것이다(실측이 아니다).
+
+| 항목 | 메모리 |
+|---|---|
+| 백엔드 2대 | 3,072MB × 2 = 6,144MB |
+| prometheus · grafana · alertmanager · node-exporter | 512 + 256 + 96 + 64 = 928MB |
+| postgres · redis(`maxmemory 128mb`) · nginx | 약 250 + 128 + 50 = 428MB (`docker-compose.prod.yml` 주석의 값) |
+| 합계 | 약 7,500MB + 운영체제 |
+
+그래서 2대는 메모리 약 8GB 이상 기계가 필요하다. 사양 · 비용은 사용자가 정한다(`Ruling 898` ②). JVM 힙 비율 · 직접 메모리 상한은 2대 부하 재측정(`LOAD_TESTING` §8) 뒤에 정한다 — 측정 전에는 값을 바꾸지 않는다(`Ruling 900` J).
+
+### 15.3 켜는 법 · 되돌리는 법
+
+1. SSM `/school-bus/demo/BACKEND_INSTANCES` 에 `2` 를 등록한다(§3). 값이 없으면 1대다. `1` · `2` 가 아니면 `deploy.sh` 가 컨테이너에 닿기 전에 멈춘다.
+2. 평소처럼 배포한다. **1대→2대 전환 배포는 proxy 가 한 번 다시 만들어진다** — proxy 의 마운트(업스트림 파일)가 바뀌기 때문이다. 그 뒤 배포에는 없다. 이 한 번은 WebSocket 이 모두 끊기니 점검 시간에 한다.
+3. 2대→1대: SSM 값을 `1` 로 바꿔 배포하면 proxy 가 1대용 업스트림으로 다시 만들어진다. `backend2` 컨테이너는 남으므로 지운다 — `docker compose -f docker-compose.prod.yml -f docker-compose.scale.yml --env-file /opt/school-bus/.env rm -sf backend2`.
+
+### 15.4 한 대씩 배포 (`Ruling 900` I)
+
+`deploy.sh` 의 3단계가 `BACKEND_INSTANCES=2` 일 때 `infra/scripts/rolling-restart.sh backend backend2` 를 부른다.
+
+1. DB · Redis 를 먼저 올리고 건강해질 때까지 기다린다.
+2. `backend` 를 다시 만든다(`up -d --no-deps --force-recreate`). 종료 신호를 받은 옛 컨테이너는 열린 WebSocket 세션을 `1012` 로 닫고 처리 중 요청을 마친 뒤 내려간다(`stop_grace_period` 35초 안). 클라이언트는 기존 재접속 규칙으로 `backend2` 에 붙는다(`API_SPEC §7.2`).
+3. 새 `backend` 가 healthy 가 되면 8초(`ROLLING_SETTLE_SEC`) 쉰다 — nginx 가 컨테이너 이름을 다시 풀어(5초 주기) 새 IP 를 잡을 시간이다.
+4. 같은 방식으로 `backend2` 를 다시 만든다. 한 대를 내리기 전에 다른 대가 healthy 인지 보고, 아니면 멈춘다(마지막 건강한 대를 내리지 않는다). 다른 대가 하나도 안 떠 있으면(첫 배포) 막지 않는다.
+5. 스모크 테스트는 두 대의 `/actuator/health` 가 모두 `UP` 인지 본다.
+
+중간에 멈추면 남은 대는 계속 요청을 받는다. 롤백은 §6 과 같다 — 이전 태그로 다시 배포하면 같은 순서로 한 대씩 바뀐다. nginx 설정 파일을 고친 배포는 §5.3 마지막 단락의 `restart proxy` 를 따로 한다.
+
+### 15.5 Postgres 연결 수
+
+기본 `max_connections` 는 100이다(`docker-compose.prod.yml` 이 따로 지정하지 않는다). 백엔드 한 대의 커넥션 풀 `maximum-pool-size` 는 20이므로 2대 = 40이고, 운영자 접속 · 백업 · `postgres-exporter` 없는 관측을 더해도 100 안에 든다. 풀 크기를 올릴 때는 `대수 × maximum-pool-size + 여유 ≤ max_connections` 를 다시 확인한다.
+
+### 15.6 로컬에서 같은 구성을 확인하는 스크립트
+
+모두 Docker Desktop 메모리 8GB 이상에서 `infra/scripts/` 아래 한 명령으로 돈다. 스택(프로젝트 `r59-infra`)을 띄우고 확인한 뒤 `down` 한다(`-v` 없음). 백엔드는 한 대 1,536MB 로 낮춰 뜬다(`SCALE_CHECK_MEM` 으로 바꾼다). 이미지는 `backend/` 에서 새로 빌드하고, 다시 빌드하지 않으려면 `SCALE_SKIP_BUILD=1`.
+
+| 스크립트 | 확인하는 것 | 통과 기준 |
+|---|---|---|
+| `check-scale-stack.sh` | compose 합성 · 백엔드 2대 healthy · nginx `-t` · Prometheus 수집 대상 | 4개 모두 PASS |
+| `check-cross-instance.sh` | 한 대에 보낸 위치 · 비상을 다른 대의 구독자가 받는가 | 이벤트 종류마다 받은 건수 = 보낸 건수 |
+| `check-instance-failover.sh` | 한 대를 멈춰도 REST 연속 요청이 이어지고 세션이 남은 대로 다시 붙는가 | 멈춘 뒤 시작한 요청 실패 0 · 세션 전부 재접속 |
+| `check-rolling-restart.sh` | `rolling-restart.sh` 를 부하 중에 돌려 다른 대의 세션이 유지되고 nginx 가 그대로인가 | 세션 감소 0 · nginx 시작 시각 불변 |
+
+### 15.7 알려진 한계
+
+- 2대 운영에서 Redis 가 멈춘 동안은 인스턴스 사이 전달이 빠진다(같은 대에 붙은 구독자에게는 직접 간다). 클라이언트는 재접속 · 화면 복귀 때 REST 로 다시 받는다(`Ruling 900` B · `API_SPEC §7.2`). Redis 는 여전히 한 대다.
+- 사진 저장소는 한 호스트의 볼륨이다(위 표).
