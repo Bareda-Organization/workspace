@@ -26,7 +26,6 @@ backend-test	backend/src/test/java/src/backend/bus/controller/StaffBusListExtens
 backend-test	backend/src/test/java/src/backend/location/proximity/ProximityFixtures.java	{@code Phase9RosterFixtures} 의 지오코딩	클래스 이름(코드 식별자)이지 경위가 아님
 backend-test	backend/src/test/java/src/backend/location/repository/RunPositionRepositoryLatestTest.java	시험 데이터(2099년)를 모두 덮게	시험 데이터 연도 범위 설명이지 경위가 아님
 backend-test	backend/src/test/java/src/backend/routing/assign/impl/SequentialAttendantAssignerTest.java	2026-03-02 는 월요일이다	시험 데이터 날짜의 요일 설명이지 경위가 아님
-backend-test	backend/src/test/java/src/backend/routing/command/WaypointPreviewCacheTest.java	KST 2026-09-30 10:00.	고정한 시험 시계 값이지 경위가 아님
 backend-test	backend/src/test/java/src/backend/routing/controller/StaffWaypointControllerTest.java	먼 미래(2030년 월요일)로 두어	시험 데이터 날짜 선택 설명이지 경위가 아님
 backend-test	backend/src/test/java/src/backend/notification/controller/StaffNotificationControllerTest.java	clock 은 2030-04-01 12:00 KST 로 고정돼 있다	고정한 시험 시계 값이지 경위가 아님
 backend-test	backend/src/test/java/src/backend/student/controller/StaffStudentWithdrawalPreviewTest.java	시계는 2030-04-01(월) 12:00 KST 로 고정돼	고정한 시험 시계 값이지 경위가 아님
