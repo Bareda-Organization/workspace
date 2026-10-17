@@ -728,7 +728,7 @@ org.springframework.boot:spring-boot-testcontainers
 
 ### 12.2.1 요청 스레드 수 — DB 연결 풀의 5배 (R46-LATERBE L11 · `Ruling 674`)
 
-**Tomcat 요청 스레드(`server.tomcat.threads.max`)를 명시한다 — 운영·demo 100(풀 20 × 5) · 스테이징 50(풀 10 × 5) · `accept-count` 100.** 명시하지 않으면 기본 200 이라 풀이 마를 때 200개 스레드가 연결을 3초씩 기다리며 서 있다(부하 측정 — 풀 10 에서 `tomcatBusy` 200 · `hikariPend` 116~194). 풀의 4~5배면 **DB 를 안 쓰는 요청**(Redis 읽기 · 헬스)이 연결 대기에 막히지 않을 여유가 남고 연결 대기 스레드는 80개로 한정된다. 풀보다 적게 두면 DB 연결이 놀고, 5배를 넘기면 대기만 길어진다. `accept-count` 는 스레드가 다 찬 뒤 TCP 대기열이라 기본(100)을 명시만 한다 — 키우면 거절 대신 오래 기다리다 3초 뒤 5xx 가 되는 요청만 늘고 줄이면 짧은 몰림에 연결 거부가 난다. STOMP 수신·발신과 스케줄러·알림 발송은 별도 실행기라 이 스레드를 쓰지 않는다. 근거 수치는 측정 기계(10코어) 값이라 운영 사양(4 vCPU)에서 재측정 전까지 잠정이다(`Ruling 351` 과 같은 단서). 설정 가드 — `TomcatThreadPoolConfigTest`(yml 을 프로파일별로 읽어 `스레드 = 풀 × 5` 고정). 이 관계는 `application.yml` 의 prod·demo·staging 문서에 같이 있다 — 풀 크기를 바꾸면 스레드 수도 함께 바꾼다.
+**Tomcat 요청 스레드(`server.tomcat.threads.max`)를 명시한다 — 운영·demo 100(풀 20 × 5) · 스테이징 50(풀 10 × 5) · `accept-count` 100.** 명시하지 않으면 기본 200 이라 풀이 마를 때 200개 스레드가 연결을 3초씩 기다리며 서 있다(부하 측정 — 풀 10 에서 `tomcatBusy` 200 · `hikariPend` 116~194). 풀의 4~5배면 **DB 를 안 쓰는 요청**(Redis 읽기 · 헬스)이 연결 대기에 막히지 않을 여유가 남고 연결 대기 스레드는 80개로 한정된다. 풀보다 적게 두면 DB 연결이 놀고, 5배를 넘기면 대기만 길어진다. `accept-count` 는 스레드가 다 찬 뒤 TCP 대기열이라 기본(100)을 명시만 한다 — 키우면 거절 대신 오래 기다리다 3초 뒤 5xx 가 되는 요청만 늘고 줄이면 짧은 몰림에 연결 거부가 난다. STOMP 수신·발신과 스케줄러·알림 발송은 별도 실행기라 이 스레드를 쓰지 않는다. 근거 수치는 측정 기계(10코어) 값이라 운영 사양(4 vCPU)에서 재측정 전까지 잠정이다(`Ruling 351` 과 같은 단서). 설정 가드 시험은 없다 — `스레드 = 풀 × 5` 는 바꿀 때 직접 맞춘다. 이 관계는 `application.yml` 의 prod·demo·staging 문서에 같이 있다 — 풀 크기를 바꾸면 스레드 수도 함께 바꾼다.
 
 ### 12.2.2 DB 세션 시간 상한 (`Ruling 899` L)
 
@@ -790,6 +790,7 @@ org.springframework.boot:spring-boot-testcontainers
 |---|---|---|
 | **확정 배치 도래→완료 지연** | `schoolbus.run.confirmation.lag` | §3 의 밀림 누적을 감지하는 **유일한 신호**. 이 값이 늘면 워커·인스턴스를 늘려야 함 |
 | **미확정 회차 수** | `schoolbus.run.unconfirmed` | `confirm_at` 이 지났는데 `status='idle'` 인 회차. **0이 아니면 곧 운행 사고** |
+| 스케줄러 실행 성공·실패 | 스프링 기본 계측 `tasks.scheduled.execution`(Prometheus `tasks_scheduled_execution_seconds_*`) — 태그 `code_namespace`(클래스 전체 이름) · `outcome`(`SUCCESS` · `ERROR`). 스케줄러 경보 7개가 이 지표를 읽는다. 이전의 `schoolbus_scheduler_last_success_age_seconds` 는 없다 | 스케줄러가 멈추거나 계속 실패하는 것. 시리즈는 그 스케줄러의 첫 실행 때 생긴다 |
 | 배치 실패·재시도 건수 | `schoolbus.run.confirmation.retry_failures` | 회차 단위로 격리되므로 실패가 로그에만 남고 응답에 미노출 |
 | 지도 API 응답 시간 · 실패율 · 서킷 상태 | — | 계산 지연의 주 원인 |
 | 알림 발송 실패 건수 | `schoolbus.notification.push.failures` | 레코드는 남고 푸시만 실패하는 경우 |
@@ -830,9 +831,9 @@ org.springframework.boot:spring-boot-testcontainers
 | 백엔드 스크레이프 실패(`up == 0`) 또는 대상이 목록에서 사라짐, 1분 유지 | **즉시** | 백엔드가 죽으면 위 백엔드 지표 규칙이 전부 값이 없어 조용해진다 — 이 규칙이 그 침묵을 대신 알린다(`R46-FIXOPS` `Ruling 640`) |
 | 요청의 5% 초과가 5xx(actuator·`/healthz` 제외 · 분당 6건 이상) 2분 유지 | **즉시** | 서비스가 응답은 하지만 실패하는 상태 — 위치·승하차 요청이 오류(`Ruling 640`) |
 | DB 연결 대기(`hikaricp_connections_pending > 0`) 1분 유지 | 경고 | 연결 풀 고갈의 전조 — 마르면 3초 뒤 500(`Ruling 640`) |
-| 확정·알림 재전송 스케줄러 90초 · 근접 판정 30초(주기의 3배) 넘게 마지막 성공 없음, 1분 유지 | **즉시** | 확정이 멈추면 `RunUnconfirmed` 가 울리기 전에 안다. 보존 정리는 3일(경고)(`Ruling 640`) |
+| 확정·알림 재전송 스케줄러 2분 · 근접 판정 1분(주기의 3~4배) 동안 `tasks_scheduled_execution_seconds_count{outcome="SUCCESS"}` 증가 없음, 1분 유지 | **즉시** | 확정이 멈추면 `RunUnconfirmed` 가 울리기 전에 안다. 보존 정리는 3일(경고)(`Ruling 640`) |
 
-규칙 파일은 `infra/observability/prometheus/alerts.yml` — 1·2·3·4·5행과 디스크·백업·가용성 행이 들어 있다(2026-09-25 BR-064: 미승차는 `schoolbus_scheduler_failures_total{scheduler="no-show-escalation"}` 증가 · 마지막 성공 경과 180초 초과, 위치는 `schoolbus_run_position_lost` 게이지. 2026-10-01 R46 ops `Ruling 455`·`456`: 1행은 `schoolbus_run_unconfirmed > 0` 이 1분 유지, 5행은 `schoolbus_notification_push_failures_total` 의 10분 증가, 디스크는 마운트 지점 `/` 사용률). 조건식은 `alerts.test.yml` 이 promtool 로 검사한다. 4행(서킷)은 `CircuitBreakerNotClosed`(열림·반열림이 2분 넘게 이어짐 — 장애 중에는 열림 ↔ 반열림을 오가 `open` 게이지만 보면 끊긴다 · 2026-10-01 R46-FIXOPS)로 구성했다. 끝나지 않은 이동 중 회차(운행일이 어제보다 이른 `moving`)는 `StaleMovingRun`(`schoolbus_run_moving_stale > 0` 30분 유지 · 2026-10-01 R46-KFIXBE `Ruling 702`)이 표 밖에서 맡는다. **6행(배치 지연 p95)은 미구성.** 전달 경로는 운영 compose 의 Alertmanager 가 텔레그램·이메일로 보낸다(§12.5 · `Ruling 501`) — 수신 값이 SSM 에 없으면 수신자 없이 뜨고 발화한 경보는 Prometheus `/alerts` 에서만 보인다(`DEPLOYMENT.md §11`).
+규칙 파일은 `infra/observability/prometheus/alerts.yml` — 1·2·3·4·5행과 디스크·백업·가용성 행이 들어 있다(2026-09-25 BR-064: 미승차는 `tasks_scheduled_execution_seconds_count{code_namespace=…NoShowEscalationScheduler, outcome="ERROR"}` 증가(건별 실패 `schoolbus_scheduler_failures_total{scheduler="no-show-escalation"}` 증가도 함께) · 3분 동안 `outcome="SUCCESS"` 증가 없음, 위치는 `schoolbus_run_position_lost` 게이지. 2026-10-01 R46 ops `Ruling 455`·`456`: 1행은 `schoolbus_run_unconfirmed > 0` 이 1분 유지, 5행은 `schoolbus_notification_push_failures_total` 의 10분 증가, 디스크는 마운트 지점 `/` 사용률). 조건식은 `alerts.test.yml` 이 promtool 로 검사한다. 4행(서킷)은 `CircuitBreakerNotClosed`(열림·반열림이 2분 넘게 이어짐 — 장애 중에는 열림 ↔ 반열림을 오가 `open` 게이지만 보면 끊긴다 · 2026-10-01 R46-FIXOPS)로 구성했다. 끝나지 않은 이동 중 회차(운행일이 어제보다 이른 `moving`)는 `StaleMovingRun`(`schoolbus_run_moving_stale > 0` 30분 유지 · 2026-10-01 R46-KFIXBE `Ruling 702`)이 표 밖에서 맡는다. **6행(배치 지연 p95)은 미구성.** 전달 경로는 운영 compose 의 Alertmanager 가 텔레그램·이메일로 보낸다(§12.5 · `Ruling 501`) — 수신 값이 SSM 에 없으면 수신자 없이 뜨고 발화한 경보는 Prometheus `/alerts` 에서만 보인다(`DEPLOYMENT.md §11`).
 
 **알럿을 등급으로 가르는 기준은 "지금 아이가 위험한가"** 다. 시스템 지표가 아니라 그 지표가 뜻하는 현실 상황으로 판단한다.
 

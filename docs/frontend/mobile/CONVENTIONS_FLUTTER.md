@@ -12,14 +12,16 @@ React 쪽 규칙은 `docs/frontend/web/CONVENTIONS_REACT.md` 이며 **두 문서
 
 | 용도 | 채택 | 이유 |
 |---|---|---|
-| 상태 관리 | **Riverpod** (`flutter_riverpod` · `riverpod_generator`) | 컴파일 시점에 의존이 드러나고 테스트에서 교체가 쉬움. `InheritedWidget` 직접 사용·전역 싱글턴 금지 |
+| 상태 관리 | **Riverpod** (`flutter_riverpod` — provider 는 손으로 쓰고 `riverpod_generator` 는 쓰지 않는다) | 컴파일 시점에 의존이 드러나고 테스트에서 교체가 쉬움. `InheritedWidget` 직접 사용·전역 싱글턴 금지 |
 | 라우팅 | **go_router** | 선언형 · 딥링크(푸시 알림에서 특정 회차로 진입)가 필수 |
 | HTTP | **dio** | 인터셉터로 토큰 재발급(`§2.6`)·멱등 키(`§1.7`)를 한곳에서 처리 |
-| 모델·직렬화 | **freezed** + `json_serializable` | 불변 모델 · 유니온(상태머신)·`copyWith` 자동 생성 |
+| 모델·직렬화 | **손으로 쓴 불변 클래스** · `fromJson` 직접 구현 · core `Failure` 는 `sealed class` | 모델 수가 적어 코드 생성(`freezed` · `json_serializable`)의 이득보다 `build_runner` 단계 비용이 커서 core · parent · `baraeda_app` · `baraeda_ui` 에서 걷었다(R58) |
+| 코드 생성 | **drift_dev** + **build_runner** — 매니저 앱만 | drift 오프라인 큐(`offline_queue_database.g.dart`)가 유일한 생성 파일이다. `baraeda_core` · 학부모 앱 · `baraeda_app` · `baraeda_ui` 에는 `build_runner` 가 없다. 매니저 앱 오프라인 큐 DB 의 `schemaVersion` 은 1 이다 |
 | 로컬 저장 | **flutter_secure_storage**(토큰) · **drift**(오프라인 큐) | refresh 토큰은 평문 저장 금지. 오프라인 큐(M-06)는 트랜잭션이 필요. 매니저 앱 명단 저장본은 암호화해 저장한다(`Ruling 872`) |
 | 이미지 디스크 캐시 | **cached_network_image** + **flutter_cache_manager**(매니저 앱) | Flutter 기본 이미지 위젯에는 디스크 캐시가 없다. 학생 사진을 인증 헤더와 함께 받아 하루 만료 전용 캐시에 두고, 로그아웃 때 비운다(`Ruling 899` I). 사진이 같은 URL 로 바뀌면 서버의 `Cache-Control` 이 길 때 옛 사진이 그 시간만큼 보일 수 있다 |
 | 런타임 권한 | **permission_handler**(매니저 앱) | Android 13+ 알림 권한을 운행 시작 확인 직후 요청한다 — 거부돼도 운행 시작은 막지 않는다(`AndroidManifest` 에 `POST_NOTIFICATIONS` 선언). 위치 권한 흐름은 기존 그대로 |
-| 린트 | **very_good_analysis** 11 | 기본 `flutter_lints` 보다 엄격. `analysis_options.yaml` 에 고정(4곳). 개별 규칙 예외는 `public_member_api_docs` 1종(앱 2종·`baraeda_ui` 만 끔). `unnecessary_type_name_in_constructor` 는 켜 둔다 — `Ruling 770` 이 껐다가 freezed 4.0.2 에서 재개(`Ruling 795`) |
+| 린트 | **very_good_analysis** 11 | 기본 `flutter_lints` 보다 엄격. `analysis_options.yaml` 에 고정(5곳 — 앱 2종 · `baraeda_core` · `baraeda_app` · `baraeda_ui`). 개별 규칙 예외는 `public_member_api_docs` 1종(앱 2종 · `baraeda_app` · `baraeda_ui` 만 끔, `baraeda_core` 는 켬). `unnecessary_type_name_in_constructor` 는 켜 둔다 — `Ruling 770` 이 껐다가 `Ruling 795` 에서 재개했고, 지금은 `freezed` 를 쓰지 않아 코드 생성과 무관하다 |
+| 앱 공통 코드 | **`packages/baraeda_app`** · 시험 대역 `package:baraeda_core/testing.dart` | 두 앱이 같은 코드는 `packages/baraeda_app`, 시험 대역은 `package:baraeda_core/testing.dart` 에 둔다 |
 
 ---
 
@@ -62,7 +64,7 @@ presentation → domain ← data
 
 - **`presentation` 이 `data` 를 직접 import 하지 않음.** 항상 `domain` 의 인터페이스를 거침
   — 이것이 없으면 화면이 DTO 모양에 묶여 API 가 바뀔 때 화면까지 고쳐야 함
-- **기능끼리 서로 import 하지 않음.** 공유가 필요하면 `core/` 로 올리거나 `packages/baraeda_ui` 로 뺌
+- **기능끼리 서로 import 하지 않음.** 공유가 필요하면 `core/` 로 올리거나 `packages/baraeda_ui`(위젯) · `packages/baraeda_app`(두 앱이 같은 코드)로 뺌
 - `core/` 는 어느 기능도 import 하지 않음 (단방향)
 
 ---
@@ -120,7 +122,7 @@ Container(color: const Color(0xFF1F5C4D))
 | 대상 | 규칙 | 예 |
 |---|---|---|
 | 파일 · 디렉터리 | `snake_case.dart` | `stop_roster_screen.dart` |
-| 클래스 · enum · typedef | `UpperCamelCase` | `RunSummaryCard` |
+| 클래스 · enum · typedef | `UpperCamelCase` | `StopTimeline` |
 | 변수 · 함수 · 파라미터 | `lowerCamelCase` | `boardedCount` |
 | 상수 | `lowerCamelCase` (Dart 관례 — `SCREAMING_CAPS` 미사용) | `const maxDelayMinutes = 60;` |
 | 비공개 | `_` 접두 | `_handleBoardTap` |

@@ -945,7 +945,7 @@ NTF-12(푸시 단말 등록·해지)는 계층 기능 ID 부재 — 로그인 �
 `PARENT` 부여 목록에도 그 권한이 부재하다.
 
 - **학부모가 자기 자녀의 요일별 등하원 주소를 보고 고치는 것은 맞다**(`API_SPEC §3.7`). 다만 그것은
-  이 권한으로 열리는 것이 **아니라** `CanManageWeeklyAddress`(`isAuthenticated()`) + `LinkedChildLookup`
+  이 권한으로 열리는 것이 **아니라** `@AuthenticatedOnly` + `LinkedChildLookup`
   의 **자원 소속 판정**으로 열린다. 등급으로 열면 **사진·특이사항·연락처 원문이 함께 열리기 때문**이다
 - **사진·특이사항·연락처 원본은 학부모에게 열리지 않는다.** 자녀 목록 응답(`ChildListResponse`)이
   `photo_url` 과 주소 원문·좌표를 **의도적으로 담지 않는다** — 그 부재가 사양이라고 그 클래스가 명시한다

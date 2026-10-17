@@ -154,15 +154,14 @@ npm run dev      # http://localhost:3000
 
 ### 8.1 최초 1회 — 생성 코드 만들기
 
-`*.g.dart` · `*.freezed.dart` 는 git 이 추적하지 않음. 새로 받은 저장소에서는 없으므로 아래를 먼저 실행:
+생성 파일은 매니저 앱의 drift(`*.g.dart`) 하나뿐이고 git 이 추적하지 않음. 새로 받은 저장소에서는 없으므로 아래를 먼저 실행:
 
 ```bash
-cd ../mobile/packages/baraeda_core && flutter pub get && dart run build_runner build
-cd ../../apps/manager-app         && flutter pub get && dart run build_runner build
-cd ../parent-app                  && flutter pub get
+cd ../mobile/apps/manager-app && flutter pub get && dart run build_runner build
+cd ../parent-app              && flutter pub get
 ```
 
-- `parent-app` 은 `build_runner` 를 돌려도 생성 파일이 0개
+- `baraeda_core` · `baraeda_app` · `baraeda_ui` · `parent-app` 에는 `build_runner` 가 없어 `flutter pub get` 만 필요함
 
 ### 8.2 실행
 
@@ -198,7 +197,7 @@ flutter analyze
 flutter test --exclude-tags real_backend   # 단위·위젯. 실서버 계약 시험(@Tags(['real_backend']))은 제외 — CI 와 같은 명령
 ```
 
-- 한 번에 전부(백엔드 + 웹 + Flutter 4곳): 저장소 루트에서 `scripts/verify.sh`. 골라서는 `scripts/verify.sh web flutter`. CI(`.github/workflows/ci.yml`)가 같은 검사를 돎(`docs/backend/infra/DEPLOYMENT.md §5.1`)
+- 한 번에 전부(백엔드 + 웹 + Flutter 5패키지): 저장소 루트에서 `scripts/verify.sh`. 골라서는 `scripts/verify.sh web flutter`. CI(`.github/workflows/ci.yml`)가 같은 검사를 돎(`docs/backend/infra/DEPLOYMENT.md §5.1`)
 - `--exclude-tags` 는 패키지의 `dart_test.yaml` 에 태그 선언이 있어야 걸러짐(선언이 없으면 아무것도 안 걸러지는 빈 플래그). 실서버 계약 시험 파일 머리에는 `@Tags(['real_backend'])` 가 붙어 있어야 함
 
 - 실서버 계약 시험은 `flutter test --tags real_backend --dart-define=API_BASE_URL=http://localhost:<전용포트>/api/v1` 로 돌림. 주소를 주지 않으면 스스로 실패함(`test/support/real_backend_target.dart`). **공유 DB(`schoolbus`)가 아닌 전용 DB 로 띄운 백엔드**에만 겨눔 — 이 시험은 실행하면서 DB 의 행을 바꿈
@@ -248,5 +247,5 @@ flutter test --exclude-tags real_backend   # 단위·위젯. 실서버 계약 �
 - **로그인은 되는데 이후 요청이 `401`**: Swagger Authorize 에 `Bearer ` 접두사를 붙였는지 확인(토큰 값만 입력)
 - **CORS 오류**: ① 개발 서버 주소가 허용 목록과 프로토콜·호스트·포트까지 일치하는지(`http://localhost:3000` 과 `http://127.0.0.1:3000` 은 다른 출처) ② 설정을 바꾼 뒤 백엔드를 재시작했는지 ③ 요청 경로가 `/api/` 로 시작하는지
 - **지도가 회색 격자 / "지도를 불러오지 못했습니다"**: 앱은 `NAVER_MAP_CLIENT_ID` 인자(§8.2), 웹은 `.env.local` 의 키와 `:3000` 포트(§7)를 확인
-- **`flutter run` 이 `*.freezed.dart` · `*.g.dart` 없다고 실패**: §8.1 의 `build_runner` 를 실행
+- **매니저 앱 `flutter run` 이 `*.g.dart` 없다고 실패**: §8.1 의 `build_runner` 를 실행
 - **`docker compose up` 후 backend 가 계속 재시작**(3.2): `docker compose -f docker-compose.yml -f docker-compose.app.yml logs backend` 로 원인 확인

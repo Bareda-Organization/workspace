@@ -546,7 +546,7 @@ aws ssm put-parameter --name /school-bus/demo/DB_PASSWORD --type SecureString \
   --value "$(openssl rand -base64 24)"
 ```
 
-**배포자 참고**: `SEED_PASSWORD_HASH`·`WS_ALLOWED_ORIGIN_PATTERNS` 를 읽어 쓰는 `demo` 프로파일·Flyway placeholder 배선은 `backend/src/main/resources/application.yml` 에 반영 완료. 두 값 모두 기본값 없이 요구하므로 미등록 시 컨테이너가 기동 단계에서 실패한다(조용히 약한 값으로 뜨지 않는다). 이 성질은 `DeploymentConfigGuardTest` 가 회귀를 막는다.
+**배포자 참고**: `SEED_PASSWORD_HASH`·`WS_ALLOWED_ORIGIN_PATTERNS` 를 읽어 쓰는 `demo` 프로파일·Flyway placeholder 배선은 `backend/src/main/resources/application.yml` 에 반영 완료. 두 값 모두 기본값 없이 요구하므로 미등록 시 컨테이너가 기동 단계에서 실패한다(조용히 약한 값으로 뜨지 않는다). 이 성질을 확인하는 시험은 없다 — `application.yml` 의 해당 키를 바꿀 때 직접 확인한다.
 
 ---
 
@@ -582,11 +582,11 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 |---|---|---|
 | `backend` | compose 의 postgres(`max_connections=300`)를 띄우고 전용 DB 를 만든 뒤 `./gradlew test -PtestDbUrl=… -PciQuiet`. Redis 는 시험이 Testcontainers 로 붙임 | `@Tag("live")` 실 네이버 API 시험 |
 | `web` | `scripts/verify.sh web` — `next typegen` · `tsc --noEmit` · `lint` · `vitest`(Node 24) | 파일명 `*realBackend*.test.ts`(실서버 계약 시험) |
-| `flutter` | `scripts/verify.sh flutter` — 4개 패키지의 `pub get` · `build_runner`(있는 곳) · `analyze` · `test`(3.47.6) | `@Tags(['real_backend'])` 시험 |
+| `flutter` | `scripts/verify.sh flutter` — 5개 패키지(`baraeda_core` · `baraeda_ui` · `baraeda_app` · 앱 2종)의 `pub get` · `build_runner`(매니저 앱만) · `analyze` · `test`(3.47.6) | `@Tags(['real_backend'])` 시험 |
 
-- **배포 워크플로(`deploy-backend.yml`)의 시험 단계도 같은 준비를 한다** — workspace 저장소에서 `API_SPEC.md` 를 sparse checkout 해 `API_SPEC_PATH` 로 주고 `-PciQuiet` 로 돈다(2026-10-03 BR-304 — 저장소 분리 뒤 `ci.yml` 만 고쳐져 배포 시험이 늘 실패하던 것). `WorkflowGuardTest` 가 두 워크플로의 준비가 같은지 고정한다
+- **배포 워크플로(`deploy-backend.yml`)의 시험 단계도 같은 준비를 한다** — workspace 저장소에서 `API_SPEC.md` 를 sparse checkout 해 `API_SPEC_PATH` 로 주고 `-PciQuiet` 로 돈다(2026-10-03 BR-304 — 저장소 분리 뒤 `ci.yml` 만 고쳐져 배포 시험이 늘 실패하던 것). 두 워크플로의 준비가 같은지는 시험 없음 — 바꿀 때 직접 맞춘다
 
-- 백엔드 코드(`backend/**`)나 시험이 읽는 입력(`infra/**` · `docker-compose*.yml` · `.github/**`)이 바뀔 때 백엔드 시험이 돈다(`dorny/paths-filter` — 제3자 액션이라 커밋 SHA 로 고정, `WorkflowGuardTest` 가 거르기 목록과 시험이 읽는 입력을 대조한다). 같은 job 앞단에서 경보 규칙 시험(promtool — 운영 Prometheus 와 같은 이미지)이 먼저 돈다. `ci.yml` 이 바뀌면 전부 돈다. 같은 PR 의 새 커밋은 앞선 실행을 취소한다
+- 백엔드 코드(`backend/**`)나 시험이 읽는 입력(`infra/**` · `docker-compose*.yml` · `.github/**`)이 바뀔 때 백엔드 시험이 돈다(`dorny/paths-filter` — 제3자 액션이라 커밋 SHA 로 고정 — `WorkflowGuardTest` 가 두 워크플로의 SHA 고정을 본다, BR-371. 거르기 목록과 시험이 읽는 입력의 일치는 시험 없음 — 입력을 추가할 때 직접 확인한다). 같은 job 앞단에서 경보 규칙 시험(promtool — 운영 Prometheus 와 같은 이미지)이 먼저 돈다. `ci.yml` 이 바뀌면 전부 돈다. 같은 PR 의 새 커밋은 앞선 실행을 취소한다
 - 로컬 재현: `scripts/verify.sh`(전부) · `scripts/verify.sh web flutter`(골라서). 백엔드는 `backend/scripts/test.sh` 가 전용 DB 를 만들고 지움 — `verify.sh` 는 웹·백엔드를 CI 와 같이 **`TZ=UTC`** 로 돌리고 백엔드에는 `-PciQuiet` 도 준다
 - **러너는 UTC · Linux 이고 개발 기계는 한국 시간대 · macOS 다 — "로컬은 통과 · CI 만 실패" 의 원인이 된 세 가지**(`Ruling 720`~`723`, 2026-10-01 첫 push 에서 8건). ①**시간대** — 시험이 기대값을 기기 시간대로 계산하면(`toLocaleTimeString` 에 `timeZone` 없음) UTC 에서 화면(서울 고정)과 어긋난다. 기대값은 서울 시각 문자열로 박는다 · 오프셋 없는 날짜시각을 `new Date()` 에 그대로 넘기지 않는다(기기 시간대로 읽힌다 — 웹 `formatClockTime` 이 이 입력을 서울로 읽게 고쳤다). ②**시각 정밀도** — Linux 의 `OffsetDateTime.now()` 는 나노초 · macOS 는 마이크로초 · `timestamptz` 는 마이크로초라, DB 에 저장했다 읽은 값을 `isEqualTo` 로 비교하는 시험은 **Linux 에서만 실패**한다. 시험에서 그런 시각을 만들 때 `.truncatedTo(ChronoUnit.MICROS)` 를 붙인다(macOS 에서는 이 결함이 안 드러난다). ③**로그 수준** — `-PciQuiet` 이 루트 로그를 WARN 으로 낮추므로 INFO 로그를 읽는 시험은 **자기 로거의 수준을 직접 켜고 복원**한다(앞선 컨텍스트가 같은 JVM 에 남긴 수준에도 달려 단독 실행은 통과 · 전체 실행은 실패하는 형태가 된다)
 - **로그 정책 — 저장소가 공개라 Actions 로그도 공개다.** 비밀값 없이 돈다(네이버 키 불필요 — `build.gradle` 이 지오코딩·경로·장소검색을 stub 으로 고정). 백엔드는 `-PciQuiet` 으로 로그 수준을 WARN 으로 낮추고 결과 XML 에서 stdout·stderr 를 뺀다 — 실패 때 남는 것은 시험 이름·실패 요약뿐. `deploy-backend.yml` 도 실패 시 backend 컨테이너 로그 120줄을 찍지 않고 `deploy.sh` 가 쓴 실패 사유 줄만 남긴다(로그는 EC2 에서 확인)
@@ -609,7 +609,7 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 | Docker 가 SIGKILL 을 보내기까지 — `stop_grace_period` | `docker-compose.prod.yml`·`docker-compose.staging.yml` backend | 지정 전 기본 10초 → **35초** |
 
 - 스프링은 신호를 받으면 새 요청을 막고 진행 중인 요청을 최대 30초 기다린다. Docker 기본 10초면 그 사이 SIGKILL 이 와 진행 중이던 요청이 오류로 끊긴다. 데이터는 조건부 UPDATE·단일 트랜잭션·아웃박스 복구로 손상되지 않아 피해는 그 요청의 클라이언트 오류 1건 수준이지만, 막을 수 있는 오류다
-- **Docker 값은 스프링 값보다 길어야 한다.** 35초 = 30초 + 5초(연결 풀·메시지 브로커를 닫는 시간). 스프링 값을 올리면(`timeout-per-shutdown-phase: 60s` 등) compose 의 값도 같이 올린다 — `OpsSettingsGuardTest` 가 `application.yml` 에 명시된 값을 읽어 어긋나면 실패한다. 명시가 없는 지금은 Boot 기본값 30초를 상수로 가정하니 Boot 를 올릴 때 설정 메타데이터를 다시 확인한다
+- **Docker 값은 스프링 값보다 길어야 한다.** 35초 = 30초 + 5초(연결 풀·메시지 브로커를 닫는 시간). 스프링 값을 올리면(`timeout-per-shutdown-phase: 60s` 등) compose 의 값도 같이 올린다 — 어긋남을 잡는 시험은 없다(같은 변경에서 직접 맞춘다). 명시가 없는 지금은 Boot 기본값 30초를 상수로 가정하니 Boot 를 올릴 때 설정 메타데이터를 다시 확인한다
 - 35초는 상한이다. 한가한 시각의 배포는 진행 중 요청이 없어 즉시 끝난다. 배포 게이트(`deploy-gate.sh`)가 운행 중 회차를 막는 것과는 별개의 장치다
 - 스테이징은 같은 값이다(`docker compose restart backend` 로 하는 초기화도 이 시간을 쓴다 — `STAGING §8`)
 
@@ -751,14 +751,14 @@ $C start backend
 
 ### 7.4 postgres 주 버전 상향 — 18 → 19 처럼 주 버전이 바뀔 때
 
-**언제 쓰나.** 같은 주 버전 안의 갱신(18.6 → 18.7)은 Dependabot 이 PR 을 만들고 §5 배포로 이미지 태그만 올린다. **주 버전이 바뀔 때는 Dependabot 이 PR 을 만들지 않으므로**(`.github/dependabot.yml` 의 ignore, BR-330) 사람이 이 절로 한다. 주 버전만 올려 배포하면 새 이미지가 `/var/lib/postgresql/<새 버전>/docker` 를 빈 디렉터리로 만들어 **빈 DB 로 뜬다** — 옛 데이터(`<옛 버전>/docker`)는 같은 볼륨에 그대로 남아 있다(`RuntimeImageParityTest`).
+**언제 쓰나.** 같은 주 버전 안의 갱신(18.6 → 18.7)은 Dependabot 이 PR 을 만들고 §5 배포로 이미지 태그만 올린다. **주 버전이 바뀔 때는 Dependabot 이 PR 을 만들지 않으므로**(`.github/dependabot.yml` 의 ignore, BR-330) 사람이 이 절로 한다. 주 버전만 올려 배포하면 새 이미지가 `/var/lib/postgresql/<새 버전>/docker` 를 빈 디렉터리로 만들어 **빈 DB 로 뜬다** — 옛 데이터(`<옛 버전>/docker`)는 같은 볼륨에 그대로 남아 있다.
 
 **전제**
 
 - **새 클러스터도 같은 정렬 규칙으로 만든다** — `docker-compose.prod.yml` 의 `POSTGRES_INITDB_ARGS`(ICU 한국어, `Ruling 851`)가 빈 데이터 디렉터리를 만들 때 먹는다. `pg_upgrade` 는 옛·새 클러스터의 정렬 규칙이 다르면 거절하므로 이 인자를 빼거나 바꾸지 않는다. 첫 배포 전에 만든 볼륨이 있으면(이 인자 없이 초기화됨) 덤프 → 볼륨 새로 만들기 → 복원으로 바꾼다
 - 데이터는 named volume `postgres-data`(데이터 디스크의 `/var/lib/docker/volumes` 아래)에 있다. 컨테이너 안 마운트는 `/var/lib/postgresql`, 데이터 디렉터리는 `/var/lib/postgresql/<주 버전>/docker`.
 - **서비스가 멈춘다** — DB 가 내려가 있는 동안 API 가 응답하지 않는다(외부 가동 감시 §11.4 가 알린다). 운행이 없는 시간에 한다. 걸린 시간은 첫 리허설에서 재어 §7.1 과 같은 표에 적는다(미실측).
-- 버전이 박힌 곳은 다섯이다 — `docker-compose.prod.yml` · `docker-compose.yml` · `docker-compose.staging.yml` 의 `image: postgres:<버전>` 과 시험 코드 `MigratedPostgresTestBase` · `BaseTimeEntityAuditingTest` 의 `new PostgreSQLContainer("postgres:<주 버전>")`. `RuntimeImageParityTest` 가 다섯이 같은 주 버전인지 본다.
+- 버전이 박힌 곳은 다섯이다 — `docker-compose.prod.yml` · `docker-compose.yml` · `docker-compose.staging.yml` 의 `image: postgres:<버전>` 과 시험 코드 `MigratedPostgresTestBase` · `BaseTimeEntityAuditingTest` 의 `new PostgreSQLContainer("postgres:<주 버전>")`. 다섯이 같은 주 버전인지는 시험 없음 — 주 버전을 올릴 때 다섯을 직접 같이 올린다.
 - 개발 PC 에서 먼저: 시험용 컨테이너 버전을 올려 `scripts/verify.sh` 가 통과하는지 · Flyway(`flyway-database-postgresql`)와 JDBC 드라이버가 새 버전을 지원하는지 · compose 의 `-c shared_preload_libraries=pg_stat_statements` 가 새 버전에서도 유효한지 본다. 스테이징은 메모리 DB 라 이 절차 대상이 아니고, 개발 compose 는 영속 볼륨이 없어 태그만 바꾼다.
 - 데이터 디스크 여유 — 옛 디렉터리와 새 디렉터리가 같은 볼륨에 함께 있게 된다. `df -h /var/lib/docker/volumes` 로 데이터 크기의 2배 이상 남았는지 확인한다.
 
@@ -921,7 +921,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 
 ### 11.2 경보 규칙
 
-규칙은 `infra/observability/prometheus/alerts.yml` 이고, 조건식·`for` 는 `alerts.test.yml`(promtool 단위 시험)이 가짜 시계열로 검사한다 — CI(`ci.yml`)가 운영과 같은 이미지의 promtool 로 매 실행마다 돌고, `OpsSettingsGuardTest` 는 모든 규칙에 사례가 있는지 본다. 규칙을 고친 배포는 `deploy.sh` 가 Prometheus 를 **다시 시작**해 반영한다 — 규칙 파일 하나를 바인드 마운트한 컨테이너는 파일이 교체돼도 옛 파일을 계속 보고, 다시 시작하지 않으면 옛 규칙으로 평가한다(2026-10-01 로컬에서 실측. 지표는 볼륨에 남는다). `TECH_DECISIONS §13.4` 표와 행 단위로 대응한다.
+규칙은 `infra/observability/prometheus/alerts.yml` 이고, 조건식·`for` 는 `alerts.test.yml`(promtool 단위 시험)이 가짜 시계열로 검사한다 — CI(`ci.yml`)가 운영과 같은 이미지의 promtool 로 매 실행마다 돈다. `alerts.test.yml` 은 발화 조건에 계산(`rate` · `increase` · `absent` · `and`/`or`)이 있는 규칙만 시험한다(`Ruling 903` B). 스케줄러 경보의 `code_namespace` 가 실제 `@Scheduled` 클래스와 같은지는 `AlertSchedulerNamesTest` 가 본다. 규칙을 고친 배포는 `deploy.sh` 가 Prometheus 를 **다시 시작**해 반영한다 — 규칙 파일 하나를 바인드 마운트한 컨테이너는 파일이 교체돼도 옛 파일을 계속 보고, 다시 시작하지 않으면 옛 규칙으로 평가한다(2026-10-01 로컬에서 실측. 지표는 볼륨에 남는다). `TECH_DECISIONS §13.4` 표와 행 단위로 대응한다.
 
 | 경보 | 조건 | 등급 | `TECH_DECISIONS §13.4` 행 |
 |---|---|---|---|
@@ -937,7 +937,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 | `Http5xxRatioHigh` | 최근 5분 요청의 5% 초과가 5xx(actuator·`/healthz` 제외 · 분당 6건 이상일 때만 판정)인 상태가 2분 유지 | 즉시(critical) | (표 밖) |
 | `HikariPoolWaiting` | `hikaricp_connections_pending > 0` 이 1분 유지 | 경고 | (표 밖 — 풀 20개가 마르면 3초 뒤 500) |
 | `CircuitBreakerNotClosed` | 지도 API 서킷(`geocoding` · `mapRoute` · `placeSearch`)이 열림·반열림으로 2분 넘게 닫히지 않음 | 경고 | 4행 |
-| `SchedulerStalled` | 확정·알림 재전송 스케줄러가 90초, 근접 판정이 30초(각 주기의 3배) 넘게 마지막 성공이 없는 상태가 1분 유지 | 즉시(critical) | (표 밖 — 확정이 멈추면 `RunUnconfirmed` 보다 먼저 안다) |
+| `SchedulerStalled` | 확정·알림 재전송 스케줄러가 2분, 근접 판정이 1분(각 주기의 3~4배) 동안 성공 실행(`outcome="SUCCESS"`)이 없는 상태가 1분 유지 | 즉시(critical) | (표 밖 — 확정이 멈추면 `RunUnconfirmed` 보다 먼저 안다) |
 | `RetentionCleanupStalled` | 보존 정리(매일 00:15)가 3일 넘게 성공하지 않음 | 경고 | (표 밖) |
 | `RunPositionPartitionStalled` | 위치 이력 파티션 미리 만들기(매일 00:10 · 7일 앞까지, `Ruling 670`)가 3일 넘게 성공하지 않음 | 경고 | (표 밖 — 미리 만든 파티션이 4일치 남아 있는 동안 알려 기본 파티션에 행이 쌓이기 전에 고친다) |
 | `StompSessionsNearCap` | `schoolbus_stomp_sessions{job="backend"} > 3000` 이 5분 유지(동시 연결 상한 4,000 의 75% — §11.7) | 경고 | (표 밖 — 상한에 닿으면 새 연결이 거절되는데 서버는 그 사실을 기록하지 않는다, `Ruling 691`) |
@@ -948,7 +948,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 
 - 새 규칙은 전부 스크레이프 `job="backend"` 로 걸러 **부하 시험 프로파일을 보지 않는다** — 부하 시험 앱은 별도 관측 스택(`LOAD_TESTING §6`)이 다른 `job` 이름으로 긁고, 그쪽은 풀 10 · 연결 대기 100~190 · 서킷 실패 주입이 정상이다
 - ⚠ **`BackendDown` 이 울리는 동안 위 `RunUnconfirmed` · `RunPositionLost` · `PushDeliveryFailing` 은 침묵이 정상이 아니다** — 백엔드가 죽으면 Prometheus 가 그 시계열을 즉시 끝난 것으로 표시해 **이미 발화 중이던 경보도 해소로 바뀐다.** 그 사이 미확정 회차·위치 유실·푸시 실패는 지표로 볼 수 없다
-- `SchedulerStalled` 의 숫자(90초·30초)는 스케줄러 주기(`poll-interval-ms` 30초 · 10초)의 3배다 — 주기를 바꾸면 규칙의 숫자도 같이 바꾼다(`alerts.yml` 주석). 앱을 재기동하면 경과가 0 부터 다시 세어지므로 **`RetentionCleanupStalled` 는 3일 안에 한 번이라도 재배포하면 못 본다** — 정리가 계속 실패하는 경우는 건별 실패 카운터(`schoolbus_scheduler_failures_total`)가 따로 있다
+- `SchedulerStalled` 의 창(2분·1분)은 스케줄러 주기(`poll-interval-ms` 30초 · 10초)의 3~4배다 — 주기를 바꾸면 규칙의 숫자도 같이 바꾼다(`alerts.yml` 주석). 스케줄러 실행 지표(`tasks_scheduled_execution_seconds_count{code_namespace=…, outcome="SUCCESS"|"ERROR"}`)는 앱을 재기동하면 새로 시작하고 그 스케줄러의 첫 실행 때 시리즈가 생기므로, **`RetentionCleanupStalled` 는 재배포 뒤 한 번도 성공하지 못한 경우를 못 본다** — 정리가 계속 실패하는 경우는 건별 실패 카운터(`schoolbus_scheduler_failures_total`)가 따로 있다. 시리즈가 1 이상으로 태어나 `increase()` 가 0 으로 읽히는 첫 실행은 경보 식이 `unless … offset 창` 으로 걸러 낸다
 - 5xx 비율은 `/actuator/*` 와 `/healthz` 요청을 뺀다(스크레이프·헬스체크·외부 감시가 요청 수에 늘 섞이고 Redis 장애 때 헬스가 503). 관리 포트(§11.8)의 요청은 `http_server_requests` 에 잡히지 않아 앞의 제외는 운영 계열에서 할 일이 없고, 앱 포트에 남는 헬스 주소 `/healthz` 가 뒤의 제외 대상이다. 분당 6건 미만이면 판정하지 않는다 — 새벽에 한두 건 실패한 것이 비율 50% 로 보여 울리는 것을 막는 하한이다
 
 **울렸을 때 첫 확인**
@@ -959,9 +959,9 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 | `Http5xxRatioHigh` | Grafana 대시보드의 오류 패널 → `docker compose logs backend \| grep ERROR`. `HikariPoolWaiting` 이 같이 울리면 연결 풀 문제 |
 | `HikariPoolWaiting` | §11.5 의 쿼리 통계로 느린 쿼리 → `SELECT state, count(*) FROM pg_stat_activity GROUP BY 1`(`idle in transaction` 이 쌓이면 트랜잭션이 안 끝나는 곳) |
 | `CircuitBreakerNotClosed` | §8 "지도 API 장애" 행 — 직선거리 근사로 계속 확정되는 상태 |
-| `SchedulerStalled` | `schoolbus_scheduler_last_success_age_seconds` 가 계속 느는 스케줄러 이름을 보고 로그에서 그 클래스의 예외를 찾는다. 푸시 발송이 외부에서 멈춘 것이면 아웃박스가 길어진다(`FCM`) |
+| `SchedulerStalled` | 경보 라벨 `code_namespace`(스케줄러 클래스 전체 이름)의 `tasks_scheduled_execution_seconds_count{outcome="ERROR"}` 가 느는지 보고 로그에서 그 클래스의 예외를 찾는다. 푸시 발송이 외부에서 멈춘 것이면 아웃박스가 길어진다(`FCM`) |
 | `RetentionCleanupStalled` | 새벽 00:15 전후 로그에서 `retention` 예외 · 마지막 재배포 시각(3일 안이면 이 경보는 못 본다) |
-| `RunPositionPartitionStalled` | 새벽 00:10 전후 로그에서 `run-position-partition` 예외 · `schoolbus_scheduler_failures_total` · 마지막 재배포 시각(재기동하면 경과가 0 부터 다시 세어져 3일 안에 재배포하면 이 경보는 못 본다) |
+| `RunPositionPartitionStalled` | 새벽 00:10 전후 로그에서 `run-position-partition` 예외 · `schoolbus_scheduler_failures_total` · 마지막 재배포 시각(재배포 뒤 한 번도 성공하지 못했으면 이 경보는 못 본다) |
 | `StaleMovingRun` | 아래 "끝나지 않은 이동 중 회차 처리" 절차 |
 | `StompSessionsNearCap` | Grafana "4. 파이프라인 생존" 의 "활성 STOMP 세션" 모양 — 계단이면 이용자 증가, 톱니이면 재연결 반복. 실제 연결 수는 `tomcat_connections_current_connections`(세션 수보다 큰 만큼이 진행 중 HTTP 요청). 판단·대응은 §11.7 |
 
@@ -1053,7 +1053,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 | 장치 | 값 | 이유 · 대가 |
 |---|---|---|
 | **OOM 이면 프로세스 종료** | backend `JAVA_TOOL_OPTIONS` 에 `-XX:+ExitOnOutOfMemoryError` | 이 플래그가 없으면 `OutOfMemoryError` 를 던진 스레드만 죽고 JVM 이 살아남아, 스케줄러·발송 스레드가 하나씩 사라진 **반쯤 죽은 서버**가 된다 — 컨테이너는 계속 "실행 중"이라 `restart: unless-stopped` 가 못 본다. 종료하면 재시작 정책이 되살린다(30~60초 다운). OOM 으로 끝난 컨테이너는 `RestartCount` 가 늘고 로그에 `OutOfMemoryError` 가 남는다 |
-| **힙 덤프는 남기지 않는다** | `HeapDumpOnOutOfMemoryError` 부재(`OpsSettingsGuardTest` 가 운영에 들어오는 것을 막는다) | 덤프에는 학생·보호자 개인정보와 JWT 서명 키·FCM 개인 키가 그대로 담기고, 크기가 힙(약 2.15GB)이라 루트 디스크 30GB 를 재시작 반복 때 채운다. 원인 분석이 필요하면 스테이징에서 재현해 뜬다 |
+| **힙 덤프는 남기지 않는다** | `HeapDumpOnOutOfMemoryError` 부재(막는 시험은 없다 — 운영 JVM 옵션을 바꿀 때 직접 확인한다) | 덤프에는 학생·보호자 개인정보와 JWT 서명 키·FCM 개인 키가 그대로 담기고, 크기가 힙(약 2.15GB)이라 루트 디스크 30GB 를 재시작 반복 때 채운다. 원인 분석이 필요하면 스테이징에서 재현해 뜬다 |
 | **로그 전송은 non-blocking** | `x-logging` 의 `mode: non-blocking` · `max-buffer-size: 25m` | 기본(blocking)이면 CloudWatch 전송이 느려지는 순간 컨테이너의 stdout 쓰기가 막혀 로그를 남기는 모든 스레드가 같이 멈춘다(Redis 장애 때 스택트레이스가 초당 수십 줄 나오는 상황이 원인이 된다). **대가: 버퍼가 차면 로그를 버린다** — 장애 때 일부 유실을 받아들인다. 옵션 이름은 `mode`·`max-buffer-size` 다(`awslogs-mode` 는 없다 — Docker 가 거부) |
 | **JSON 응답 압축** | `nginx.prod.conf` `/api/` 의 `gzip on` · `gzip_types application/json` · `gzip_min_length 1024` | 관제 폴링처럼 키가 반복되는 JSON 은 크게 줄어든다(가짜 2.8KB 응답이 308B — 약 9배, 실제 관제 응답 크기는 미측정). 1KB 미만 · 이미지(사진) · WebSocket 은 대상이 아니다 |
 | **인증 응답은 압축하지 않는다** | `/api/v1/auth/` 와 `= /api/v1/me/link-code` 는 `gzip off` | BREACH — 압축 크기가 응답 안의 비밀(토큰·연결 코드)과 공격자가 넣은 값의 일치를 드러낸다. 로그인·가입·복구·자녀 연결(속도 제한 location)은 압축을 켜지 않은 별도 location 이라 그대로 안전하다. `/auth/*` 전체와 연결 코드 발급이 해당한다 |
@@ -1067,7 +1067,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 |---|---:|---|
 | prod · demo | **4,000** | 목표 동시 세션(2,000)의 2배 · 최악 힙 약 1.05GB(운영 힙 약 2.15GB 의 49%) |
 | staging | **1,000** | 팀원 체험 서버(동시 접속 수십 명) · 힙이 JVM 기본(호스트 메모리의 1/4) |
-| local · load | 기본 8,192(명시 없음) | 부하 측정이 한계를 재야 한다 — `TomcatThreadPoolConfigTest` 가 이 프로파일 문서에 상한이 없음을 고정 |
+| local · load | 기본 8,192(명시 없음) | 부하 측정이 한계를 재야 한다 — 이 프로파일 문서에 상한이 없음은 시험 없음 — yml 을 바꿀 때 직접 확인 |
 
 프록시(nginx) 한도 — `worker_connections 16384`(워커당) = 상한 4,000 × 2(클라이언트 쪽 + backend 쪽)의 2배 · `worker_rlimit_nofile 32768` · compose `ulimits.nofile 65536`(`infra/proxy/nginx.main.prod.conf`, `Ruling 794`). 상한을 올리면 같이 올린다(`OpsSettingsGuardTest`). 개발 오버레이·스테이징 프록시는 기본값이다.
 
@@ -1088,9 +1088,9 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 6. **서버는 거절을 기록하지 않는다** — 앱이 그 연결을 본 적이 없다. 그래서 상한 도달 전에 `StompSessionsNearCap`(3,000 = 상한의 75% · 5분 유지 · `job="backend"` 만)이 울린다. 프록시 연결 한도는 이 상한보다 먼저 닿지 않게 잡혀 있다(위 문단). nginx 오류 로그의 `worker_connections are not enough` 를 세는 CloudWatch 지표 필터 경보는 아직 없다(콘솔 설정)
 7. **헬스·지표는 관리 포트라 상한 밖이다**(§11.8) — 신규 접속·로그인은 응답이 없어도 컨테이너 헬스체크·Prometheus 스크레이프는 계속 응답한다. 대응은 이 절 끝 "울렸을 때 판단" 과 §11.8
 
-**끊긴 연결이 상한을 채우지 않는다** (`Ruling 693`·`694`) — 소리 없이 사라진 클라이언트(전원·망 끊김)의 세션은 하트비트를 협상했으면 무수신 30초, 하트비트를 껐거나 `CONNECT` 를 안 보냈으면 무수신 60초(`app.ws.idle-timeout-ms`, Tomcat 읽기 유휴 점검)에 서버가 닫아 연결 수에서 빠진다(점검 주기 10초라 30~40초 · 60~70초). 정리 경로 4가지와 실서버 시험은 `docs/backend/ARCHITECTURE.md §10.4`. **하트비트를 끄는 클라이언트는 60초마다 아무 프레임이든 보내야 한다** — 서버가 방송을 계속 써도 클라이언트 프레임이 없으면 닫는다. 이 값(60초)은 모든 프로파일 공통이며 `TomcatThreadPoolConfigTest` 가 프로파일이 덮지 않음을 고정한다
+**끊긴 연결이 상한을 채우지 않는다** (`Ruling 693`·`694`) — 소리 없이 사라진 클라이언트(전원·망 끊김)의 세션은 하트비트를 협상했으면 무수신 30초, 하트비트를 껐거나 `CONNECT` 를 안 보냈으면 무수신 60초(`app.ws.idle-timeout-ms`, Tomcat 읽기 유휴 점검)에 서버가 닫아 연결 수에서 빠진다(점검 주기 10초라 30~40초 · 60~70초). 정리 경로 4가지와 실서버 시험은 `docs/backend/ARCHITECTURE.md §10.4`. **하트비트를 끄는 클라이언트는 60초마다 아무 프레임이든 보내야 한다** — 서버가 방송을 계속 써도 클라이언트 프레임이 없으면 닫는다. 이 값(60초)은 모든 프로파일 공통이며 프로파일이 덮지 않음은 시험 없음 — yml 을 바꿀 때 직접 확인한다
 
-**울렸을 때 판단** — 세션 수 그래프(§11.2 표)가 계단이면 이용자 증가라 상한·사양 재계산 대상이다. 위 공식으로 새 연결 수의 최악 힙을 구해 운영 힙(약 2.15GB) 안인지 보고 `application.yml` 의 prod·demo 상한을 올리되 **같은 변경에 경보 임계(상한의 75%)도 함께** 올린다 — `OpsSettingsGuardTest` 가 둘이 맞지 않으면 실패한다. 백엔드는 인스턴스 1대 고정이라(`ARCHITECTURE §9.5`) 한 대로 모자라면 사양을 올리거나 WS 브로커 릴레이를 먼저 만든다. 톱니이면 클라이언트의 재연결 반복(토큰 만료 · 망 불안정 · 앱 버전)이 원인이라 그쪽을 먼저 본다 — **재시작은 모든 세션을 끊어 재연결이 한꺼번에 몰리므로 마지막 수단**.
+**울렸을 때 판단** — 세션 수 그래프(§11.2 표)가 계단이면 이용자 증가라 상한·사양 재계산 대상이다. 위 공식으로 새 연결 수의 최악 힙을 구해 운영 힙(약 2.15GB) 안인지 보고 `application.yml` 의 prod·demo 상한을 올리되 **같은 변경에 경보 임계(상한의 75%)도 함께** 올린다 — 둘이 맞는지 보는 시험은 없다. 백엔드는 인스턴스 1대 고정이라(`ARCHITECTURE §9.5`) 한 대로 모자라면 사양을 올리거나 WS 브로커 릴레이를 먼저 만든다. 톱니이면 클라이언트의 재연결 반복(토큰 만료 · 망 불안정 · 앱 버전)이 원인이라 그쪽을 먼저 본다 — **재시작은 모든 세션을 끊어 재연결이 한꺼번에 몰리므로 마지막 수단**.
 
 
 ### 11.8 관리 포트 — 헬스·지표를 앱 커넥터와 따로 (`Ruling 740`)
@@ -1102,7 +1102,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 | 이유 | 앱 포트가 동시 연결 상한(§11.7)에 닿으면 Tomcat 이 새 연결을 받지 않아 같은 커넥터의 헬스·지표·로그인이 함께 응답이 없었다(R46 누수 검토 R-3 · 상한 40 재현 — `/actuator/health` 5초 안에 응답 없음). 헬스 실패 10회(150초) 뒤 `unhealthy` 로만 표시되고 `restart: unless-stopped` 는 재시작하지 않아 "서버는 살아 있는데 보이지 않는" 상태가 됐다 |
 | 관리 포트를 보는 곳 | 컨테이너 헬스체크(`docker-compose.prod.yml` · `curl localhost:8081/actuator/health`) · 배포 스모크(`deploy.sh` 4단계) · Prometheus 스크레이프(`prometheus.prod.yml` · `backend:8081`) |
 | 앱 포트에 남는 것 | 외부 감시용 `/healthz`(헬스 그룹 `external`). 감시는 앱 커넥터를 거쳐야 "사용자가 못 붙는 상태" 를 실패로 본다(§11.4) |
-| 공개 범위 | **호스트에 열지 않는다**(compose `ports` 부재 — `expose` 만) · **nginx 도 이 포트로 가지 않는다**(`/actuator` 는 404 유지). `/actuator/prometheus` 가 인증 없이 열려 있어(`SecurityConfig`) 접근 경계는 네트워크다 — 호스트 포트나 프록시 경로를 더하면 지표가 인터넷에 열린다. `DeploymentConfigGuardTest` 가 둘 다 고정 |
+| 공개 범위 | **호스트에 열지 않는다**(compose `ports` 부재 — `expose` 만) · **nginx 도 이 포트로 가지 않는다**(`/actuator` 는 404 유지). `/actuator/prometheus` 가 인증 없이 열려 있어(`SecurityConfig`) 접근 경계는 네트워크다 — 호스트 포트나 프록시 경로를 더하면 지표가 인터넷에 열린다. 둘 다 시험 없음 — compose · nginx 를 바꿀 때 직접 확인 |
 | 보안 필터 | 관리 포트에도 같은 필터 체인이 걸린다(실측: `/actuator/env` · `/api/v1/me` · `/` 가 `401`, 허용 목록 두 경로만 `200`) |
 | 지표 | Tomcat 지표는 앱 커넥터(`name="http-nio-8080"`) 한 벌만 나온다 — 대시보드 `tomcat_threads_*` 패널이 두 줄이 되지 않는다. `/actuator/*` 요청은 `http_server_requests` 에 잡히지 않는다 |
 | 로컬 확인 | 개발 PC 에서 같은 상태를 보려면 `--spring.profiles.active=local,staging`(+ 스테이징 필수 환경변수 4개)로 띄우고 `--server.tomcat.max-connections=40` 같은 작은 상한을 준다. 재현 시험은 `ManagementPortSaturationTest`(상한 20) |
@@ -1120,7 +1120,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 |---|---|---|
 | 정리 직후 남은 행 수 | `schoolbus_refresh_token_rows` | 하루 1회(정리 직후) 갱신. 기동 뒤 첫 정리(00:15) 전에는 `NaN`. 30일이 지나도 계속 오르면 정리가 발급을 따라가지 못하는 것 |
 | 마지막 정리 소요 | `increase(tasks_scheduled_execution_seconds_sum{code_function="cleanUp",code_namespace="src.backend.global.retention.RetentionCleanupScheduler"}[25h]) / increase(tasks_scheduled_execution_seconds_count{code_function="cleanUp",code_namespace="src.backend.global.retention.RetentionCleanupScheduler"}[25h])` | 스프링이 `@Scheduled` 실행마다 남기는 기본 지표(로컬에서 20초 주기로 돌려 노출 확인). 정리가 지우는 테이블이 여럿이라 이 값은 **전체 배치** 시간이다. 지우는 행이 늘면 시간이 늘고, 배치 잠금 상한(`lockAtMostFor` 10분)에 닿기 전에 주기·묶음 크기를 재검토 |
-| 마지막 성공 이후 경과 | `schoolbus_scheduler_last_success_age_seconds{scheduler="retention-cleanup"}` | 3일을 넘으면 `RetentionCleanupStalled`(§11.2) |
+| 성공 실행 수 | `increase(tasks_scheduled_execution_seconds_count{code_namespace="src.backend.global.retention.RetentionCleanupScheduler",outcome="SUCCESS"}[3d])` | 3일 동안 0 이면 `RetentionCleanupStalled`(§11.2) |
 
 - 위 쿼리는 Prometheus(SSM 포트 포워딩 — §11.1)에서 본다. 전용 대시보드 패널은 두지 않았다 — 하루 1회 값이라 쿼리 한 줄이면 충분하고, 대시보드 `3. 데이터 계층` 은 exporter 가 없는 운영에서 비어 있다
 - 게이지는 정리 끝에 `count(*)` 1회로 채운다(정상 상태에서도 부담 없는 하루 1회). 수천만 행이 되면 `pg_class.reltuples` 추정으로 바꾼다
@@ -1140,7 +1140,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 
 ## 12. 관계자 웹 배포 — Vercel (2026-10-01 · `Ruling 481` · `502` · `503`)
 
-관계자 웹(`Bareda-Organization/web` 저장소, Next.js)은 **Vercel** 에서 배포한다(비용 이유 — 사용자 결정). 백엔드는 EC2 그대로다. 운영 compose·`nginx.prod.conf` 에 웹 컨테이너를 넣지 않고(시험 `DeploymentConfigGuardTest.prodServesNoWebFrontend`), API 서버의 `/` 는 404 다. 웹 변경 → `main` push → Vercel 이 빌드·배포하고 GitHub Actions 는 관여하지 않는다(옛 `deploy-web.yml` 은 되살리지 않는다).
+관계자 웹(`Bareda-Organization/web` 저장소, Next.js)은 **Vercel** 에서 배포한다(비용 이유 — 사용자 결정). 백엔드는 EC2 그대로다. 운영 compose·`nginx.prod.conf` 에 웹 컨테이너를 넣지 않고, API 서버의 `/` 는 404 다. 웹 변경 → `main` push → Vercel 이 빌드·배포하고 GitHub Actions 는 관여하지 않는다(옛 `deploy-web.yml` 은 되살리지 않는다).
 
 ### 12.1 구성
 
