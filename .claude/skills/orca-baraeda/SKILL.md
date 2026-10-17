@@ -1,6 +1,6 @@
 ---
 name: orca-baraeda
-description: 바래다 작업 공간에서 Orca 워크트리·작업 창을 띄울 때 전역 Skill orca-launch 와 함께 읽는다. 바래다 고유 사실 — Orca 저장소 4개의 ID·기준 브랜치 · 주 세션 기본값(opus[1m]·xhigh) · 워크트리 위치 .claude/wt · web·mobile 디자인 작업 창 기동법.
+description: 바래다 작업 공간에서 Orca 워크트리·작업 창을 띄울 때 전역 Skill orca-launch 와 함께 읽는다. 바래다 고유 사실 — Orca 저장소 4개의 ID·기준 브랜치 · 주 세션 기본값(opus[1m]·xhigh) · 워크트리 위치 baraeda-wt(.claude 밖) · web·mobile 디자인 작업 창 기동법.
 ---
 
 # 바래다에서 Orca 작업 창 띄우기 — 프로젝트 고유 사실 (2026-10-09 전역 `orca-launch` 에서 분리)
