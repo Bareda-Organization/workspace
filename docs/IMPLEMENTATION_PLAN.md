@@ -1130,7 +1130,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 615 | 배포 때 nginx 설정 자동 반영 — 프록시 재시작으로 1~2초 끊김 허용, 단 새 설정을 일회용 컨테이너로 `nginx -t` 검사해 통과할 때만 재시작 · 실패하면 배포 중단 (사용자 결정 · 이행은 `Ruling 648·649`) | 본문 §8.87 (결정 원문은 사용자 지시 — 문서에는 이 행이 기록) |
 | 616 | 매니저 앱 오프라인 큐 — 비상 신고는 영구 실패 상한(5xx 10회·30분)에서 빼고 성공하거나 사용자가 지울 때까지 재시도(뒤 승하차 행은 막지 않음) · 비상 화면에 *"전송 실패 — 계속 다시 보내는 중 · 급하면 학원에 전화"* 표시 · 서버 접수 화면은 앱이 누른 시각을 보이지 않음(서버 몫으로 보고) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
 | 617 | 실시간 전송은 STOMP over WebSocket 유지 · 인스턴스 증설 결정 때 SSE 재평가(사용자가 뒤집을 수 있음) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.31` |
-| 618 | "나중" 항목 중 SSE 를 뺀 나머지를 진행(사용자 결정 2026-10-01) — L2 위치 SQL 합치기 · L5 근접 판정 묶음 · 관리자 주의 회차 집계 인덱스(검토 `idx`) · L11 Tomcat 스레드 명시 · **B-1 `run_position` 날짜 범위 파티션(이 테이블에 한해 `Ruling 243` 을 뒤집음)** · B-4 학원 경계 복합 FK · C-14 토큰 무중단 갱신. SSE 전환(`Ruling 617`)만 제외 | `.claude/r46/DECISIONS.md`(무시 파일 — 결정 원문) · 이행: 백엔드 본문 §8.88(`670`~`677`) · 토큰 갱신(C-14)은 실시간 갈래 몫 |
+| 618 | "나중" 항목 중 SSE 를 뺀 나머지를 진행(사용자 결정 2026-10-01) — L2 위치 SQL 합치기 · L5 근접 판정 묶음 · 관리자 주의 회차 집계 인덱스(검토 `idx`) · L11 Tomcat 스레드 명시 · **B-1 `run_position` 날짜 범위 파티션(이 테이블에 한해 `Ruling 243` 을 뒤집음)** · B-4 학원 경계 복합 FK · C-14 토큰 무중단 갱신(→ `Ruling 901` 로 뒤집힘). SSE 전환(`Ruling 617`)만 제외 | `.claude/r46/DECISIONS.md`(무시 파일 — 결정 원문) · 이행: 백엔드 본문 §8.88(`670`~`677`) · 토큰 갱신(C-14)은 실시간 갈래 몫 |
 | 619 | 동시 연결 상한 명시 + 접근 경보(사용자 질문 *"WebSocket 세션 정보를 서버가 저장·관리하나 · OOM 걱정"* 에서 조율자 결정 2026-10-01) — Tomcat `max-connections` 를 기본 8,192 에서 prod·demo 4,000 · staging 1,000 으로 명시하고 STOMP 세션 3,000 초과 경보 | `.claude/r46/DECISIONS.md`(무시 파일 — 결정 원문) · 이행: 본문 §8.89(`690`~`692`) · `docs/backend/infra/DEPLOYMENT.md §11.7` |
 | 620 | DB 자원 오류(풀 고갈·연결 끊김·잠금 대기 초과·쿼리 취소)는 `503 SERVER_BUSY` + `Retry-After: 3` · 스택 없는 `warn` 한 줄 | 본문 §8.85 · `docs/planning/API_SPEC.md §1.11` |
 | 621 | prod·demo DB 시간 상한 — 누수 감지 5초 · `lock_timeout 5s` · `idle_in_transaction_session_timeout 30s`(`statement_timeout` 은 안 건다) | 본문 §8.85 |
@@ -1179,8 +1179,8 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 676 | 부하 시드 학원 경계 오염 원인 수정 — 위치용 회차를 학생이 속한 학원마다 심고 같은 학원 학생만 붙임 | 본문 §8.88 · `docs/backend/LOAD_TESTING.md` |
 | 677 | `ErrorCode` 열거 ↔ 에러 코드 사전 양방향 일치 시험 · `SERVER_BUSY` 행 등재 | 본문 §8.88 · `docs/planning/API_SPEC.md §8.7` |
 | 680 | ⚠ **`901` 이 뒤집음**(이행 R58) — 실시간 연결은 접근 토큰 만료 60초 전에 두 번째 연결로 갈아탄다(재발급 → 새 토큰으로 두 번째 연결 → 구독 이전 → 확인 대기 → 옛 연결 종료) · 연결 상태는 `connected` 그대로 · 재발급·새 연결 실패 시 옛 연결을 두고 기존 `TOKEN_EXPIRED` 경로 · 웹·Flutter 공용 클라이언트 둘 다(`Ruling 618` C-14 이행) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
-| 681 | 갈아타기의 구독 확인 = 새 연결에 구독을 모두 건 뒤 거부 신호(`ERROR`·닫힘) 없이 1.5초(서버가 SUBSCRIBE 의 `RECEIPT` 를 보내지 않음 — 2026-10-01 실측) · 만료 시각 = 토큰 `exp` 클레임(로그인·재발급 응답에 만료 필드 없음 — 서버 변경 없음) · 갈아타기 간격 하한 5초 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
-| 682 | 갈아타는 동안의 중복 방송 제거 = (구독 + 원문 본문)이 같으면 한 번만 전달 · 옛 연결을 닫은 뒤 5초 더 유지(방송 본문에 고유 식별자가 없고 STOMP `message-id` 는 세션마다 따로 붙음) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
+| 681 | ⚠ **`901` 이 뒤집음**(갈아타기 자체가 없어짐) — 갈아타기의 구독 확인 = 새 연결에 구독을 모두 건 뒤 거부 신호(`ERROR`·닫힘) 없이 1.5초(서버가 SUBSCRIBE 의 `RECEIPT` 를 보내지 않음 — 2026-10-01 실측) · 만료 시각 = 토큰 `exp` 클레임(로그인·재발급 응답에 만료 필드 없음 — 서버 변경 없음) · 갈아타기 간격 하한 5초 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
+| 682 | ⚠ **`901` 이 뒤집음**(두 번째 연결이 없어 중복 방송도 없음) — 갈아타는 동안의 중복 방송 제거 = (구독 + 원문 본문)이 같으면 한 번만 전달 · 옛 연결을 닫은 뒤 5초 더 유지(방송 본문에 고유 식별자가 없고 STOMP `message-id` 는 세션마다 따로 붙음) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
 | 690 | Tomcat `max-connections` 명시 — prod·demo 4,000 · staging 1,000 · local·load 는 기본 8,192 유지(부하 측정이 한계를 재야 함). 설정 시험이 값과 "local·load 에 상한 없음" 고정 | 본문 §8.89 · `docs/backend/infra/DEPLOYMENT.md §11.7` |
 | 691 | `StompSessionsNearCap` 경보 — `schoolbus_stomp_sessions{job="backend"} > 3000`(상한 75%) 5분 유지 · 경고 · 임계 = prod 상한 × 3/4 관계를 `OpsSettingsGuardTest` 가 고정 | 본문 §8.89 · `docs/backend/infra/DEPLOYMENT.md §11.2` |
 | 692 | 문서 정본 위치 — 운영 쪽(상한 값·근거·도달 동작·경보 대응)과 설계 쪽(세션이 서버 메모리에 남기는 것)을 가름 | 본문 §8.89 · `docs/backend/infra/DEPLOYMENT.md §11.7` · `docs/backend/ARCHITECTURE.md §10.4` |
@@ -1196,7 +1196,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 711 | `@stomp/stompjs` 하트비트 워커 Blob URL 미해제(K-7)는 그대로 둠 — 설치본·최신 베타 모두 같은 코드 · 141바이트/연결 · 우회 패치 금지 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
 | 712 | 지도 정리에서 지도 인스턴스 `destroy()` 호출(K-6) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
 | 713 | Dependabot — `next`·`eslint-config-next` 16.3.8 · `brace-expansion` 락파일 패치 · `vitest` 계열은 주 버전 변경이 필요해 보류(→ `Ruling 725`·`752` 로 5.0.3 이행) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
-| 714 | 토큰 갈아타기 실서버 시험이 방송을 스스로 일으키고(운행 중 회차 기사로 위치 재전송) 전제를 실패 문구로 말함 — 단언 약화 없음 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
+| 714 | (기록 — `901` 로 시험이 재접속 흐름으로 바뀜) 토큰 갈아타기 실서버 시험이 방송을 스스로 일으키고(운행 중 회차 기사로 위치 재전송) 전제를 실패 문구로 말함 — 단언 약화 없음 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.33` |
 | 720 | GitHub CI(UTC·Linux)에서만 난 웹 3건 판정 — 화면 시각은 PC 시간대와 무관하게 서울 기준(서버 응답이 오프셋을 포함한 ISO-8601)이라 제품 결함 아님 · `ChangeApprovalDetail` 시험 2건은 기대값을 PC 시간대로 계산한 시험 결함 → 서울 시각 리터럴로 · `formatClockTime`·`formatClockTimeWithSeconds` 가 오프셋 없는 `YYYY-MM-DDTHH:mm[:ss[.fff]]` 를 `formatDateTime` 처럼 서울 벽시계(`+09:00`)로 읽게 | 본문 §8.91 |
 | 721 | `RefreshTokenRepositoryTest` 3건 — Linux `OffsetDateTime.now()` 는 나노초 · macOS 는 마이크로초 · `timestamptz` 는 마이크로초라 저장 후 `isEqualTo` 가 CI 에서만 실패. 운영 쿼리는 시각 동치 비교가 없어 제품 결함 아님 → 시험 시각을 `truncatedTo(MICROS)` | 본문 §8.91 |
 | 722 | `FirstSystemAdminBootstrapTest`·`LoggingSmsSenderTest` — `-PciQuiet`(루트 로그 WARN)이 INFO 로그를 지워 로그를 검사하는 시험이 CI 에서만 실패. `-PciQuiet` 은 그대로 두고 두 시험이 **자기 로거의 INFO 를 직접 켜고 복원** | 본문 §8.91 |
@@ -1218,7 +1218,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 744 | 비상 목록(`§5.16`·`§6.11`)에 `occurred_at`(단말 기록 시각 · 참고값) 추가 — `Ruling 236` 의 "미노출" 을 이 필드에 한해 갱신 · 정렬·판정·취소 창·경과 초는 접수 시각 그대로 · 웹은 두 시각이 60초를 넘게 다를 때만 "단말 기록 HH:mm(참고)" | 본문 §8.93 · `docs/planning/API_SPEC.md §5.16` |
 | 745 | WebP 업로드도 긴 변 512px 로 줄임 — 읽기 전용 디코더 `imageio-webp 3.15.2` 한 줄 · 결과는 JPEG(투명 배경이면 PNG) · 관계자 웹이 WebP 를 올릴 수 있어 허용 형식에서 빼지 않음 | 본문 §8.93 · `docs/planning/API_SPEC.md §5.11` |
 | 750 | 웹 실시간 클라이언트 `connect()` 가 연결 중·연결됨이면 무시(Dart 와 같은 가드) · `doConnect` 가 번호표를 올린 직후 쥐고 있던 연결을 `deactivate` — 재발급 대기 중 `connect()` 가 만든 연결이 덮여 고아가 되던 것(R-1) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
-| 751 | 갈아타는 두 번째 연결을 버릴 때 서버에 소켓이 남는다는 지적(R-2)은 Chrome 에서 재현 안 됨(지연 중계기 · 소켓 12개 전부 닫힘) → 코드 미변경 · `discardWebsocketOnCommFailure` 는 `deactivate()` 와 무관(stompjs 7.3.0) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
+| 751 | (기록 — `901` 로 두 번째 연결 자체가 없어짐) 갈아타는 두 번째 연결을 버릴 때 서버에 소켓이 남는다는 지적(R-2)은 Chrome 에서 재현 안 됨(지연 중계기 · 소켓 12개 전부 닫힘) → 코드 미변경 · `discardWebsocketOnCommFailure` 는 `deactivate()` 와 무관(stompjs 7.3.0) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
 | 752 | `vitest` 3.2.7 → 5.0.3 · `@types/node` 20 → 22 계열(peer) · 지도 시험의 `new` 가짜 클래스를 화살표 함수에서 `function` 으로(vitest 4 부터 `Reflect.construct`) · `npm audit` 2건 → 0건 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` · `docs/frontend/web/CONVENTIONS_REACT.md` 시험 절 |
 | 753 | 웹 의존성 묶음 `#11` 12개 판정 — 9 채택 · `@types/node` 는 22 계열 · `eslint` 10 · `typescript` 7 거절(둘 다 lint 종료 2 — `eslint-plugin-react` 의 제거된 API · `typescript-eslint` 의 TS 7 미지원) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
 | 754 | `#2` brace-expansion 은 잠금 파일이 이미 1.1.21 이라 해당 없음 · `vitest.config.ts` → `.mts` + `import.meta.dirname`(vite 8 의 native 설정 로더 경고) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.34` |
@@ -1828,7 +1828,7 @@ R46 검토 `stab`(경보 · 로그 드라이버 · OOM · 종료 대기) · `idx
 
 **재현되지 않았거나 지시와 다르게 판단한 것** — ① 주의 회차 집계(검토 `idx`)의 확정 실패 쪽은 `Ruling 631` 이 이미 해소 ② `Ruling 672` 의 두 가지(전용 `MGET` 메서드 불필요 · 선점은 판정별 트랜잭션) ③ 주의 회차 집계의 합성 데이터 검증에서 같은 트랜잭션의 `UPDATE` 뒤에 만든 인덱스를 플래너가 쓰지 않는 함정(`indcheckxmin`) — 처음엔 "인덱스가 안 쓰인다" 로 오판할 뻔함.
 
-**후속(이 갈래 밖)** — ①`Ruling 676` 의 부하 시드는 `schoolbus_load` 를 다시 심어야 효과가 난다(이미 어긋난 행은 점검 파일의 `DELETE` 로 정리) ②파티션 미리 만들기는 운영에서 **실패 경보**가 별도로 없다(→ 병합 뒤 조율자가 `RunPositionPartitionStalled` 3일 규칙 + promtool 시험 추가로 해소) — 스케줄러 공통 지표(`schoolbus_scheduler_last_success_age_seconds{scheduler="run-position-partition"}`)를 가용성 경보(`Ruling 640`)에 넣는 것은 운영 갈래 몫(7일 앞까지 만들어 두어 며칠은 기본 파티션 없이도 안전) ③C-14 토큰 무중단 갱신(`Ruling 618` 의 나머지)은 실시간 갈래 몫.
+**후속(이 갈래 밖)** — ①`Ruling 676` 의 부하 시드는 `schoolbus_load` 를 다시 심어야 효과가 난다(이미 어긋난 행은 점검 파일의 `DELETE` 로 정리) ②파티션 미리 만들기는 운영에서 **실패 경보**가 별도로 없다(→ 병합 뒤 조율자가 `RunPositionPartitionStalled` 3일 규칙 + promtool 시험 추가로 해소) — 스케줄러 공통 지표(`schoolbus_scheduler_last_success_age_seconds{scheduler="run-position-partition"}`)를 가용성 경보(`Ruling 640`)에 넣는 것은 운영 갈래 몫(7일 앞까지 만들어 두어 며칠은 기본 파티션 없이도 안전) ③C-14 토큰 무중단 갱신(`Ruling 618` 의 나머지)은 실시간 갈래 몫(→ 이후 `Ruling 680` 으로 구현됐다가 `Ruling 901` 로 뒤집힘).
 
 ## 8.89 ⚖ `R46-CONNCAP` — 동시 연결 상한 명시 + 접근 경보 (2026-10-01 · 분기점 `25e1bc2e` · 번호대 690~694 · 조율자 결정 `Ruling 619`)
 
