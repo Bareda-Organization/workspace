@@ -913,8 +913,7 @@ R46 전 갈래(§5.17~§5.27) 병합 뒤 화면 확인 전용 창. 관계자 웹
 | 관계자 웹 | Next.js standalone 이미지 1개 | nginx 뒤에 붙임 |
 | 학부모·매니저 앱 | **컨테이너 부재** | Flutter 는 **앱 스토어 배포만**. ~~Flutter web 빌드 시 nginx 정적 서빙~~ 갈래는 **폐기**(2026-09-12 사용자 확정, Ruling 270) |
 
-⚠ **백엔드 인스턴스는 반드시 1개**라는 기존 제약(`CLAUDE.md`)이 그대로 유지됨 —
-`@Scheduled` 중복 · InMemory 버스위치 · WS 세션 로컬 보관 때문. 프론트 컨테이너를 늘리는 것은 무방.
+⚠ 백엔드는 기본 1대이고 2대는 `docker-compose.scale.yml` 로 띄운다(`CLAUDE.md` · `DEPLOYMENT §15`). 2대에서 막히던 `@Scheduled` 중복 · 버스 위치 공유 · WS 세션 로컬 보관은 `ARCHITECTURE §9.5` 에서 해소했다. 프론트 컨테이너를 늘리는 것은 무방.
 
 ---
 
