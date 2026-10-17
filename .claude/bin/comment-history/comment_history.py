@@ -10,7 +10,7 @@ MARKERS = {
     "round": r"\bR\d{2,3}\b|\bRQA\b",
     "phase": r"\bPhase ?[A-Z]?\d+",
     "date": r"\b20\d\d-\d\d-\d\d\b|\b20\d\d년",
-    "word": r"라운드|당시|이전에는|원래는|바뀌기 전|예전",
+    "word": r"(?<!백그)라운드|당시|이전에는|원래는|바뀌기 전|예전",  # 백그라운드 는 경위가 아니다
     "hash": r"커밋 `?[0-9a-f]{7,}",
 }
 MARK = re.compile("|".join(f"(?:{v})" for v in MARKERS.values()))
@@ -119,10 +119,10 @@ class A {
   /* 2026-10-17 사용자 결정 */
 }
 '''
-    dart = "/// 라운드 기록\nfinal t = '''// R50 not a comment''';\nvoid f() {} // 커밋 a1b2c3d 에서\n"
+    dart = "/// 라운드 기록\n// 백그라운드로 가면 끊는다\nfinal t = '''// R50 not a comment''';\nvoid f() {} // 커밋 a1b2c3d 에서\n"
     ts = "const x = `line // R51 not comment\n${y} /* R52 */`;\n// 이전에는 두 연결\n"
     got = {"java": [ln for ln, _ in hits(java)], "dart": [ln for ln, _ in hits(dart)], "ts": [ln for ln, _ in hits(ts)]}
-    want = {"java": [1, 4, 9], "dart": [1, 3], "ts": [3]}
+    want = {"java": [1, 4, 9], "dart": [1, 4], "ts": [3]}
     ok = got == want
     print("selftest", "OK" if ok else f"FAIL got={got} want={want}")
     return 0 if ok else 1
