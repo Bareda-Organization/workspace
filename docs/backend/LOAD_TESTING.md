@@ -367,7 +367,7 @@ make down
 
 ### 8.3 판정과 연결
 
-- **L-4** 는 I-1 의 확인 스크립트 `infra/scripts/check-cross-instance.sh` 를 쓴다. 받은 건수 = 보낸 건수를 본다.
+- **L-4** 는 두 가지로 센다. ① I-1 의 확인 스크립트 `infra/scripts/check-cross-instance.sh` — 한 대에 보낸 위치 N건 · 비상 1건을 다른 대의 구독자가 받은 건수가 보낸 건수와 같다. ② 부하 규모에서는 각 인스턴스 관리 포트(8081)의 `schoolbus_ws_relay_published_total`(그 인스턴스가 Redis 에 낸 메시지) · `schoolbus_ws_relay_received_total`(그 인스턴스가 받아 처리를 마친 메시지, 자기가 낸 것 포함)의 부하 전후 차이로 센다. 인스턴스가 N 대면 **모든 인스턴스의 received 합 = 모든 인스턴스의 published 합 × N** 이어야 하고, 어긋나면 전달 손실이다. 발행 실패 `schoolbus_ws_relay_publish_failed_total{event}` 가 0 이어야 손실 0 판정이 성립한다.
 - **J-1** 은 JVM 힙 비율 · 직접 메모리 상한을 L-1 의 RSS · 힙 수치로 정한다. 판정 문장의 수치는 보고서 수치와 같아야 한다.
 
 **결과:** 단계 2 에서 `backend/report/` 의 측정 보고서와 함께 채운다 — 이 절에는 아직 수치가 없다.

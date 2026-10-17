@@ -883,7 +883,7 @@ flutter build ipa --release --dart-define=API_BASE_URL=https://api.<도메인> -
 | 한계 | 사유 |
 |---|---|
 | 배포 시 수십 초 다운타임 | 백엔드 1대 구성의 한계. 2대 구성(§15)은 한 대씩 다시 만들어 전체 중단이 없다 |
-| 배포마다 proxy 1~2초 추가 끊김 | 파일 하나를 마운트한 nginx 는 reload 로 새 설정을 못 읽어 다시 시작한다(`Ruling 615` · `648`, §5.3). 폴더 마운트로 바꾸면 없앨 수 있으나 설정 파일 이름이 코드·시험·문서 20여 곳에 있다 |
+| 배포마다 proxy 1~2초 추가 끊김(백엔드 1대 구성 — 2대 구성은 proxy 를 다시 시작하지 않는다, §15.4) | 파일 하나를 마운트한 nginx 는 reload 로 새 설정을 못 읽어 다시 시작한다(`Ruling 615` · `648`, §5.3). 폴더 마운트로 바꾸면 없앨 수 있으나 설정 파일 이름이 코드·시험·문서 20여 곳에 있다 |
 | 인스턴스 사망 시 복구가 수동(목표 1시간) | 데모 성격. Auto Scaling Group 미구성. 절차는 §7.3 |
 | DB 최대 1시간 · 사진 최대 하루 유실 | 매시 덤프 + 매일 스냅샷(RPO 1시간, `Ruling 480 ①`). WAL 아카이빙(PITR)은 채택하지 않았다 — 이 규모에서 설정·복구 복잡도가 이득보다 크다 |
 | APM 부재 · 서버 통째 사망은 외부 감시로만 감지 | 경보 수신(텔레그램·이메일, §11.3)은 있으나 Prometheus·Alertmanager 가 EC2 안에 있어 서버가 죽으면 같이 죽는다 — `/healthz` 외부 감시(§11.4)를 걸어야 알 수 있다 |
@@ -1329,7 +1329,7 @@ class FirebasePushTokenSource implements PushTokenSource {
 | compose | `docker-compose.prod.yml` | + `docker-compose.scale.yml` — `backend2` 를 더하고 두 대 모두 `cpus: 2` · `mem_limit: 3072m` · `stop_grace_period: 35s` |
 | nginx 업스트림 | `infra/proxy/backend-pool.single.conf` (서버 1개) | `backend-pool.scale.conf` — `least_conn` · 두 서버에 `max_fails=2 fail_timeout=10s` · `resolve` + `resolver 127.0.0.11 valid=5s` |
 | Prometheus 수집 대상 | `backend-targets.single.yml` (`backend:8081`) | `backend-targets.scale.yml` — 같은 job `backend` 아래 `instance` 라벨이 `backend:8081` · `backend2:8081` |
-| 학생 사진 | `photo-data` 볼륨 | 같은 볼륨을 두 대가 공유(한 호스트일 때만 맞다 — 호스트를 나누려면 오픈 이슈 W 의 S3 이전이 먼저) |
+| 학생 사진 | `photo-data` 볼륨 | 같은 볼륨을 두 대가 공유한다 — 두 대가 한 호스트에 있을 때만 맞고, 호스트를 나누는 계획은 없다(사진을 S3 로 옮기는 계획도 없다) |
 | 배포 | `up -d` 한 번 · 재생성 중 수십 초 다운타임(§10) | 백엔드를 한 대씩 다시 만든다(§15.4) · nginx 는 다시 시작하지 않는다 |
 
 `resolve` 가 있는 이유 — 컨테이너를 다시 만들면 IP 가 바뀌는데 nginx 는 기동할 때 이름을 한 번만 풀어, `resolve` 가 없으면 배포 뒤에 옛 IP 로 계속 간다. Docker 내장 DNS 를 5초마다 다시 묻고, 멈춘 컨테이너(이름이 풀리지 않음)는 풀에서 뺀다. `max_fails=0`(실패를 세지 않는 값)으로 바꾸면 멈춘 대에 요청이 계속 가서 5초 뒤 `504` 가 난다 — `infra/scripts/check-instance-failover.sh` 가 이 값에서 실패한다.
@@ -1365,22 +1365,28 @@ compose 의 한도와 주석 값을 더한 것이다(실측이 아니다).
 
 중간에 멈추면 남은 대는 계속 요청을 받는다. 롤백은 §6 과 같다 — 이전 태그로 다시 배포하면 같은 순서로 한 대씩 바뀐다. nginx 설정 파일을 고친 배포는 §5.3 마지막 단락의 `restart proxy` 를 따로 한다.
 
-### 15.5 Postgres 연결 수
+### 15.5 첫 기동 — 첫 메인 관리자 부트스트랩은 한 대씩
+
+빈 DB 로 처음 뜨는 배포에서는 `BOOTSTRAP_ADMIN_*` 가 들어 있고(§3) 두 대가 같은 순간 기동하면 `FirstSystemAdminBootstrap` 이 둘 다 "메인 관리자가 없다" 고 보고 계정을 만들려 해 한쪽의 기동이 UNIQUE 제약 위반으로 실패한다. `deploy.sh` 의 2대 모드는 한 대씩 기동하므로(§15.4) 겹치지 않는다 — 두 대를 손으로 한꺼번에 `up -d` 하지 않는다.
+
+### 15.6 Postgres 연결 수
 
 기본 `max_connections` 는 100이다(`docker-compose.prod.yml` 이 따로 지정하지 않는다). 백엔드 한 대의 커넥션 풀 `maximum-pool-size` 는 20이므로 2대 = 40이고, 운영자 접속 · 백업 · `postgres-exporter` 없는 관측을 더해도 100 안에 든다. 풀 크기를 올릴 때는 `대수 × maximum-pool-size + 여유 ≤ max_connections` 를 다시 확인한다.
 
-### 15.6 로컬에서 같은 구성을 확인하는 스크립트
+### 15.7 로컬에서 같은 구성을 확인하는 스크립트
 
 모두 Docker Desktop 메모리 8GB 이상에서 `infra/scripts/` 아래 한 명령으로 돈다. 스택(프로젝트 `r59-infra`)을 띄우고 확인한 뒤 `down` 한다(`-v` 없음). 백엔드는 한 대 1,536MB 로 낮춰 뜬다(`SCALE_CHECK_MEM` 으로 바꾼다). 이미지는 `backend/` 에서 새로 빌드하고, 다시 빌드하지 않으려면 `SCALE_SKIP_BUILD=1`.
 
 | 스크립트 | 확인하는 것 | 통과 기준 |
 |---|---|---|
-| `check-scale-stack.sh` | compose 합성 · 백엔드 2대 healthy · nginx `-t` · Prometheus 수집 대상 | 4개 모두 PASS |
+| `check-scale-stack.sh` | compose 합성(1대 · 2대) · 백엔드 2대 healthy · nginx `-t` · nginx 업스트림에 backend2 · Prometheus 수집 대상 2개 | `PASS` 7줄 · 종료 0 |
+| `check-deploy-delivery.sh` | `deploy.sh` 가 읽는 compose 파일을 배포 워크플로가 S3 로 올리고 EC2 로 내려받는가(Docker 불필요) | 파일마다 `PASS` 2줄 · 종료 0 |
 | `check-cross-instance.sh` | 한 대에 보낸 위치 · 비상을 다른 대의 구독자가 받는가 | 이벤트 종류마다 받은 건수 = 보낸 건수 |
 | `check-instance-failover.sh` | 한 대를 멈춰도 REST 연속 요청이 이어지고 세션이 남은 대로 다시 붙는가 | 멈춘 뒤 시작한 요청 실패 0 · 세션 전부 재접속 |
 | `check-rolling-restart.sh` | `rolling-restart.sh` 를 부하 중에 돌려 다른 대의 세션이 유지되고 nginx 가 그대로인가 | 세션 감소 0 · nginx 시작 시각 불변 |
 
-### 15.7 알려진 한계
+### 15.8 알려진 한계
 
-- 2대 운영에서 Redis 가 멈춘 동안은 인스턴스 사이 전달이 빠진다(같은 대에 붙은 구독자에게는 직접 간다). 클라이언트는 재접속 · 화면 복귀 때 REST 로 다시 받는다(`Ruling 900` B · `API_SPEC §7.2`). Redis 는 여전히 한 대다.
-- 사진 저장소는 한 호스트의 볼륨이다(위 표).
+- 2대 운영에서 Redis 가 멈춘 동안은 인스턴스 사이 전달이 빠진다(같은 대에 붙은 구독자에게는 직접 간다). 소켓이 붙어 있는 클라이언트는 안전망 조회가, 재접속한 클라이언트는 재접속 직후 REST 보충이 메운다(`Ruling 900` B · `API_SPEC §7.2`). 발행은 되는데 이 인스턴스의 Redis 구독만 끊긴 틈에도 대체 경로가 없고 같은 조회가 메운다(`Ruling 916` C). Redis 는 여전히 한 대다. 중계 상태는 `schoolbus_ws_relay_*` 지표(발행 · 수신 · 발행 실패)와 경보 `WebSocketRelayPublishFailing` 으로 본다.
+- 캐시 비움 신호(Redis 채널 `schoolbus:relay:cache-evict`)를 놓치면 다른 인스턴스의 계정 상태 캐시는 최대 5초, 위치 방송 목록 캐시는 최대 5분 뒤에야 비워진다(`Ruling 916` A).
+- 사진 저장소는 한 호스트의 볼륨이다. 두 대를 서로 다른 호스트로 나누면 사진이 한쪽 호스트에만 쌓이므로 그 구성은 지원하지 않는다.
