@@ -144,6 +144,10 @@ apps/academy-web/src/
 에러 코드 매핑(`§8`)** 을 한곳에서 처리하고, 각 기능의 `api/` 는 그 클라이언트를 쓴다.
 컴포넌트가 `fetch` 를 직접 부르지 않는다.
 
+## 주석
+
+- **주석에 경위를 쓰지 않는다.** 라운드 · Phase · 날짜 · "어떻게 여기까지 왔는가" 서술은 커밋 메시지와 `IMPLEMENTATION_PLAN` 에 두고 주석에는 적지 않는다(`Ruling 903` A). 남기는 것은 무엇 · 왜 · 지켜야 할 조건 문장과 `Ruling N` · `BR-N` · 기능 ID 표시다. 기존 경위 문단은 그 파일을 고칠 때 함께 지운다
+
 ## 시험
 
 - 시험에서 `next/navigation` 의 `useRouter` 를 가짜로 바꿀 때는 `shared/testing/stableRouter` 의 **`createStableRouter`** 로 한 번 만든 객체를 돌려준다. 렌더마다 새 객체(`useRouter: () => ({ … })`)를 주면 `router` 를 의존성에 둔 effect 가 렌더 때마다 다시 예약돼 주소를 바꾸는 시험이 간헐 실패한다. 어기면 `shared/testing/stableRouter.test.ts` 가 실패한다(`Ruling 560`).
