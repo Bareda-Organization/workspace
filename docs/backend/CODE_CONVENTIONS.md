@@ -207,7 +207,7 @@ Command·Query를 Event 이름에 사용하지 않는다.
 | `PhotoStorage` | Local(후보: S3, MinIO) — 학생 사진 등 첨부 |
 | `ApprovalPreviewCache` | 인메모리(후보: Redis) — 승인 미리보기 산출물 |
 | `PushSender` | Log, WebSocket(후보: FCM, APNs, 알림톡) |
-| `NotificationComposer` | 문구 템플릿 생성 — 다국어 확장 축. **포트는 유지**한다(`Ruling 898` ④). 제목 · 본문 문자열 2개만 돌려주던 알림 종류별 문구 구현 클래스 22개는 **문구 표 하나**로 합치고, 시각 · 분 단위처럼 서식이 들어가는 지연 문구와 미승차 문구는 개별 구현을 유지한다 |
+| `NotificationComposer` | 문구 템플릿 생성 — 다국어 확장 축. **포트는 유지**한다(`Ruling 898` ④). 제목 · 본문 문자열 2개만 돌려주던 알림 종류별 문구 구현 클래스 22개는 **문구 표 하나**로 합치고, 값(지연 분 등)을 끼워 넣는 서식이 있는 지연 문구와 미승차 문구는 개별 구현을 유지한다 |
 
 주의: `MapRouteClient`(외부 지도 API로 실도로 경로를 얻는 포트)와 `RouteEngine`(정차 순서를 계산하는 알고리즘 포트)은 서로 다른 포트다 — 폴백/네이버 스위치는 `MapRouteClient` 쪽이다. **위치 원천은 포트가 아니다** — 매니저 앱 1종 확정으로 `location/command/DriverPositionController` 가 HTTP 로 직접 수신한다(BR-146).
 
