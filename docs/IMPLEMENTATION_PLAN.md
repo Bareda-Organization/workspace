@@ -674,8 +674,9 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 
 | 항목 | 내용 | 처리 |
 |---|---|---|
-| **R58 — 서버 2대 대비 · 2 vCPU 부하 재측정**(2026-10-17 · 사용자 "다음 계획까지 만들어줘") | Redis Pub/Sub 중계 · 미리보기 캐시 Redis · 캐시 비움 전파 · 2대 compose · 한 대씩 배포 · 부하 재측정(1대 2 vCPU · 2대) · 판정 900 · 단계 1 작업 창 2개(BE-SCALE · INFRA) → 병합 → 단계 2 측정 창 1개 | **계획만 · 미착수 · R57 병합 뒤** — 계획 · 목표 표 초안 §8.109. 운영 대수는 배포 때 사용자 결정(2대는 4GB 기계 1대에 안 들어감) |
-| **R57 — 구조 점검 결과 전부 수정 + 옛 R57 작은 항목**(2026-10-17 · 사용자 "전부 고칠꺼고 계획만 잡아줘") | 아키텍처 · 데이터 접근 · 스레드 · 메모리 · WebSocket 점검 지적 전부(1대 운영 결함) + 옛 R57 6개 · 판정 898~899 · 작업 창 5개(BE-RT · BE-DATA · BE-ARCH · web · mobile) + 조율자 문서 | **계획만 · 미착수** — 계획 · 목표 표 초안 §8.108. 서버 2대 대비 · 2 vCPU 부하 재측정은 **R58**(같은 절). R53 열린 항목 "`880` 요청당 기본키 조회 1회의 위치 송신 · 연결 풀 부하" 를 이 라운드가 닫는다(`899` A) |
+| **R59 — 서버 2대 대비 · 2 vCPU 부하 재측정**(2026-10-17 · 사용자 "다음 계획까지 만들어줘") | Redis Pub/Sub 중계 · 미리보기 캐시 Redis · 캐시 비움 전파 · 2대 compose · 한 대씩 배포 · 부하 재측정(1대 2 vCPU · 2대) · 판정 900 · 단계 1 작업 창 2개(BE-SCALE · INFRA) → 병합 → 단계 2 측정 창 1개 | **계획만 · 미착수 · R58 병합 뒤** — 계획 · 목표 표 초안 §8.110. 운영 대수는 배포 때 사용자 결정(2대는 4GB 기계 1대에 안 들어감) |
+| **R58 — 과설계 정리 · 무중단 토큰 교체 제거**(2026-10-17 · 사용자 "1. 없애줘, 하지만 추후 고도화 계획에 넣어는 줘 2. 새로운 라운드로 진행") | 과설계 점검 정리(주석 경위 · 시험 도우미 · 문자열 대조 시험 · `@Can` · 기본 계측 · 앱 공통 패키지 · 안 쓰는 위젯 · 웹 재접속 · API 응답 변환) + 무중단 토큰 교체 제거 · 판정 901~903 · 단계 1 작업 창 3개(BE-CODE · web · mobile) → 병합 → 단계 2 백엔드 주석 창 1개 | **계획만 · 미착수 · R57 병합 뒤** — 계획 · 목표 표 초안 §8.109. 무중단 교체는 `PRD §11.3` F-11 로 이동 |
+| **R57 — 구조 점검 결과 전부 수정 + 옛 R57 작은 항목**(2026-10-17 · 사용자 "전부 고칠꺼고 계획만 잡아줘") | 아키텍처 · 데이터 접근 · 스레드 · 메모리 · WebSocket 점검 지적 전부(1대 운영 결함) + 옛 R57 6개 · 판정 898~899 · 작업 창 5개(BE-RT · BE-DATA · BE-ARCH · web · mobile) + 조율자 문서 | **계획만 · 미착수** — 계획 · 목표 표 초안 §8.108. 정리는 **R58**(§8.109) · 서버 2대 대비 · 2 vCPU 부하 재측정은 **R59**(§8.110). R53 열린 항목 "`880` 요청당 기본키 조회 1회의 위치 송신 · 연결 풀 부하" 를 이 라운드가 닫는다(`899` A) |
 | **RQA — 팀 QA 대비 사양 최신화 · QA Mock 데이터 · QA 안내 페이지**(2026-10-16 · 사용자 요청) | 사양 4종을 코드 기준으로(`896`) · Mock 데이터 점검 + 케이스 3묶음(`897`) · 비전공 팀원용 QA 안내 페이지 | **완료**(2026-10-16) — 판정 · 결과 IMPLEMENTATION_PLAN §8.107(번호 896~897). **남는 열린 항목(코드 결함 후보 · 사양은 유지)**: 관계자 웹 비상 유형 표기 「학생 응급상황」(다른 제품은 「학생 응급」) · 매니저 앱 「어느 운행의 비상입니까?」(해요체 위반) · 웹 코드 「정차지」 표기(사양은 「승하차지」) · 기사는 운행 중 현장 상황 보고 단추가 없음(종료 · 보류 화면에서만 — M-14 는 두 역할 모두로 서술) |
 | **R56 — 경유 지점 관계자 웹 화면 · R52·R55 남은 항목 · 규칙 사본 정리**(2026-10-13 · 사용자 "만들어줘" · "진행" · "적절한걸로 선택해서 진행" · "대기") | 경유 지점 화면(A-15) · R52·R55 판정 거리와 남은 코드 항목 · `Ruling 888` 적용 확대 · 판정 893~895 · 작업 창 4개(문서 · backend · web · 매니저 앱) | **완료**(2026-10-13) — 판정 · 코드 결과 IMPLEMENTATION_PLAN §8.106(번호 893~895). **이번에 닫는 열린 판정 거리**: 경유 지점 관계자 웹 화면(`893`) · 사진 삭제 API(`894` ③) · 퇴사 관계자 푸시 단말 삭제(`894` ②) · 확정 후 회차 취소 통지(`894` ⑤) · 멱등 키 24시간 정리(`894` ⑥) · `delay_notice` 14일 보존(`894` ⑦) · 예외 보고·연락 기록 오프라인 저장(`894` ⑧) · 감사 로그 등급 필터 미도입(`894` ④) · 매니저 앱 학원 전화 카드 유지(`894` ①) · 규칙 사본 정리 + 새 사본 검사(`895`). 코드 창이 확인하는 것(`894` ⑪ — 결함이면 고치고 이미 맞으면 근거만): `change_decided` 신청 보호자 1명 · `ACADEMY_NOT_FOUND` 방어 · `guardian_absent` 서버 강제 · 반 필터 · 매니저 쉘이 가려진 동안 바뀐 선택(M-a). 코드 창 항목(판정 아님): 앱 시작 `/me` 403 정리 안내 기기 저장 · 로그아웃 뒤 대기열 재생 차단 · 거절 안내 재띄움 경합 · 오프라인 홈 「저장본으로 보는 중」 · `drive_mode_screen.dart` 800줄 아래로. **고치지 않고 닫는 것**: 배포 · 부하 재측정(사용자 "대기") · R55 ③ 의 이미 나간 요청 1건 · R55 ④ 저장소 읽기 계속 실패 시 비상 건수 미기록. **코드 창 결과로 정해진 것**(2026-10-13): `894` ⑪ 중 `guardian_absent` 는 서버가 강제하지 않음(판정 B) · 반 필터 선택지는 `summary.class_names`(판정 C) · 경유 지점 화면에 취소 회차는 나타나지 않음(판정 D) · 매니저 앱 R55 ⑦ 거절 안내 재띄움 경합은 재현되지 않아 현상을 고정하는 시험만 더함 · 멱등 키는 승하차·연락 기록만 비움(판정 A). **남는 열린 항목**: ⑨ 지표 상한 · 확정 실패 경보 대상(배포 때) · ⑩ 보호자 본인 보존 기간(법률 검토 때) · R55 ⑥ 백엔드 `ErrorCodeSpecParityTest` 는 워크트리에서 `API_SPEC_PATH` 필요 · 사본 정리 대상 밖 C 규칙(미측정이던 것은 측정만 — 그 규칙을 고칠 때 정리, `Ruling 888`) · 멱등 키 정리 쿼리에 부분 인덱스 없음(행이 수백만이 되면 추가) · 보존 DB 는 V1 스키마 변경(`exception_report` · `no_show_contact` 에 `client_key` 컬럼 신설 · 알림 종류 CHECK 에 `run_canceled`)으로 재구성 필요 · 메인 관리자는 `ROUTE_MANAGE` 가 없어 경유 지점 지정 불가(바꾸지 않음) · 매니저 앱 저장본 표시는 홈에만 있고 명단 · 운행 준비 · 비상 화면에는 없음 · `roster_screen.dart` 872줄(800줄 초과 — 다음 크기 정리 후보) · 경유 지점 전후 비교 레이아웃은 눈으로 확인 전(병합 뒤 화면 확인) · 웹 전후 비교의 지도 카메라 계산이 승인 화면과 복제(세 번째 사용 시 공용으로) |
 | **R55 — 앱 해요체 · 삭제된 매니저 로그인 · 거절 안내 저장 · R53·R54 열린 항목**(2026-10-13 · 사용자 "r53까지 합쳐서 새로운 라운드로 작업 구성" · 결정 "추천대로") | R53 · R54 행의 열린 판정 거리와 R54 학원 전화 화면 정합을 한 라운드로 묶음 · 판정 890~892 · 작업 창 5개(문서 · backend · web · 매니저 앱 · 학부모 앱) | **문서 작업 완료**(2026-10-13) — 판정 IMPLEMENTATION_PLAN §8.105(번호 890~892). 코드 결과는 병합 뒤 §8.105 "코드 결과" 에 기록. **이번에 닫는 열린 판정 거리**: 앱 어미 통일 방향(해요체 · `890`) · 삭제된 매니저 로그인(`403 AUTH_STAFF_INACTIVE` · `891`) · 매니저 앱 승하차 · 도착 행 안내 메모리만(건수 · 마지막 시각 기기 저장 · `892`) · 삭제된 매니저의 refresh 행 · 푸시 단말 정리 · 기기 저장소 읽기 실패 뒤 덮어쓰기 · 늦은 읽기 이중 가산 · dismiss 경합 · 재생 중 로그아웃 경합(코드 창 — 재현되는 것만 고침) · 화면 문구의 학원 전화 안내 정합(코드 창). **고치지 않고 닫는 것**: 로그인 실패 5회 차단이 진행 중 세션을 끊음(2026-10-13 사용자 "지금 그대로") · 하원 출발 뒤 미승차(실서비스 도달이 이론 경로) · 다른 학원 계정에도 앞 학원 번호(알고 받아들임) · `880` 요청당 기본키 조회의 부하 재측정(배포 전 부하 측정 때). **코드 창 4개 병합 뒤 남는 열린 항목**(2026-10-13): ① (R56 `Ruling 894` ① 유지로 닫음) 매니저 앱 학원 전화 카드류(홈 · 운행 준비 · 비상 · 내 정보)는 메모리 번호만 읽어, 학원이 번호를 지우면 카드는 사라지고 차단 화면 · 로그인 안내는 기기 저장 번호로 옛 번호를 보임(카드에 저장값을 쓰면 다른 학원 계정에 옛 번호가 보일 위험 — 사양 판정 거리) · ② (R56 코드 창) 앱 시작 `/me` 403 계정 정리 안내(`보내지 못한 처리 N건이 지워졌어요`)는 여전히 메모리만 · ③ (R56 코드 창 — 재생 시작 차단만) 로그아웃과 대기열 비우기 사이 최대 5초 재생 틈(이미 나간 요청 1건은 서버에 반영될 수 있음) · ④ 기기 저장소 읽기가 계속 실패하면 비상 건수를 기기에 쓰지 않음(덮어쓰기보다 나음 — 그 환경에선 앱 종료 때 사라짐) · ⑤ (R56 `Ruling 894` ② 로 닫음) 퇴사 관계자 계정의 푸시 단말은 지우지 않음(관계자 웹은 단말을 등록하지 않아 실재 행은 없을 것으로 추정 — 사양 미정) · ⑥ 백엔드 `ErrorCodeSpecParityTest` 는 워크트리에서 `API_SPEC_PATH` 가 필요 · ⑦ (R56 코드 창) 매니저 앱 거절 안내 — 시작 때 저장소 읽기가 실패한 채 [확인] 하면 다음 저장 재시도가 기기 저장분을 다시 띄울 수 있음(좁은 경합 · 개인정보 영향 없음 · `unsent_tally_notifiers.dart` `_persist`). **R47 잔여 "관제 화면 시험 간헐 실패" 는 닫힘** — 2026-10-03 커밋 `52547ef`(web · `runsRef` 를 `useLayoutEffect` 로)가 이미 고쳤고, R55 에서 단독 20회 · 전체 3회 실패 0, 그 줄을 되돌리면 회귀 시험 1건 실패 확인 |
@@ -1177,7 +1178,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 675 | 학원 경계 복합 FK 11쌍(부모 `UNIQUE (id, academy_id)`) · `academy_id` 없는 자식(`run_rider`·`route_stop`·`run_stop`)은 점검 쿼리·시험 | 본문 §8.88 · `docs/backend/ERD.md §4.1·§5.1` |
 | 676 | 부하 시드 학원 경계 오염 원인 수정 — 위치용 회차를 학생이 속한 학원마다 심고 같은 학원 학생만 붙임 | 본문 §8.88 · `docs/backend/LOAD_TESTING.md` |
 | 677 | `ErrorCode` 열거 ↔ 에러 코드 사전 양방향 일치 시험 · `SERVER_BUSY` 행 등재 | 본문 §8.88 · `docs/planning/API_SPEC.md §8.7` |
-| 680 | 실시간 연결은 접근 토큰 만료 60초 전에 두 번째 연결로 갈아탄다(재발급 → 새 토큰으로 두 번째 연결 → 구독 이전 → 확인 대기 → 옛 연결 종료) · 연결 상태는 `connected` 그대로 · 재발급·새 연결 실패 시 옛 연결을 두고 기존 `TOKEN_EXPIRED` 경로 · 웹·Flutter 공용 클라이언트 둘 다(`Ruling 618` C-14 이행) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
+| 680 | ⚠ **`901` 이 뒤집음**(이행 R58) — 실시간 연결은 접근 토큰 만료 60초 전에 두 번째 연결로 갈아탄다(재발급 → 새 토큰으로 두 번째 연결 → 구독 이전 → 확인 대기 → 옛 연결 종료) · 연결 상태는 `connected` 그대로 · 재발급·새 연결 실패 시 옛 연결을 두고 기존 `TOKEN_EXPIRED` 경로 · 웹·Flutter 공용 클라이언트 둘 다(`Ruling 618` C-14 이행) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
 | 681 | 갈아타기의 구독 확인 = 새 연결에 구독을 모두 건 뒤 거부 신호(`ERROR`·닫힘) 없이 1.5초(서버가 SUBSCRIBE 의 `RECEIPT` 를 보내지 않음 — 2026-10-01 실측) · 만료 시각 = 토큰 `exp` 클레임(로그인·재발급 응답에 만료 필드 없음 — 서버 변경 없음) · 갈아타기 간격 하한 5초 | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
 | 682 | 갈아타는 동안의 중복 방송 제거 = (구독 + 원문 본문)이 같으면 한 번만 전달 · 옛 연결을 닫은 뒤 5초 더 유지(방송 본문에 고유 식별자가 없고 STOMP `message-id` 는 세션마다 따로 붙음) | `docs/frontend/IMPLEMENTATION_PLAN.md §5.32` · `docs/planning/API_SPEC.md §7.2` |
 | 690 | Tomcat `max-connections` 명시 — prod·demo 4,000 · staging 1,000 · local·load 는 기본 8,192 유지(부하 측정이 한계를 재야 함). 설정 시험이 값과 "local·load 에 상한 없음" 고정 | 본문 §8.89 · `docs/backend/infra/DEPLOYMENT.md §11.7` |
@@ -1351,9 +1352,12 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 895 | 규칙 사본 정리 확대 + 새 사본 검사(`.claude/bin/rule-copies/`) | 본문 §8.106 |
 | 896 | 사양 4종을 현재 코드 기준으로 최신화 — 다르면 코드 쪽 · 코드에만 있으면 추가 · 코드에 없는 사양은 그대로 두고 QA 에서만 제외 | 본문 §8.107 |
 | 897 | QA Mock 데이터 점검 + 케이스 3묶음(운행 상태 · 계정 상태 · 학생·요청 경계값) | 본문 §8.107 |
-| 898 | R57 범위 · 순서 — 점검 지적 전부 · 서버 2대 대비는 R58 · 옛 R57 6개 합침 · 포트 인터페이스 유지(알림 문구 클래스 22개만 합침) | 본문 §8.108 |
+| 898 | R57 범위 · 순서 — 점검 지적 전부 · 서버 2대 대비는 R59 · 옛 R57 6개 합침 · 포트 인터페이스 유지(알림 문구 클래스 22개만 합침) | 본문 §8.108 |
 | 899 | R57 설계 선택 묶음(계정 상태 캐시 5초 + 즉시 비움 · 권한 변경 즉시 구독 회수 · 순서 보장 · 인증 전 소켓 10초 · FCM 시도 횟수 · 문자 커밋 뒤 발송 등) | 본문 §8.108 |
-| 900 | R58 설계 선택 묶음(Redis Pub/Sub 중계 · Redis 장애 때 자기 구독자 직접 전송 · 미리보기 캐시 Redis · 캐시 비움 전파 · 감사 묶기 Redis · 종료 때 1012 · 한 대씩 배포 · JVM 값은 측정 뒤) | 본문 §8.109 |
+| 900 | R59 설계 선택 묶음(Redis Pub/Sub 중계 · Redis 장애 때 자기 구독자 직접 전송 · 미리보기 캐시 Redis · 캐시 비움 전파 · 감사 묶기 Redis · 종료 때 1012 · 한 대씩 배포 · JVM 값은 측정 뒤) | 본문 §8.110 |
+| 901 | 실시간 연결의 무중단 토큰 교체를 없앤다(`680` 을 뒤집음) — 만료 60초 전 재발급 뒤 연결 1개로 다시 접속 · 무중단 교체는 고도화 F-11 로 이동 | 본문 §8.109 · `PRD §11.3` |
+| 902 | R58 범위 · 순서 — 과설계 점검 정리를 새 라운드로 · R57 → R58 → R59 · R57 과 겹치는 3곳 조정 | 본문 §8.109 |
+| 903 | R58 정리 방식 묶음(주석 경위 · 시험 도우미 · 문자열 대조 시험 · `@Can` · 기본 계측 · 앱 공통 패키지 · 안 쓰는 위젯 검사 · 웹 재접속 · API 응답 변환 · 하지 않는 것) | 본문 §8.109 |
 
 
 ## 8.73 ⚖ `R46-BE` — 성능 개선(감사 제외) + 바로 고칠 것 (2026-10-01 · 분기점 `ea37ba6c` · 번호대 410~419 · 백엔드 갈래)
@@ -2422,16 +2426,16 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 
 | Ruling | 판정 | 근거 |
 |---|---|---|
-| **898** | **범위 · 순서**(사용자 결정) — ① 점검 지적을 전부 고친다 ② **서버 2대 대비**(메시지 중계를 Redis Pub/Sub 로 · 미리보기 캐시 2개(`InMemoryApprovalPreviewCache` · `WaypointPreviewCache`)를 Redis 로 · 2대 기동 부하 재측정)는 **R58 로 분리**한다 — R57 은 1대 운영에서도 생기는 결함만 ③ 2026-10-14 에 잡아 둔 옛 R57 작은 항목 6개를 이번 라운드 갈래에 나눠 넣는다 ④ 구현이 1개뿐인 포트 인터페이스(`RouteEngine` · `AttendantAssigner` · `NavProvider` · `NotificationComposer` 등)는 `CODE_CONVENTIONS` §1 대로 **유지**하고, 문자열 2개만 돌려주는 알림 문구 구현 클래스 22개만 문구 표 하나로 합친다(서식이 있는 지연 · 미승차 문구는 개별 구현 유지 · `NotificationComposer` 포트는 그대로) | 사용자 답(2026-10-17 결정 질문 3개 — 모두 추천안). ② 는 같은 파일(`WebSocketConfig` · `WebSocketBroadcastGateway`)을 R57 실시간 갈래와 동시에 고치는 충돌을 피하고, 2대 부하 재측정과 한 라운드로 묶기 위함. ④ 는 `CODE_CONVENTIONS` 가 그 인터페이스들을 교체 가능성이 있는 포트로 명시한 것 |
-| **899** | **설계 선택 묶음**(조율자 결정 · 뒤집기 가능) — **A. 계정 상태 확인 캐시**: 계정별 결과를 최대 5초 보관하고, 차단 · 퇴사 · 매니저 삭제 · 로그인 실패 잠금이 커밋되면 그 계정 항목을 즉시 비운다 → 1대에서는 `Ruling 880` 의 "다음 요청부터 거절" 이 그대로 유지된다. JWT 필터 · STOMP 접속 · 구독이 같은 캐시를 쓴다(2대가 되면 비움 신호 전파는 R58). **B. 권한 변경 즉시 구독 회수**: 보호자 연결 해제 · 학생 퇴원/삭제 · 회차 배치 변경(기사 · 동승자 교체)이 커밋되면 영향받는 계정의 열린 WebSocket 세션을 닫는다. 재접속하면 남은 권한의 구독만 다시 맺고 잃은 구독은 `4403`. **C. 메시지 순서**: 서버 `setPreservePublishOrder(true)` + 클라이언트는 화면 값보다 오래된 `received_at` · `changed_at` 의 위치 · 승하차 메시지를 버린다. 봉투에 순번 필드는 더하지 않는다(메시지 형태 불변). **D. 인증 전 소켓**: 연결 뒤 10초 안에 CONNECT 가 없으면 서버가 닫는다 + nginx `/ws/` 의 IP당 동시 연결 상한은 100(통신사 공용 IP 뒤의 학부모 여러 명을 막지 않도록 낮게 두지 않는다). **E. FCM**: 차단 장치(서킷 브레이커)가 열려 실제 발송을 하지 않은 시도는 시도 횟수에 넣지 않는다. **F. 문자(SMS)**: 인증번호 행은 트랜잭션 안에서 저장하고 발송은 커밋 뒤 · 발송기에 시간 상한과 차단 장치. **G. 재접속 대기 무작위 폭**: 대기값의 0~100%(지금 70~100%) — 웹 · 앱 공통. **H. 매니저 앱 GPS**: Android 위치 간격 2초 명시(사양의 2초 송신과 맞춤) + 기록 시각이 직전 전송과 같으면 보내지 않음. **I. 학생 사진 디스크 캐시**: `cached_network_image` 의존성을 더한다(Flutter 기본 이미지 위젯에 디스크 캐시가 없음 · 인증 헤더 지원). **J. 확정 배치 락**: `RunConfirmationScheduler` 에 `@SchedulerLock` 을 달고 `SchedulerLockConventionTest` 예외 목록에서 뺀다 · 조건부 UPDATE 는 정합성 안전장치로 유지. **K. 위치 경로 SQL**: `Ruling 554` 로 미뤘던 줄이기를 이번에 한다 — 회차별 정류장 목록 · 탑승 학생 목록을 도착 · 결석 · 전환 이벤트 때 비우는 메모리 캐시(1대 기준 · 2대 전파는 R58). **L. 쿼리 시간 상한**: 연결 기본 `statement_timeout=30s` · 보존 정리 · 익명화 트랜잭션만 `SET LOCAL statement_timeout=0` · Flyway 는 별도 설정. **M. 세션 만료 점검**: 30초마다 하는 계정 상태 일괄 조회를 송신 스레드(`preSend`)에서 빼 `@Scheduled` 로 옮긴다. 세션은 인스턴스마다 따로라 이 스케줄러는 `@SchedulerLock` 을 달지 않고 예외 목록에 이유를 적는다 | 조사 결과의 대안 중 메시지 형태 · 사양 경계를 가장 적게 바꾸는 쪽. A — R53 열린 항목 "`880` 요청당 기본키 조회 1회의 위치 송신 · 연결 풀 부하" 를 닫는다. B — 지금은 연결 해제 · 기사 교체 뒤 토큰 만료(최대 15분)까지 남의 아이 위치를 계속 받는다(개인정보). D — IP당 상한을 20~50 으로 두면 같은 통신사 공용 IP 의 학부모가 막힌다. K — 위치 1건이 SQL 6개 · 커넥션 획득 3회이고, 정류장 · 학생 목록은 도착 · 결석 때만 바뀐다 |
+| **898** | **범위 · 순서**(사용자 결정) — ① 점검 지적을 전부 고친다 ② **서버 2대 대비**(메시지 중계를 Redis Pub/Sub 로 · 미리보기 캐시 2개(`InMemoryApprovalPreviewCache` · `WaypointPreviewCache`)를 Redis 로 · 2대 기동 부하 재측정)는 **R59 로 분리**한다 — R57 은 1대 운영에서도 생기는 결함만 ③ 2026-10-14 에 잡아 둔 옛 R57 작은 항목 6개를 이번 라운드 갈래에 나눠 넣는다 ④ 구현이 1개뿐인 포트 인터페이스(`RouteEngine` · `AttendantAssigner` · `NavProvider` · `NotificationComposer` 등)는 `CODE_CONVENTIONS` §1 대로 **유지**하고, 문자열 2개만 돌려주는 알림 문구 구현 클래스 22개만 문구 표 하나로 합친다(서식이 있는 지연 · 미승차 문구는 개별 구현 유지 · `NotificationComposer` 포트는 그대로) | 사용자 답(2026-10-17 결정 질문 3개 — 모두 추천안). ② 는 같은 파일(`WebSocketConfig` · `WebSocketBroadcastGateway`)을 R57 실시간 갈래와 동시에 고치는 충돌을 피하고, 2대 부하 재측정과 한 라운드로 묶기 위함. ④ 는 `CODE_CONVENTIONS` 가 그 인터페이스들을 교체 가능성이 있는 포트로 명시한 것 |
+| **899** | **설계 선택 묶음**(조율자 결정 · 뒤집기 가능) — **A. 계정 상태 확인 캐시**: 계정별 결과를 최대 5초 보관하고, 차단 · 퇴사 · 매니저 삭제 · 로그인 실패 잠금이 커밋되면 그 계정 항목을 즉시 비운다 → 1대에서는 `Ruling 880` 의 "다음 요청부터 거절" 이 그대로 유지된다. JWT 필터 · STOMP 접속 · 구독이 같은 캐시를 쓴다(2대가 되면 비움 신호 전파는 R59). **B. 권한 변경 즉시 구독 회수**: 보호자 연결 해제 · 학생 퇴원/삭제 · 회차 배치 변경(기사 · 동승자 교체)이 커밋되면 영향받는 계정의 열린 WebSocket 세션을 닫는다. 재접속하면 남은 권한의 구독만 다시 맺고 잃은 구독은 `4403`. **C. 메시지 순서**: 서버 `setPreservePublishOrder(true)` + 클라이언트는 화면 값보다 오래된 `received_at` · `changed_at` 의 위치 · 승하차 메시지를 버린다. 봉투에 순번 필드는 더하지 않는다(메시지 형태 불변). **D. 인증 전 소켓**: 연결 뒤 10초 안에 CONNECT 가 없으면 서버가 닫는다 + nginx `/ws/` 의 IP당 동시 연결 상한은 100(통신사 공용 IP 뒤의 학부모 여러 명을 막지 않도록 낮게 두지 않는다). **E. FCM**: 차단 장치(서킷 브레이커)가 열려 실제 발송을 하지 않은 시도는 시도 횟수에 넣지 않는다. **F. 문자(SMS)**: 인증번호 행은 트랜잭션 안에서 저장하고 발송은 커밋 뒤 · 발송기에 시간 상한과 차단 장치. **G. 재접속 대기 무작위 폭**: 대기값의 0~100%(지금 70~100%) — 앱(core)만. 웹은 동시 사용자가 약 25명이라 몰림 걱정이 없어 R58 에서 직접 만든 대기 계산을 stompjs 기본 재접속으로 바꾼다(2026-10-17 보정 · `Ruling 903` H). **H. 매니저 앱 GPS**: Android 위치 간격 2초 명시(사양의 2초 송신과 맞춤) + 기록 시각이 직전 전송과 같으면 보내지 않음. **I. 학생 사진 디스크 캐시**: `cached_network_image` 의존성을 더한다(Flutter 기본 이미지 위젯에 디스크 캐시가 없음 · 인증 헤더 지원). **J. 확정 배치 락**: `RunConfirmationScheduler` 에 `@SchedulerLock` 을 달고 `SchedulerLockConventionTest` 예외 목록에서 뺀다 · 조건부 UPDATE 는 정합성 안전장치로 유지. **K. 위치 경로 SQL**: `Ruling 554` 로 미뤘던 줄이기를 이번에 한다 — 회차별 정류장 목록 · 탑승 학생 목록을 도착 · 결석 · 전환 이벤트 때 비우는 메모리 캐시(1대 기준 · 2대 전파는 R59). **L. 쿼리 시간 상한**: 연결 기본 `statement_timeout=30s` · 보존 정리 · 익명화 트랜잭션만 `SET LOCAL statement_timeout=0` · Flyway 는 별도 설정. **M. 세션 만료 점검**: 30초마다 하는 계정 상태 일괄 조회를 송신 스레드(`preSend`)에서 빼 `@Scheduled` 로 옮긴다. 세션은 인스턴스마다 따로라 이 스케줄러는 `@SchedulerLock` 을 달지 않고 예외 목록에 이유를 적는다 | 조사 결과의 대안 중 메시지 형태 · 사양 경계를 가장 적게 바꾸는 쪽. A — R53 열린 항목 "`880` 요청당 기본키 조회 1회의 위치 송신 · 연결 풀 부하" 를 닫는다. B — 지금은 연결 해제 · 기사 교체 뒤 토큰 만료(최대 15분)까지 남의 아이 위치를 계속 받는다(개인정보). D — IP당 상한을 20~50 으로 두면 같은 통신사 공용 IP 의 학부모가 막힌다. K — 위치 1건이 SQL 6개 · 커넥션 획득 3회이고, 정류장 · 학생 목록은 도착 · 결석 때만 바뀐다 |
 
-**고치지 않고 R58 로 넘기는 것** — 메시지 중계 Redis 이전 · 미리보기 캐시 Redis · 계정 상태 · 위치 경로 캐시의 비움 신호 전파 · 감사 기록 중복 방지(`AuditRecorder.lastRecordedAt` 이 인스턴스마다 따로) · 스케줄 지표 애스펙트와 ShedLock 순서(락을 놓친 인스턴스의 "마지막 성공" 지표가 낡음) · JVM 힙 비율 · 직접 메모리 상한(측정 뒤 결정) · 낡은 "증설 금지" 주석 제거.
+**고치지 않고 R59 로 넘기는 것** — 메시지 중계 Redis 이전 · 미리보기 캐시 Redis · 계정 상태 · 위치 경로 캐시의 비움 신호 전파 · 감사 기록 중복 방지(`AuditRecorder.lastRecordedAt` 이 인스턴스마다 따로) · 스케줄 지표 애스펙트와 ShedLock 순서(락을 놓친 인스턴스의 "마지막 성공" 지표가 낡음) · JVM 힙 비율 · 직접 메모리 상한(측정 뒤 결정) · 낡은 "증설 금지" 주석 제거.
 
 ### R57 갈래 (Orca 작업 창 5개 + 조율자 문서)
 
 | 갈래 | 모델 | 맡는 행 | 주로 닿는 곳(`…/` = `backend/backend/src/main/java/src/backend/`) |
 |---|---|---|---|
-| 문서 (조율자 · 창 띄우기 전) | opus | D-* | `API_SPEC §7.2`(종료 코드 표 1002 · 4403 · 4500 + ERROR `message` 로 사유 구분 · 대기 무작위 폭 · 하트비트 양쪽 10초 명시 · 자원 단위 권한 변경 즉시 회수 · 오래된 메시지 버리기 · CONNECT 10초) · `ARCHITECTURE §3.3`(긴 순환 검사) · `§9.5`(증설 막는 것 → R58) · `TECH_DECISIONS §7.2`(FCM 시도 횟수) · `§7.5`(문자 커밋 뒤 발송) · `CODE_CONVENTIONS` 의 `NotificationComposer` 예 |
+| 문서 (조율자 · 창 띄우기 전) | opus | D-* | `API_SPEC §7.2`(종료 코드 표 1002 · 4403 · 4500 + ERROR `message` 로 사유 구분 · 대기 무작위 폭(앱) · 하트비트 양쪽 10초 명시 · 자원 단위 권한 변경 즉시 회수 · 오래된 메시지 버리기 · CONNECT 10초) · `ARCHITECTURE §3.3`(긴 순환 검사) · `§9.5`(증설 막는 것 → R59) · `TECH_DECISIONS §7.2`(FCM 시도 횟수) · `§7.5`(문자 커밋 뒤 발송) · `CODE_CONVENTIONS` 의 `NotificationComposer` 예 |
 | BE-RT 실시간 경로 | sonnet[1m] high | RT-1~11 | `…/global/config/WebSocketConfig` · `…/global/websocket/*` · `…/global/security/{JwtAuthenticationFilter,AccountStanding,StompAuthChannelInterceptor,StompSessionExpiry}` · `…/*/command/*BroadcastListener` · `…/location/command/RunPositionCommandService` |
 | BE-DATA 데이터 · 외부 호출 | sonnet[1m] high | DA-1~12 | `…/location/proximity` · `…/location/repository/RunPositionRepository` · `…/run/repository/RunRepository` · `…/notification/repository/NotificationLogRepository` · `…/boarding/query/RosterQueryService` · `…/student/query/WithdrawalPreviewQueryService` · `…/boarding/command/RunRiderPersistence` · `…/student/geocoding` · `…/student/photo` · `…/request/preview/impl` · `…/run/scheduler` · `application.yml` |
 | BE-ARCH 구조 · 알림 · 인프라 | sonnet[1m] high | AR-1~7 | `…/notification/command/NotificationDispatcher` · `…/notification/domain/{impl,spec}` · `…/account/command/AccountRecoveryCommandService` · `student→routing` · `location→boarding` 참조 · `src/test/**/architecture` · `backend/infra/proxy/*.conf` · `docker-compose.prod.yml` 주석 |
@@ -2460,7 +2464,7 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 | RT-8 | CONNECT 없는 소켓이 10초 뒤 닫힌다 | 새 WebSocket 통합 시험 | 마감 시간 무한대 |
 | RT-9 | 학생 채널 하나의 전송 예외 → 나머지 채널 전송 + 실패 카운터 +1 | 새 시험 | ✱ 목적지별 예외 격리 제거 |
 | RT-10 | 비상 방송 리스너가 트랜잭션 없이 발행돼도 보낸다 | 새 시험 | `fallbackExecution` 제거 |
-| RT-11 | 접속 · 구독 거절과 종료 사유(`4403` · `TOKEN_EXPIRED` · `4500`)별 카운터가 Prometheus 출력에 있다 | 새 시험 — 지표 이름 · 태그 | — |
+| RT-11 | 접속 · 구독 거절과 종료 사유(`4403` · `TOKEN_EXPIRED` · `4500`)별 카운터가 Prometheus 출력에 있다 · `MeterRegistry` 를 직접 쓰고 새 지표 보관 클래스는 만들지 않는다(`Ruling 902` ③) | 새 시험 — 지표 이름 · 태그 | — |
 | DA-1 | 근접 판정 한 틱(운행 중 회차 50개)의 쿼리 수가 회차 수와 무관(페이지당 상수) · 알림 대상 동일 | 새 시험 + 기존 근접 시험 전부 | ✱ 한 회차씩 조회로 되돌림 |
 | DA-2 | Redis 대체 최신 위치 조회에 시간 하한 → 실행 계획의 파티션 2개 이하 | 실 DB 시험 — `EXPLAIN` | 하한 제거 |
 | DA-3 | 확정 대기 · 알림 대기 조회가 문자 상수 조건으로 부분 인덱스 사용 | 실 DB 시험 — `EXPLAIN (GENERIC_PLAN)` | 바인드 변수로 되돌림 |
@@ -2471,8 +2475,8 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 | DA-8 | 회차 확정 때 `run_rider` 저장 = INSERT 1문장 | 새 시험 — 쿼리 수 | — |
 | DA-9 ✔ | 지오코딩 · 장소 검색 동시 호출 상한 8 · 대기 0 · 자동완성 재시도 없음 | 느린 가짜 서버 시험 — 9번째 동시 호출이 즉시 대체 응답 | ✱ 동시 호출 상한 설정 제거 |
 | DA-10 | 사진 업로드는 리사이즈 슬롯을 얻은 뒤에 파일 바이트를 읽는다 | 새 시험 — 슬롯이 찬 상태에서 바이트 읽기 0 | — |
-| DA-11 | 승인 미리보기 캐시 상한 500 · 하루 만료(R58 Redis 이전 전까지) | 새 시험 | — |
-| DA-12 | 확정 배치 `@SchedulerLock` · 예외 목록에서 제거 · 확정 실행기 스레드 이름 `run-confirm-` · 스케줄러 · 확정 실행기 지표 | `SchedulerLockConventionTest` + 새 시험 | — |
+| DA-11 | 승인 미리보기 캐시 상한 500 · 하루 만료(R59 Redis 이전 전까지) | 새 시험 | — |
+| DA-12 | 확정 배치 `@SchedulerLock` · 예외 목록에서 제거 · 확정 실행기 스레드 이름 `run-confirm-` · 스케줄러 · 확정 실행기 지표는 Micrometer 기본 계측(`ExecutorServiceMetrics`)으로 — 새 지표 보관 클래스 0(`Ruling 902` ③) | `SchedulerLockConventionTest` + 새 시험 | — |
 | AR-1 ✔ | FCM 차단 장치가 열린 동안 시도 횟수 불변 → 풀린 뒤 발송 | 새 시험 | ✱ 횟수 증가를 되살림 |
 | AR-2 ✔ | 문자 발송 시점에 트랜잭션 비활성 · 발송 예외에도 인증번호 행 커밋 | 새 시험 | 발송을 트랜잭션 안으로 |
 | AR-3 | 알림 문구 22종이 합치기 전과 글자 단위로 같다 · 문구 구현 클래스 22개 제거 | 전후 문구 비교 시험(합치기 전 커밋에서 기대값 생성) · `ls` 계수 | 문구 하나의 글자 변경 |
@@ -2485,13 +2489,13 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 | W-3 ✔ | 대시보드는 WebSocket 연결 중 30초 · 끊기면 7초 조회 | vitest(가짜 시계) | — |
 | W-4 | 빈 학원 id 로는 구독하지 않는다 | vitest | — |
 | W-5 | `UNAUTHORIZED` → 재발급 1회 → 실패면 세션 만료 처리(30초 반복 없음) | vitest | ✱ 분기 제거 |
-| W-6 | 재접속 대기가 [0, 기준값] 범위 | vitest(난수 고정) | — |
+| W-6 | ~~재접속 대기가 [0, 기준값] 범위~~ → **R58 W-5 로 옮김**(`Ruling 902` ③ · 웹은 stompjs 기본 재접속으로 교체) | — | — |
 | W-7 | 화면 값보다 오래된 위치 메시지 무시 | vitest | — |
 | W-8 | (옛 #2) `MonitoringPage.test.tsx` "stop_arrived … 재조회한다" 20회 연속 통과 | 같은 명령 20회 반복 · 각 회차 결과 기록 | — |
 | M-1 ✔ | 위치 전송 성공이 재접속을 부르지 않는다(끊김→복구 전이 때만) · WebSocket 서버만 죽은 60초 동안 연결 시도 횟수가 대기 계산값 이하 | `fake_async` 시험 | ✱ 매 성공마다 `reconnectNow` 로 되돌림 |
 | M-2 ✔ | Android 위치 간격 2초 · 같은 기록 시각 재전송 0 | 설정 시험 + 전송 시험 | 같은 시각 거르기 제거 |
 | M-3 | `POST_NOTIFICATIONS` 선언 · 운행 시작 때 요청 | 매니페스트 시험 · 위젯 시험 | — |
-| M-4 | 학부모 지도 애니메이션이 화면 프레임 기준(Ticker)으로 돌고 `paused` 동안 네이티브 호출 0 | 위젯 시험(앱 상태 전환) | ✱ 16ms 타이머로 되돌림 |
+| M-4 | 학부모 지도 애니메이션이 화면 프레임 기준(Ticker)으로 돌고 `paused` 동안 네이티브 호출 0 · 16ms 타이머 감싸개 `FrameTicker` 삭제(`Ruling 902` ③) | 위젯 시험(앱 상태 전환) | ✱ 16ms 타이머로 되돌림 |
 | M-5 | 학부모 앱 백그라운드 60초 뒤 연결 끊음 · 복귀 때 재연결 + REST 스냅샷 | `fake_async` 시험 | — |
 | M-6 | core: 대기 무작위 폭 [0, 기준값] · `UNAUTHORIZED` 처리 · 하트비트 양쪽 10초 명시 | 단위 시험 | — |
 | M-7 | 학부모 앱이 화면 값보다 오래된 위치 메시지 무시 | 단위 시험 | — |
@@ -2506,28 +2510,103 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 
 **닿는 곳 표** — 문서 갈래가 `API_SPEC §7.2` 를 고치기 전에 `python3 ~/.claude/tools/docgraph/query.py . goal-rows 'API_SPEC §7.2, Ruling 880, Ruling 554, "최대 30초", "30%", "heart-beat", "4403"'` 출력을 여기에 붙이고 마지막 칸을 채운다(Skill `phase-goal-loop` §1.1).
 
-### R58
+### 다음 라운드
 
-서버 2대 대비 · 부하 재측정 계획은 §8.109(`Ruling 898` ② 로 분리 · R57 병합 뒤 시작).
+정리 라운드 **R58** 은 §8.109(`Ruling 901`~`903`) · 서버 2대 대비 · 부하 재측정 **R59** 는 §8.110(`Ruling 898` ② · `900`). 순서 R57 → R58 → R59(`Ruling 902` ②).
 
-## 8.109 ⚖ `R58` — 서버 2대 대비 · 2 vCPU 부하 재측정 (계획 · 2026-10-17 · 번호 900 · 사용자 결정 `898` ② + 조율자 결정)
+## 8.109 ⚖ `R58` — 과설계 정리 · 무중단 토큰 교체 제거 (계획 · 2026-10-17 · 번호 901~903 · 사용자 결정 + 조율자 결정)
 
-사용자 지시(2026-10-17) — *"다음 계획까지 만들어줘"*. **상태: 계획만 · 미착수 · R57 병합 뒤 시작**(R57 의 계정 상태 캐시 · 위치 경로 캐시 · 순서 보장 · 인증 전 소켓 마감 위에 짓는다). 목표는 **2대로 늘릴 수 있는 상태를 만들고 시험으로 확인하는 것**이다. 운영 대수(1대 유지 · 2대)는 배포 때 사용자가 정한다 — 2대는 4GB 기계 1대(`t3.medium`)에 들어가지 않아 기계 사양 · 비용 결정이 따른다.
+사용자 지시(2026-10-17) — *"아키텍처나 구조적으로 규모에 비해 복잡하거나 비대한지 비판적인 검토해줘"* → 읽기 전용 조사 3개(backend `5f083a93` · web `f49944d` · mobile `55c1222`) → 결정 답 *"1. 없애줘, 하지만 추후 고도화 계획에 넣어는 줘 2. 새로운 라운드로 진행 · 계획을 일단 수정해줘 작업하지는 말고"*. **상태: 계획만 · 미착수 · R57 병합 뒤 시작.** 점검 결론 — 본체(Controller · Service · Repository)는 규모에 맞게 얇다(API 123개에 코드 33.8k줄 · 백엔드 죽은 코드 거의 0). 무게는 코드 주변에 있다 — 주석에 쓴 판정 경위 · 파일마다 복사한 시험 도우미 · 설정 파일 문자열 대조 시험 · 두 앱 사이의 복사본. 줄일 수 있는 양 약 21k줄(전체 약 32만 줄의 7% · 그중 주석 약 6.5k · 동작이 바뀌는 정리 약 5k). 아래 수치는 조사 에이전트의 계수 인용이고 `✔` 만 조율자가 다시 셌다 — **각 창이 착수 첫 단계로 다시 세고, 틀린 항목은 보고서 ②에 적고 뺀다.** 원인 — 라운드마다 판정 경위를 주석에 쓰고 사고마다 점검 시험을 더한 작업 방식이 쌓였다(규칙만 있고 검사가 없는 곳은 반대로 안 쓰는 위젯이 쌓였다).
+
+| Ruling | 판정 | 근거 |
+|---|---|---|
+| **901** | **실시간 연결의 무중단 토큰 교체를 없앤다** — `Ruling 680`(만료 60초 전 두 번째 연결 → 구독 이전 → 확인 대기 → 옛 연결 종료)을 뒤집는다. 바뀐 뒤 — 만료 60초 전 재발급 → 지금 연결을 닫고 새 토큰으로 다시 접속(연결은 언제나 1개) → 구독 복원 → 화면 REST 재조회 1회. 재발급 실패 · 서버 `TOKEN_EXPIRED` 는 기존 경로 그대로. 웹 · 앱(core) 둘 다. 무중단 교체는 **`PRD §11.3` F-11(2단계)** 로 옮긴다(2026-10-17 등재) — 재도입 조건: R59 부하 측정의 토큰 만료 재접속 회차(L-6)가 기준을 넘거나, 재접속 공백에 놓친 메시지가 REST 재조회로 메워지지 않는 사례가 확인될 때 | 사용자 결정(2026-10-17 "없애줘, 하지만 추후 고도화 계획에 넣어는 줘"). 웹 약 675줄(`academyRealtimeClient.ts` 교체 부분 약 140 + 시험 2개 535) · 앱 core 약 720줄(`baraeda_websocket_client.dart` 772줄 중 약 190 · `token_renewal.dart` 52 · 시험 480). 잃는 것은 15분마다 1~2초 공백이고, 위치는 원래 2초마다 오며 재접속 뒤 REST 재조회가 메운다. 만료 전에 미리 다시 접속하므로 서버가 만료를 다음 메시지 때 알아채 그 메시지를 `ERROR` 로 바꾸는 일도 생기지 않는다 |
+| **902** | **범위 · 순서**(사용자 결정 + 조율자 결정) — ① 과설계 점검 지적을 새 라운드 R58 로 한다(`903` J 의 제외 목록만 뺀다) ② **순서는 R57 → R58(정리) → R59(서버 2대 · 부하 재측정)** — 서버 2대 라운드를 R58 에서 R59 로 미룬다(조율자 결정 · 뒤집기 가능) ③ R57 과 겹치는 3곳은 R57 계획을 고쳐 같은 일을 두 번 하지 않게 한다 — R57 W-6(웹 재접속 대기 무작위 폭)은 R58 W-5 로 옮김 · R57 DA-12 · RT-11 의 새 지표는 Micrometer 기본 계측과 `MeterRegistry` 직접 사용으로(새 지표 보관 클래스 0) · R57 M-4 가 학부모 지도를 Ticker 로 바꿀 때 `FrameTicker` 를 지움 | ① 사용자 답 "새로운 라운드로 진행". ② 정리를 서버 2대 라운드 앞에 두는 이유 — `Ruling 900` F 가 고치려던 스케줄러 지표 애스펙트를 R58 이 지운다(뒤에 하면 R59 작업을 버린다) · R59 의 2,000명 재접속 측정이 무중단 교체를 뺀 최종 클라이언트 동작을 재야 한다 · R59 가 고칠 방송 게이트웨이 · 리스너가 R58 에서 먼저 줄어든다. ③ 웹 무작위 폭은 R58 에서 지울 대기 계산 클래스를 고치는 일이 된다 |
+| **903** | **정리 방식**(조율자 결정 · 뒤집기 가능) — **A. 주석**: 라운드 · Phase · 날짜 · 경위 서술 문단을 지우고 `Ruling N` · `BR-N` · 기능 ID 표시는 남긴다(`query.py goal-rows` 가 코드 주석에서 판정 번호를 찾는다). 무엇 · 왜 · 지켜야 할 조건 문장은 남긴다. 이번에는 백엔드만 정리하고 웹 · 앱은 그 파일을 고칠 때 정리한다. `CODE_CONVENTIONS §19` · `CONVENTIONS_REACT` · `CONVENTIONS_FLUTTER` 에 "주석에 경위를 쓰지 않는다 — 경위는 커밋 · `IMPLEMENTATION_PLAN`" 을 넣고, 다시 쌓이지 않게 작업 공간 저장소에 측정 스크립트(`.claude/bin/comment-history/` · 기준치를 넘으면 종료 코드 1 · 규칙 사본 검사와 같은 방식 · 웹 · 앱은 현재 값이 기준치)를 둔다. **B. 시험**: 파일마다 복사한 도우미를 공용 시험 지원 코드로 모은다. 설정 파일 안 문자열만 대조하는 시험과 설정값 하나만 확인하는 시험은 지운다(스크립트를 실제로 실행하는 시험과 CI 의 액션 SHA 고정 검사는 남긴다). 경보 규칙 시험은 발화 조건에 계산(`rate` · `increase` · `absent` · `and`/`or`)이 있는 규칙만 남긴다. `CODE_CONVENTIONS` 시험 절에 "실행해서 확인할 수 없는 설정 문자열 대조 시험은 새로 만들지 않는다" 를 넣는다. **C. 권한 어노테이션**: `Can*` 39개를 `@Can(Permissions.X)` 하나로(Spring Security 7 의 어노테이션 템플릿 — 창이 판을 먼저 확인). `@AuthenticatedOnly` · `@PublicEndpoint` · `Permissions` · `RolePermissions` 는 그대로, `ControllerAuthorizationConventionTest` 는 새 어노테이션 기준으로 고친다. **D. 스케줄러 상태 지표**: `SchedulerHealthMetrics` · `ScheduledTaskMetricsAspect` 를 스프링 기본 계측(`tasks.scheduled.execution`)으로 바꾸고 경보 식을 맞춘다. DB 를 읽는 게이지 스케줄러 3개는 남긴다. 계수기 하나만 든 지표 보관 클래스는 `MeterRegistry` 직접 사용으로. 2대 운영 때 ShedLock 이 건너뛴 실행을 기본 계측이 성공으로 세는 문제는 R59 가 판정(`900` F 보정). **E. Swagger 예시 장치**(`SeedExample*` 3개 + 계약 시험)를 지우고 `SeedFixtures` 를 시험 쪽으로 옮긴다. **F. 앱 공통 화면**: 두 앱에 따로 있는 로그인 · 가입 · 승인 대기 · 계정 세션 · 비밀번호 변경 · 학원 선택 · 차단 · 알림 목록 · 라우터 조각과 지도 연결 코드를 새 공용 패키지 `baraeda_app` 으로 모은다(`baraeda_core` 에 화면 · 지도 SDK 의존을 넣지 않기 위해 — 창이 다른 배치가 낫다고 보면 근거와 함께 보고). 앱 저장소 인터페이스는 남긴다. **G. 안 쓰는 위젯**: `baraeda_ui` 에서 앱이 import 하지 않는 위젯을 지우고, 공개 위젯마다 `apps/*/lib` 사용처가 1곳 이상인지 보는 시험을 둔다(`Ruling 405` 의 검사). **H. 웹 재접속**: 직접 만든 대기 계산(`WsBackoffPolicy` · 포기 경로)을 stompjs 기본 재접속(`reconnectDelay` · `reconnectTimeMode: EXPONENTIAL` · `maxReconnectDelay` 30초 · `beforeConnect` 로 시도마다 새 토큰)으로. 무작위 폭은 앱만 둔다. **I. 웹 API 응답 처리**: 서버 형식 타입 · 화면 타입 · 변환 함수 3벌을 `readEnvelope` 의 camelCase 변환 한 번으로 줄이고, 값이 없을 때의 기본값(`?? 0` · id 문자열 변환)만 명시적으로 남긴다. **J. 하지 않는 것**(점검에서 나왔지만 검증에서 뺌): 로컬 DB 초기화 장치(`DevReset*` · `LocalFlywayCleanStrategy` — 스테이징이 `local,staging` 프로파일이고 팀 QA 가 웹 「테스트 데이터 초기화」 단추를 쓴다) · 부하 Grafana 대시보드 `5-load.json`(R59 측정에서 쓴다) · 경보 발송 CloudWatch 전환(판단 보류) · `run_position` 일 파티션(`Ruling 618`) · 교체 축이 있는 포트(`Stub*` · `Logging*` 두 번째 구현이 있다 · `Ruling 898` ④) · 앱 저장소 인터페이스(시험의 가짜 구현 117개가 쓴다) | 점검 수치 — 백엔드 주석 17.9k줄(30%) 중 경위 서술 약 4k · 시험 주석 경위 약 2.5k · 시험 도우미 복사 1,368줄(`토큰` ×64 · `fixtures` ×64 등) · ✔ `Can*` 39개 중 25개가 한 곳에서만 쓰임 · ✔ 웹 `Raw*` 타입 107개 · 변환 함수 66개 · ✔ `baraeda_ui` 의 `KitGallery` · `RunSummaryCard` 앱 사용처 0 · ✔ 앱 미사용 의존성 16개(freezed · json_serializable · riverpod_generator · uuid 등) · ✔ 출시 전 앱의 drift `schemaVersion 5`(개발 데이터는 버려도 된다 원칙 — 스키마 1판) · 두 앱의 같은 이름 시험 16쌍 4,579줄 |
+
+### R58 갈래 — 단계 1(동시) → 병합 → 단계 2(백엔드 주석)
+
+| 단계 · 갈래 | 모델 | 맡는 행 | 주로 닿는 곳(`…/` = `backend/backend/src/main/java/src/backend/`) |
+|---|---|---|---|
+| 문서 (조율자 · 창 띄우기 전) | opus | D-1~4 | `Ruling 680` 닿는 곳 표(아래) · `API_SPEC §7` · `§7.2` · `USER_FLOWS §12.6` · `TECH_DECISIONS §12.1` · `DEPLOYMENT §11.9` · `CODE_CONVENTIONS §19` · 시험 절 · `CONVENTIONS_REACT` · `CONVENTIONS_FLUTTER` · 새 `.claude/bin/comment-history/` |
+| 1 · BE-CODE | sonnet[1m] high | B-1~9 | `…/global/security/authz` · `…/observability` · `…/global/config/SeedExample*` · `…/global/common/SeedFixtures` · `*BroadcastListener` · `…/global/websocket/WebSocketBroadcastGateway` · `*/dto` · `application.yml` resilience4j · `src/test/**`(도우미 · `global/infra` · `global/config` 시험) · `backend/infra/observability/prometheus/alerts*.yml` |
+| 1 · WEB | sonnet[1m] high | W-1~8 | `src/features/*/api` · `src/shared/lib/http` · `src/shared/lib/ws` · 목록 화면 9개 · 저장 처리 28파일 · `src/shared/ui` · `src/**/*.test.tsx` |
+| 1 · MOBILE | sonnet[1m] high | M-1~12 | 새 `packages/baraeda_app` · `apps/*/lib/{core/auth,features/auth,app,core/map}` · `packages/baraeda_ui` · `packages/baraeda_core/lib/websocket` · 보안 저장소 감싸개 · `*_api.dart` · `*_repository_impl.dart` · `pubspec.yaml` 4개 · `offline_queue_database.dart` · 학부모 지도 이동 · `apps/*/test` |
+| 2 · BE-COMMENT (1단계 병합 뒤 새 창) | sonnet[1m] high | C-1~3 | `backend/backend/src` 전체 — **주석만**(코드 줄 변경 0) |
+
+- **겹침** — 1단계 세 창은 저장소가 달라 겹치지 않는다. BE-COMMENT 는 거의 모든 백엔드 파일을 열므로 BE-CODE 병합 뒤에 띄운다
+- **병합 순서** — 문서 → BE-CODE · WEB · MOBILE(서버 API 변화 없음 — 셋 사이 순서 무관) → BE-COMMENT
+- **줄 수는 목표가 아니다** — 기록만 한다(G-5). 줄 수를 맞추려 남길 주석 · 시험을 지우지 않는다
+- **추정 비용 · 시간** — 단계 1 약 $50~70 · 2시간 + 단계 2 약 $25~40 · 1.5시간(백엔드 약 900파일의 주석을 읽어 판단 · 추정)
+
+### R58 목표 표 (초안 — 착수 때 `.claude/r58/` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
+
+✱ = 마지막 커밋 뒤 haiku 서브에이전트가 결함을 심어 그 확인만 실패하는지 보고 되돌린 뒤 빈 트리를 확인한다. 바꾸기 전 수(사용처 · 정의 수)는 창이 착수 때 세어 보고서 ③에 적는다.
+
+| # | 완료 조건 | 확인 명령 · 시험이 검사하는 조건 | 심을 결함 |
+|---|---|---|---|
+| D-1 ✔ | `PRD §11.3` 에 F-11(무중단 토큰 교체 · 2단계 · 재도입 조건) | `grep -c 'F-11' docs/planning/PRD.md` ≥ 1 — 2026-10-17 등재 | — |
+| D-2 | `Ruling 680` 닿는 곳 표의 마지막 칸이 전부 `고침` 또는 `안 바뀜 <이유>` · 사양 4종에 "두 번째 연결로 갈아탄다" 서술 0 | 아래 닿는 곳 표 · `grep` | — |
+| D-3 | 주석 경위 금지 · 설정 문자열 대조 시험 금지 문장이 규칙 문서 3개에 있다 | `grep -c` | — |
+| D-4 | 주석 경위 측정 스크립트 — `--selftest` 통과 · 백엔드 기준치 0(C-1 뒤) · 웹 · 앱 기준치 = 현재 값 | 스크립트 실행 | 경위 문단 하나를 넣은 파일로 `--check` → 종료 코드 1 |
+| B-1 ✔ | `Can*` 어노테이션 파일 0 · `@Can(` 사용처 수 = 바꾸기 전 `Can*` 사용처 수 · 인가 규약 · 학원 격리 HTTP 전수 · `RolePermissionsTest` 통과 | `ls` · `grep -c` · 해당 시험 | ✱ 한 컨트롤러의 `@Can` 권한을 다른 권한으로 → 전수 시험 실패 |
+| B-2 | `SchedulerHealthMetrics` · `ScheduledTaskMetricsAspect` 0 · Prometheus 출력에 스케줄러 12개의 `tasks_scheduled_execution` · 경보 식 교체 · promtool 통과 | 새 시험(지표 이름 · 태그) · `promtool test rules` | ✱ 경보 식을 옛 지표 이름으로 되돌림 → promtool 실패 |
+| B-3 | `SeedExample*` 0 · `SeedFixtures` 는 `src/test` · OpenAPI 문서 생성 시험 통과 | `ls` · 기존 시험 | — |
+| B-4 | 복사 도우미(`토큰` · `fixtures` · `cleanUpMarkedRows` · `본문` · `등록한다` · `회차를_만든다` · `관계자_토큰` · `메인관리자_토큰` · `now`) 정의가 공용 지원 코드 한 곳에만 | `grep -c` 정의 수 | — |
+| B-5 | 설정 문자열 대조 시험(`OpsSettingsGuardTest` · `RuntimeImageParityTest` · `StagingProxyConfigTest` · `WorkflowGuardTest` · `DeploymentConfigGuardTest` 의 대조 부분)과 설정값 하나만 보는 시험 12개 제거 · 스크립트를 실행하는 시험(`CertbotRenewLoopGuardTest` · 백업 · `deploy-gate`)과 CI 액션 SHA 고정 검사는 남음 | 지운 목록 · 남긴 목록을 보고서 ③에 · 남긴 시험 통과 | — |
+| B-6 | `alerts.test.yml` 이 계산이 든 경보 규칙만 시험 · promtool 통과 | `promtool test rules` | — |
+| B-7 | `*BroadcastListener` 안 `try`/`catch` 0 · 목적지별 실패 처리는 게이트웨이 한 곳 · R57 RT-9 시험 통과 | `grep -c` · 시험 | ✱ 게이트웨이 예외 처리를 없앰 → RT-9 시험 실패 |
+| B-8 | 등록 · 수정 DTO 쌍 3개(`Bus` · `Manager` · `Route`) → 하나씩 · 중복 중첩 레코드(`Contact` · `RaisedBy` · `Position` · `AckedBy`) 하나씩 · 페이지 요청 하나 · 서킷 설정 `configs.default` | `grep` · 기존 컨트롤러 시험 · 웹 실서버 계약 시험 | — |
+| B-9 | 계수기 하나만 든 지표 보관 클래스 0 | `grep` | — |
+| C-1 | 백엔드 제품 코드의 경위 문단 0 · `Ruling N` 표시 수가 바꾸기 전과 같다 | D-4 스크립트 · `grep -c 'Ruling [0-9]'` 전후 | ✱ 경위 문단 하나를 되살림 → 스크립트 종료 코드 1 |
+| C-2 | 백엔드 시험 코드도 같은 조건 | 같은 스크립트 | — |
+| C-3 | 주석 아닌 줄 변경 0 · 클래스 · 공개 메서드 한 줄 설명(`CODE_CONVENTIONS §19`) 누락 0 · 컴파일 · 전체 시험 통과 | 창이 만든 비교 스크립트 출력 · `./gradlew test --rerun` 결과 XML | — |
+| W-1 ✔ | `Raw*` 타입 107 · `to*` 변환 66 → 기본값을 명시하는 것만 남김(남은 수 보고) · 실서버 계약 시험 통과 | `grep -c` · `scripts/test-contract.sh` | ✱ 배열 안 객체의 camelCase 변환을 끔 → 계약 시험 실패 |
+| W-2 | 목록 화면 9개(버스 · 매니저 · 학생 · 노선 · 스케줄 · 비상 · 보고 · 변경 승인 등)가 `usePagedList` 사용 | `grep` · vitest | — |
+| W-3 | `useAction` 하나 · `instanceof ApiError ?` 61곳 → 5곳 이하 | `grep -c` · vitest | — |
+| W-4 ✔ | 안 쓰는 코드 제거 — `TabBar` · `StatCard` · 안 쓰는 `Styled*` 16 · 화면이 안 읽는 WS 메시지 해석 4개 · 웹이 부르지 않는 `registerDevice` · `unregisterDevice` · `recoverAccount` | 지운 이름마다 `grep -c` = 0 · `tsc` · vitest | — |
+| W-5 | `WsBackoffPolicy` 0 · stompjs 기본 재접속 · 시도마다 새 토큰 · 포기(`gaveUp`) 경로 0 (R57 W-6 을 옮겨 옴) | `grep` · vitest | ✱ `beforeConnect` 의 토큰 읽기를 첫 토큰 고정으로 → 시험 실패 |
+| W-6 | (`Ruling 901`) 두 번째 연결 0 · 만료 60초 전 재발급 → 연결 1개로 다시 접속 → 구독 복원 → REST 재조회 1회 · 실서버 시험도 같은 흐름 | 새 vitest · `wsTokenRenewalRealBackend.test.ts` 고쳐 씀 | ✱ 재접속 뒤 REST 재조회를 끔 → 시험 실패 |
+| W-7 | `envelope()` 정의 5 → 1 · `jsonResponse` 2 → 1 · 응답 · 메시지 생성기를 `shared/testing` 으로 | `grep -c` | — |
+| W-8 | `AbortSignal.timeout` · 반려 사유 대화상자 하나를 관리자 · 관계자가 공유 · `useLiveRefresh` 로 3개 화면의 재조회 분기 공유 · 한 곳만 쓰는 공용 감싸개 3개(`ConnectionBand` · `Feed` · `OptionList`) 인라인 | `grep` · vitest | — |
+| M-1 | 새 `packages/baraeda_app` · 두 앱에 같은 내용으로 있던 인증 · 앱 틀 파일 0(패키지 이름을 맞춘 뒤 비교) · 두 앱 시험 통과 | 창이 만든 비교 명령 · `scripts/verify.sh` | — |
+| M-2 ✔ | `baraeda_ui` 에서 앱 사용처 0인 위젯 제거 · 새 시험 — 공개 위젯마다 `apps/*/lib` 사용처 1곳 이상 | 새 시험 | ✱ 안 쓰는 위젯 하나를 공개 → 시험 실패 |
+| M-3 | (`Ruling 901`) core 의 두 번째 연결 0 · W-6 과 같은 흐름 | 새 시험 · `baraeda_websocket_client_renewal_test.dart` 고쳐 씀 | ✱ 재접속 뒤 REST 재조회 신호를 끔 → 시험 실패 |
+| M-4 | `FixedClock` 계열 정의 31 → 1 · `NeverResolvingTokenStorage` 23 → 1(`baraeda_core` 의 시험 지원 export) | `grep -c` | — |
+| M-5 | 지도 연결 코드가 `baraeda_app` 에 1벌 · "SDK 타입은 이 파일 밖에 없음" 경계 시험 유지 | `grep` · 시험 | — |
+| M-6 | 보안 저장소 감싸개 5개 이상 → core 의 키-값 도우미 1개 + 얇은 접근자 | `grep` · 시험 | — |
+| M-7 | `guardDio(` 호출 0 · 오류 변환은 Dio 인터셉터 한 곳 · 저장소 인터페이스는 유지 | `grep -c` · 시험 | — |
+| M-8 ✔ | 미사용 의존성 16개 제거 · core `Failure` 를 sealed class 로 · core 의 freezed · build_runner 제거 · analyze 0 | `pubspec.yaml` grep · `scripts/verify.sh` | — |
+| M-9 ✔ | drift `schemaVersion 1` · `onUpgrade` 분기 0 | `grep` · 오프라인 대기열 시험 | — |
+| M-10 | 앱이 해석하지 않는 WS 메시지 타입 제거 | `grep -c` = 0 · analyze | — |
+| M-11 | 학부모 지도 이동 클래스(R57 M-4 뒤 남은 것)를 컨트롤러 하나로 · "앞 도착 간격만큼 이동 · 10초 넘으면 순간 이동" 규칙 시험 유지 | 시험 | — |
+| M-12 | 실서버 시험 대상 도우미 3벌 → 1 | `grep` | — |
+| G-1 | backend 병합본 전체 단독 1회 — 실패 0 · 건너뜀 0 | R57 G-1 과 같은 방법 | — |
+| G-2 | web `scripts/verify.sh` + 실서버 계약(이미지 새로 빌드 · 시드 재생성 확인) 통과 | `scripts/test-contract.sh` | — |
+| G-3 | mobile `scripts/verify.sh` + 실서버 계약 건너뜀 0 | 같은 방식 | — |
+| G-4 | 깨진 참조 0 · 규칙 사본 검사 · 주석 경위 검사 `--check` 통과 · 닿는 곳 표 마지막 칸 채움 | `query.py` · `.claude/bin/` 스크립트 | — |
+| G-5 | 저장소별 제품 · 시험 줄 수 전후 기록(목표치 아님) | `wc -l` | — |
+
+**닿는 곳 표** — 문서 갈래가 고치기 전에 `python3 ~/.claude/tools/docgraph/query.py . goal-rows 'Ruling 680, "두 번째 연결", "무중단", "갈아탄", "갈아타"'` 출력을 붙이고 마지막 칸을 채운다. 2026-10-17 조율자 실행 결과 28행 — 사양 문서 · 앱 · 웹 코드 · 시험 외에 백엔드 질의 서비스 3곳 · 알림 시험 1곳의 "두 번째 연결"(DB 연결 이야기로 보임) · 매니저 앱 `manager_shell.dart` 와 그 시험 · `USER_FLOWS` UF-D-01 의 "갈아타"(회차 전환 이야기로 보임)는 확인 뒤 `안 바뀜` 후보다.
+
+## 8.110 ⚖ `R59` — 서버 2대 대비 · 2 vCPU 부하 재측정 (계획 · 2026-10-17 · 번호 900 · 사용자 결정 `898` ② + 조율자 결정)
+
+사용자 지시(2026-10-17) — *"다음 계획까지 만들어줘"*. **상태: 계획만 · 미착수 · R58 병합 뒤 시작**(R57 의 계정 상태 캐시 · 위치 경로 캐시 · 순서 보장 · 인증 전 소켓 마감 위에 짓고, R58 정리 뒤의 코드로 잰다). 이 라운드는 처음 R58 로 잡았다가 정리 라운드가 앞에 들어와 R59 가 됐다(`Ruling 902` ②). 목표는 **2대로 늘릴 수 있는 상태를 만들고 시험으로 확인하는 것**이다. 운영 대수(1대 유지 · 2대)는 배포 때 사용자가 정한다 — 2대는 4GB 기계 1대(`t3.medium`)에 들어가지 않아 기계 사양 · 비용 결정이 따른다.
 
 조율자 확인(2026-10-17 · backend `5f083a93`) — `/user` 접두사는 설정만 있고 `convertAndSendToUser` 호출 0건 · `/queue` 목적지를 쓰는 서버 발행 0건(사양 `API_SPEC` 의 `/queue` · `/user` 언급은 클라이언트 `SEND` 거부 문장 1줄) · nginx `upstream backend_pool` 은 서버 1개 · 운영 compose 에 `replicas` 금지 주석 · Postgres `max_connections` 미설정(기본 100 · 2대 × 커넥션 풀 20 = 40) · 경보 규칙은 `alerts.test.yml` 로 promtool 시험이 있다.
 
 | Ruling | 판정 | 근거 |
 |---|---|---|
-| **900** | **R58 설계 선택 묶음**(조율자 결정 · 뒤집기 가능) — **A. 메시지 중계 = Redis Pub/Sub**(RabbitMQ STOMP 릴레이 아님): 이벤트 1건 = Redis 메시지 1건(그 이벤트의 목적지 전부를 담음) → 모든 인스턴스가 받아 **자기에게 붙은 구독자에게만** 보낸다. 자기가 발행한 것도 Redis 를 거쳐 받는다(경로 하나). "구독자가 없으면 위치 건너뜀" · 송신 큐 포화 때 위치 버림은 받는 인스턴스에서 그대로 판정한다. **B. Redis 장애 때**: 발행이 실패하면 그 인스턴스의 구독자에게는 직접 보내고(1대 운영은 영향 없음) 실패 지표 +1 · 경보. 2대 운영에서 Redis 가 죽은 동안의 인스턴스 간 전달 손실은 받아들인다 — 클라이언트는 재접속 · 화면 복귀 때 REST 로 다시 받는다(`API_SPEC §7.2`). **C. 미리보기 캐시 2개 → Redis**(JSON · 승인 미리보기는 결정 · 자동 거절 때 지우고 최대 1일 만료 · 경유 지점 미리보기는 그 회차 운행일이 끝나면 만료 · `WaypointPreviewCache` 에 포트를 새로 둔다 — 교체 축이 메모리/Redis 라 `CODE_CONVENTIONS` §1 기준에 맞음). **D. 캐시 비움 신호 전파**: R57 의 계정 상태 캐시(`899` A) · 위치 경로 캐시(`899` K)의 비움을 Redis 채널로 모든 인스턴스에 보낸다 · 신호를 놓쳐도 5초 만료가 상한. **E. 감사 기록 묶기**: 행위자 · 학생별 10분 창을 Redis `SET NX EX 600` 으로 판정(스키마 변경 없음). **F. 스케줄 지표**: 락을 못 얻어 건너뛴 실행은 `skipped` 로 따로 세고, "마지막 성공이 오래됨" 경보는 인스턴스 중 최댓값으로 판정(락을 가진 쪽만 성공을 남기므로). **G. 안 쓰는 접두사 제거**: `/user` 접두사 · `/queue` 브로커 접두사를 지운다(클라이언트 `SEND` 거부 동작은 그대로). **H. 종료 처리**: 인스턴스가 종료 신호를 받으면 열린 WebSocket 세션을 `1012`(서비스 재시작)로 닫고 처리 중 요청을 마친 뒤 내려간다 → 클라이언트는 기존 재접속 규칙으로 다른 인스턴스에 붙는다(클라이언트 코드 변경 없음). **I. 배포**: 2대일 때 `deploy.sh` 가 한 대씩 재기동하고 건강 확인 뒤 다음 대로 · nginx 는 재기동하지 않는다 · upstream 에 `max_fails` · `fail_timeout`. **J. JVM 힙 비율 · 직접 메모리 상한**: 부하 재측정 결과로 정하고 그 수치를 판정에 적는다(측정 전에 값을 바꾸지 않는다) | `ARCHITECTURE §9.5` 가 이미 "외부 브로커(Redis Pub/Sub 등)" 를 지목 · Redis 는 이미 운영 구성에 있어 컨테이너가 늘지 않는다(RabbitMQ 는 4GB 기계에 메모리 수백 MB 를 더 쓰고, 위치 버림 판정이 기대는 단순 브로커의 구독 목록을 잃는다). 인스턴스마다 자기 구독자에게만 보내므로 팬아웃 일이 대수만큼 나뉜다. B — 지금도 Redis 장애 때 위치 좌표는 DB 로 대체하는 방침(`TECH_DECISIONS §14.2`)과 같은 방향. H · I — 지금은 배포마다 백엔드와 nginx 를 함께 재기동해 모든 접속이 한꺼번에 끊긴다(점검 지적) |
+| **900** | **R59 설계 선택 묶음**(조율자 결정 · 뒤집기 가능) — **A. 메시지 중계 = Redis Pub/Sub**(RabbitMQ STOMP 릴레이 아님): 이벤트 1건 = Redis 메시지 1건(그 이벤트의 목적지 전부를 담음) → 모든 인스턴스가 받아 **자기에게 붙은 구독자에게만** 보낸다. 자기가 발행한 것도 Redis 를 거쳐 받는다(경로 하나). "구독자가 없으면 위치 건너뜀" · 송신 큐 포화 때 위치 버림은 받는 인스턴스에서 그대로 판정한다. **B. Redis 장애 때**: 발행이 실패하면 그 인스턴스의 구독자에게는 직접 보내고(1대 운영은 영향 없음) 실패 지표 +1 · 경보. 2대 운영에서 Redis 가 죽은 동안의 인스턴스 간 전달 손실은 받아들인다 — 클라이언트는 재접속 · 화면 복귀 때 REST 로 다시 받는다(`API_SPEC §7.2`). **C. 미리보기 캐시 2개 → Redis**(JSON · 승인 미리보기는 결정 · 자동 거절 때 지우고 최대 1일 만료 · 경유 지점 미리보기는 그 회차 운행일이 끝나면 만료 · `WaypointPreviewCache` 에 포트를 새로 둔다 — 교체 축이 메모리/Redis 라 `CODE_CONVENTIONS` §1 기준에 맞음). **D. 캐시 비움 신호 전파**: R57 의 계정 상태 캐시(`899` A) · 위치 경로 캐시(`899` K)의 비움을 Redis 채널로 모든 인스턴스에 보낸다 · 신호를 놓쳐도 5초 만료가 상한. **E. 감사 기록 묶기**: 행위자 · 학생별 10분 창을 Redis `SET NX EX 600` 으로 판정(스키마 변경 없음). **F. 스케줄 지표**: 락을 못 얻어 건너뛴 실행은 `skipped` 로 따로 세고, "마지막 성공이 오래됨" 경보는 인스턴스 중 최댓값으로 판정(락을 가진 쪽만 성공을 남기므로) — **보정(2026-10-17)**: R58 이 직접 만든 스케줄러 지표를 스프링 기본 계측으로 바꾸므로(`Ruling 903` D) 이 항목은 그 계측 위에서 다시 정한다(기본 계측은 ShedLock 이 건너뛴 실행도 성공으로 센다). **G. 안 쓰는 접두사 제거**: `/user` 접두사 · `/queue` 브로커 접두사를 지운다(클라이언트 `SEND` 거부 동작은 그대로). **H. 종료 처리**: 인스턴스가 종료 신호를 받으면 열린 WebSocket 세션을 `1012`(서비스 재시작)로 닫고 처리 중 요청을 마친 뒤 내려간다 → 클라이언트는 기존 재접속 규칙으로 다른 인스턴스에 붙는다(클라이언트 코드 변경 없음). **I. 배포**: 2대일 때 `deploy.sh` 가 한 대씩 재기동하고 건강 확인 뒤 다음 대로 · nginx 는 재기동하지 않는다 · upstream 에 `max_fails` · `fail_timeout`. **J. JVM 힙 비율 · 직접 메모리 상한**: 부하 재측정 결과로 정하고 그 수치를 판정에 적는다(측정 전에 값을 바꾸지 않는다) | `ARCHITECTURE §9.5` 가 이미 "외부 브로커(Redis Pub/Sub 등)" 를 지목 · Redis 는 이미 운영 구성에 있어 컨테이너가 늘지 않는다(RabbitMQ 는 4GB 기계에 메모리 수백 MB 를 더 쓰고, 위치 버림 판정이 기대는 단순 브로커의 구독 목록을 잃는다). 인스턴스마다 자기 구독자에게만 보내므로 팬아웃 일이 대수만큼 나뉜다. B — 지금도 Redis 장애 때 위치 좌표는 DB 로 대체하는 방침(`TECH_DECISIONS §14.2`)과 같은 방향. H · I — 지금은 배포마다 백엔드와 nginx 를 함께 재기동해 모든 접속이 한꺼번에 끊긴다(점검 지적) |
 
-### R58 갈래 — 단계 1(동시) → 병합 → 단계 2(측정)
+### R59 갈래 — 단계 1(동시) → 병합 → 단계 2(측정)
 
 | 단계 · 갈래 | 모델 | 맡는 행 | 주로 닿는 곳(`…/` = `backend/backend/src/main/java/src/backend/`) |
 |---|---|---|---|
-| 문서 (조율자 · 단계 1 전) | opus | — | `ARCHITECTURE §9.5`(증설 막는 것 표 → 해소 표) · `TECH_DECISIONS` 새 절(Redis Pub/Sub 채택 · RabbitMQ 릴레이 불채택 이유) · `API_SPEC §7.2`(종료 코드 `1012` · `/queue` · `/user` 문장) · `docs/backend/infra/DEPLOYMENT.md`(2대 절차 · 한 대씩 배포) · `LOAD_TESTING` 새 절(R58 회차) |
-| 1 · BE-SCALE | sonnet[1m] high | S-1~11 | `…/global/websocket/WebSocketBroadcastGateway` + 새 Redis 중계 클래스 · `…/global/config/WebSocketConfig` · `…/request/preview/impl` · `…/routing/command/WaypointPreviewCache` · R57 캐시 2개의 비움 · `…/audit/service/AuditRecorder` · `…/observability/aspect/ScheduledTaskMetricsAspect` · `backend/infra/observability/prometheus/alerts*.yml` |
+| 문서 (조율자 · 단계 1 전) | opus | — | `ARCHITECTURE §9.5`(증설 막는 것 표 → 해소 표) · `TECH_DECISIONS` 새 절(Redis Pub/Sub 채택 · RabbitMQ 릴레이 불채택 이유) · `API_SPEC §7.2`(종료 코드 `1012` · `/queue` · `/user` 문장) · `docs/backend/infra/DEPLOYMENT.md`(2대 절차 · 한 대씩 배포) · `LOAD_TESTING` 새 절(R59 회차) |
+| 1 · BE-SCALE | sonnet[1m] high | S-1~11 | `…/global/websocket/WebSocketBroadcastGateway` + 새 Redis 중계 클래스 · `…/global/config/WebSocketConfig` · `…/request/preview/impl` · `…/routing/command/WaypointPreviewCache` · R57 캐시 2개의 비움 · `…/audit/service/AuditRecorder` · 스케줄 지표(R58 뒤의 스프링 기본 계측) · `backend/infra/observability/prometheus/alerts*.yml` |
 | 1 · INFRA | sonnet[1m] high | I-1~5 | 새 `docker-compose.scale.yml`(백엔드 2대 · 각 `cpus: 2` · `mem_limit: 3072m`) · `backend/infra/proxy/nginx.*.conf` upstream · `backend/infra/scripts/deploy.sh` · Prometheus 수집 대상 · Grafana 합계 패널 · 인스턴스 간 전달 확인 스크립트(새) · `backend/backend/load/` 회차 스크립트 |
-| 2 · LOAD (병합 뒤 새 창) | sonnet[1m] high | L-1~5 | `backend/backend/load/` 실행 · 측정 결과 `backend/backend/report/2026-10-XX-R58-부하.md`(J-1 판정이 읽는 입력 · 지난 부하 측정 `2026-10-01-부하-재측정.md` 와 같은 위치 · `LOAD_TESTING` 새 절이 가리킴) |
+| 2 · LOAD (병합 뒤 새 창) | sonnet[1m] high | L-1~5 | `backend/backend/load/` 실행 · 측정 결과 `backend/backend/report/2026-10-XX-R59-부하.md`(J-1 판정이 읽는 입력 · 지난 부하 측정 `2026-10-01-부하-재측정.md` 와 같은 위치 · `LOAD_TESTING` 새 절이 가리킴) |
 | 2 · 조율자 | opus | J-1 | 측정 수치로 JVM 설정 판정 · 문서 반영 |
 
 - **INFRA 의 인스턴스 간 전달 확인(I-1)은 단계 1 에서 RED 를 먼저 본다** — BE-SCALE 병합 전 코드로 2대를 띄우면 인스턴스 A 에 보낸 위치가 B 의 구독자에게 안 가야 한다. 병합 뒤 GREEN 이 BE-SCALE 의 끝단 확인이다
@@ -2535,7 +2614,7 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 - **자원** — 부하 회차는 `load` 프로파일의 지도 가짜 응답만 쓴다(네이버 실호출 0). Docker 를 쓰는 갈래는 둘 다 컨테이너 이름에 갈래 이름을 붙이고, 다른 갈래의 컨테이너 · Redis 를 재기동하지 않는다. `-v` 금지
 - **추정 비용 · 시간** — 단계 1 약 $40~60 · 2시간 + 단계 2 약 $20~40 · 2~3시간(측정 회차가 길다 · 추정)
 
-### R58 목표 표 (초안 — 착수 때 `.claude/r58/` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
+### R59 목표 표 (초안 — 착수 때 `.claude/r59/` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
 
 ✱ = 마지막 커밋 뒤 haiku 서브에이전트가 결함을 심어 그 확인만 실패하는지 보고 되돌린 뒤 빈 트리 확인.
 
@@ -2549,7 +2628,7 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 | S-6 | A 에서 계정 차단 → B 의 다음 요청 거절(1초 안) · 신호를 놓쳐도 5초 뒤 거절 | 새 시험(비움 신호 수신 · 만료 상한) | ✱ 비움 신호 발행을 아무것도 안 하게 |
 | S-7 | A 에서 결석 처리 → B 의 위치 방송이 그 학생 채널로 0건 | 새 시험 | — |
 | S-8 | 같은 행위자가 같은 학생을 A · B 에서 10분 안에 조회 → 감사 행 1개 | 새 시험 | ✱ `SET NX` 를 무조건 성공으로 |
-| S-9 | 락을 놓친 실행은 `skipped` 로 세고, 오래된 성공 경보가 인스턴스 최댓값으로 판정 | 새 시험 + `promtool test rules alerts.test.yml` | — |
+| S-9 | 락을 놓친 실행은 `skipped` 로 세고, 오래된 성공 경보가 인스턴스 최댓값으로 판정(F 보정 — R58 뒤의 계측 기준으로 다시 씀) | 새 시험 + `promtool test rules alerts.test.yml` | — |
 | S-10 | `/user` · `/queue` 접두사 제거 · 클라이언트의 `/queue` · `/user` `SEND` 는 여전히 `FORBIDDEN` | 기존 STOMP 인가 시험 + 설정 시험 | — |
 | S-11 | 종료 신호 → 열린 세션이 `1012` 로 닫히고 진행 중 요청은 완료 | 새 통합 시험 | — |
 | I-1 | 2대 + nginx 구성에서 A 에 보낸 위치 · 비상을 B 의 구독자가 받는다(단계 1 에서 병합 전 코드로 RED 확인 → 병합 뒤 GREEN) | 새 확인 스크립트 — 받은 건수 = 보낸 건수 | — |
@@ -2562,6 +2641,7 @@ R50~R53 을 되짚은 비판 평가(2026-10-12 재조사 · 반복 수정 원인
 | L-3 | 서로 다른 학생 목적지 3,000개 이상에서 위치 p95 가 `Ruling 484` 기준 이내(R57 구독 캐시 상한 확인) | 새 k6 시나리오 | — |
 | L-4 | 2대 + nginx 에서 L-1 과 같은 기준 통과 · 인스턴스 간 전달 손실 0(받은 건수 = 보낸 건수) | k6 + I-1 스크립트 | — |
 | L-5 | 부하 중 한 대씩 배포 — 클라이언트별 메시지 공백 최대값 기록 · REST `5xx` 는 재기동 순간 진행 중 요청만 | k6 + `deploy.sh` | — |
+| L-6 | 토큰 만료 재접속(`Ruling 901` — 세션 2,000 · 15분 주기 = 초당 약 2.2회 재접속 + 화면 REST 재조회)이 L-1 기준 안 · 결과를 PRD §11.3 F-11 재도입 조건 판정에 적는다 | 새 k6 시나리오(토큰 수명을 줄여 주기를 압축해도 된다) | — |
 | J-1 | JVM 힙 비율 · 직접 메모리 상한을 L-1 의 RSS · 힙 수치로 정해 판정에 기록 · compose 반영 | 판정 문장의 수치가 보고서 수치와 같음 | — |
 | G-1 | backend 병합본 전체 단독 1회 실패 0 · 건너뜀 0 · web · mobile 실서버 계약(이미지 새로 빌드) 통과 | R57 G-1~3 과 같은 방법 | — |
 | G-2 | 깨진 참조 0 · 규칙 사본 검사 통과 · 닿는 곳 표 마지막 칸 채움 | `query.py` · `.claude/bin/rule-copies/` | — |
