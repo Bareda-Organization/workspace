@@ -98,10 +98,10 @@
 
 1. **전 API 에 Swagger 적용**
 2. **Mock 데이터로 Swagger UI 에서 바로 테스트 가능**
-3. **Swagger 예시 데이터와 Mock 데이터가 일치**
+3. **Swagger 문서와 Mock 데이터가 어긋나지 않음** — 예시값 자동 대조 장치는 `Ruling 903` E 로 없앴다
 4. **개발 중 서버 재시작마다 Mock 데이터 초기화**
 
-셋째가 가장 어려운 조건. 손으로 적은 `@Schema(example = "...")` 는 시드가 바뀌어도 컴파일을 통과하고 실행 중에도 오류가 부재해 어긋남이 드러나지 않음. "일치한다"를 선언이 아니라 **어긋나면 실패하는 테스트**로 만들어야 성립.
+셋째는 예시값을 일일이 대조하는 장치(`SeedExample*` · 예시 계약 시험)로 지켰으나 R58(`Ruling 903` E)에서 걷어냈다 — 이제 시드가 바뀌어도 어긋남을 시험이 잡지 않으므로 시드를 고치는 PR 이 `OpenApiConfig` 설명 표와 `@Schema(example=…)` 리터럴을 직접 함께 고친다.
 
 ### 3.2 초기화 — `local` 프로파일 기동 시 Flyway `clean` → `migrate`
 
@@ -115,7 +115,7 @@
 
 **`prod`·`demo` 에서 절대 불가하도록 하는 안전장치 5겹**
 
-⚠ **5겹이 전부 대등하지 않음.** 2026-08-25 조사 결과 실제 성격은 **런타임 인터록 4겹 + 빌드 시점 회귀 게이트 1개**. ①(`@Profile("local")`)과 ②(다중 프로파일 재확인)는 순차 보완 관계이고, ③(접속 URL 검사)과 ④(`clean-disabled`, Flyway 엔진 레벨)는 서로 다른 축이라 진짜 독립. **⑤(`DeploymentConfigGuardTest`)는 런타임에 아무것도 막지 못하며 CI 가 이 테스트를 실제로 실행할 때만 유효** — CI 를 건너뛴 배포에서는 ⑤가 부재한 것과 같음. 겹 수를 세어 안심하지 않는다.
+⚠ **5겹이 전부 대등하지 않음.** 2026-08-25 조사 결과 실제 성격은 **런타임 인터록 4겹 + 빌드 시점 회귀 게이트 1개**. ①(`@Profile("local")`)과 ②(다중 프로파일 재확인)는 순차 보완 관계이고, ③(접속 URL 검사)과 ④(`clean-disabled`, Flyway 엔진 레벨)는 서로 다른 축이라 진짜 독립. **⑤(`FlywayCleanStrategyGuardTest`)는 런타임에 아무것도 막지 못하며 CI 가 이 테스트를 실제로 실행할 때만 유효** — CI 를 건너뛴 배포에서는 ⑤가 부재한 것과 같음. 겹 수를 세어 안심하지 않는다.
 
 운영 DB 를 지우는 사고는 되돌리기 불가. 한 겹으로 두지 않는다.
 
@@ -125,31 +125,19 @@
 | 2 | 빈 내부에서 `Environment` 활성 프로파일을 재확인해 `prod`·`demo` 가 섞이면 `IllegalStateException` 으로 **기동 실패** | `--spring.profiles.active=local,prod` 처럼 병기한 실행 |
 | 3 | 데이터소스 URL 이 `localhost`·`127.0.0.1` 이 아니면 `clean` 거부 | `local` 프로파일로 원격 DB 를 가리킨 사고 |
 | 4 | 공통·`prod`·`demo` 블록에 `spring.flyway.clean-disabled: true` 명시 | 1~3 이 모두 뚫려도 Flyway 자체가 거부 |
-| 5 | `DeploymentConfigGuardTest` 에 케이스 추가 — `prod`·`demo` 프로파일로 컨텍스트를 띄워 `clean-disabled=true` 이고 전략 빈이 부재함을 검증 | 설정 회귀. 사람의 기억에 의존하지 않음 |
+| 5 | `FlywayCleanStrategyGuardTest` — `prod`·`demo` 프로파일 컨텍스트에 전략 빈이 부재하고 원격 데이터소스는 `clean` 없이 거절됨을 검증. 4번의 `clean-disabled` 값은 설정 문자열이라 대조 시험 없음(`Ruling 903` B) — 바꿀 때 직접 확인 | 설정 회귀. 사람의 기억에 의존하지 않음 |
 
 **부작용 하나** — devtools 자동 재시작도 컨텍스트를 다시 띄우므로 `clean` 이 함께 돈다. 클래스를 한 줄 고칠 때마다 데이터가 초기화됨. 이는 확정 사항 4번이 요구한 동작 그대로이며, Swagger 로 만든 데이터를 유지하려면 devtools 를 끄거나 `local` 이 아닌 별도 프로파일로 띄우는 선택지를 남긴다.
 
-### 3.3 Swagger 예시 ↔ 시드 일치 보장
+### 3.3 Swagger 문서와 시드
 
-**단일 원천 — `SeedFixtures`**
+**Swagger 응답 예시는 필수가 아니다 — 문서 생성 시험은 엔드포인트 등록 · 태그 · 오류 표만 본다.** 예시값을 소스에서 모아 대조하던 장치(`SeedExample*` · `SwaggerExampleSeedContractTest`)는 R58(`Ruling 903` E)에서 지웠다.
 
-시드가 적재하는 식별자·코드·아이디를 `SeedFixtures` 한 클래스의 `public static final String` 상수로 둔다. 애너테이션 값은 **컴파일 타임 상수식만** 허용하므로 `static final String` 리터럴이어야 하고, 메서드 호출이나 연산 결과는 사용 불가.
+**시드 식별자 상수 — `SeedFixtures`** (`src/test/java/src/backend/global/common`) — 시드가 적재하는 식별자·코드·아이디를 `public static final String` 상수로 두고, `SeedFixturesContractTest` 가 시드가 적재된 DB 를 조회해 모든 상수가 실재하는 레코드를 가리키는지 본다. 시드 SQL 을 고치고 상수를 안 고치면 이 시험이 실패한다. 제품 코드의 `OpenApiConfig` 설명 표와 `LoginRequestPayload` 의 `@Schema(example=…)` 는 리터럴이라 `V2__seed_data.sql` 을 고칠 때 함께 고친다.
 
-⚠ **시각 값은 상수 대상 밖.** 시드의 출발 시각은 `now()` 기준 상대값이라(§3.4) 기동마다 달라짐. Swagger 의 시각 예시는 **형식만 보여주는 값**으로 두고 대조 테스트에서 제외한다. 이 경계를 명시하지 않으면 대조 테스트가 매번 실패.
+⚠ **시각 값은 상수 대상 밖.** 시드의 출발 시각은 `now()` 기준 상대값이라(§3.4) 기동마다 달라짐. Swagger 의 시각 예시는 **형식만 보여주는 값**으로 둔다.
 
-**세 겹의 일치 강제**
-
-| 겹 | 방식 | 어긋나면 |
-|---|---|---|
-| **① 값 실재 대조** | `SeedFixturesContractTest` — 시드가 적재된 DB 를 조회해 `SeedFixtures` 의 모든 상수가 실재하는 레코드를 가리키는지 검증 | 시드 SQL 을 고치고 상수를 안 고치면 테스트 실패 |
-| **② 문서 예시 대조** | `SwaggerExampleSeedContractTest` — `/v3/api-docs` 를 받아 예시값을 전부 수집하고, 식별자 성격 필드(`login_id` · `academy_code` · `run_id` · `student_id` 등 대조 대상 목록)의 예시가 ①의 상수 사전에 속하는지 검증 | 리터럴을 직접 적으면 상수 사전에 없어 실패 |
-| **③ 소스 규약** (보조) | 컨트롤러·DTO 소스에서 `example = "` 리터럴 사용 지점을 찾아 허용 목록 밖이면 실패 | 실수를 소스 단계에서 가려냄 |
-
-**②가 핵심.** 상수는 컴파일 시점에 인라인되므로 런타임에는 `@Schema(example = SeedFixtures.PARENT_LOGIN_ID)` 와 `@Schema(example = "parent01")` 를 구분 불가. 따라서 **참조했는지**가 아니라 **값이 시드에 실재하는지**를 검사해야 한다. ③은 그 구분을 소스 수준에서 보강하는 보조 장치이며 단독으로는 불충분.
-
-**시드 SQL 에서 상수를 생성하는 방안은 미채택** — Gradle 태스크로 `V2__seed_data.sql` 을 파싱해 `SeedFixtures.java` 를 생성하면 원천이 하나로 줄지만, 파서가 SQL 문법 변화에 취약하고 생성 코드가 IDE 자동완성·리팩터링과 어긋남. **상수를 사람이 쓰고 ①로 묶는 편**이 같은 보장을 더 적은 기계장치로 달성.
-
-**전 API Swagger 적용의 강제** — `SwaggerCoverageTest`: 모든 요청 매핑 핸들러가 OpenAPI 문서에 존재하고 `summary` 와 최소 1개 응답 예시를 보유하는지 검증. 이 테스트가 없으면 새 컨트롤러가 추가될 때마다 문서에서 누락되고 그 사실이 관측 불가.
+**시드 SQL 에서 상수를 생성하는 방안은 미채택** — Gradle 태스크로 `V2__seed_data.sql` 을 파싱해 `SeedFixtures.java` 를 생성하면 원천이 하나로 줄지만, 파서가 SQL 문법 변화에 취약하고 생성 코드가 IDE 자동완성·리팩터링과 어긋남. **상수를 사람이 쓰고 `SeedFixturesContractTest` 로 묶는 편**이 더 적은 기계장치로 같은 보장을 달성.
 
 ### 3.4 시드가 담을 것
 
@@ -228,7 +216,7 @@
 
 | 구분 | 데이터 원천 | 대상 |
 |---|---|---|
-| **계약 테스트** | 개발용 시드 (`db/migration-local`) | `SeedFixturesContractTest` · `SwaggerExampleSeedContractTest` — **시드 자체가 검증 대상**이라 공유가 필연 |
+| **계약 테스트** | 개발용 시드 (`db/migration-local`) | `SeedFixturesContractTest` — **시드 자체가 검증 대상**이라 공유가 필연 |
 | **그 외 전부** | 테스트 전용 픽스처 빌더 | 단위 · 시간 의존 · 동시성 · 통합 · 인가 · 개인정보 · 아웃박스 · 스케줄러 |
 
 **근거** — 두 데이터의 목적이 다름. 시드는 **Swagger 에서 흐름을 끝까지 밟기 위한 데이터**이고 테스트 픽스처는 **한 규칙을 고립시키기 위한 데이터**. 한 벌로 묶으면 두 방향의 압력이 동시에 걸림.
@@ -295,7 +283,7 @@
 | 대상 | 이유 | 대신 하는 것 |
 |---|---|---|
 | Phase 0 걷어내기 | 삭제에는 보장할 동작이 부재 | 빌드·기동 성공을 완료 조건으로 |
-| Flyway 마이그레이션 SQL · `application.yml` | 선언이라 RED 를 만들 대상이 부재 | 스키마 대조 테스트(Phase 1) · `DeploymentConfigGuardTest` |
+| Flyway 마이그레이션 SQL · `application.yml` | 선언이라 RED 를 만들 대상이 부재 | 스키마 대조 테스트(Phase 1) · 설정 문자열 대조 시험은 만들지 않음(`Ruling 903` B) |
 | 엔티티 필드 매핑(Phase 1) | 매핑 자체는 `ddl-auto: validate` 가 검사 | 상태 전이 메서드가 붙는 시점부터 사이클 적용 |
 
 **위 3가지 외에는 예외가 부재.** "단순 CRUD 라 생략" 은 예외에 해당하지 않는다 — 학원 격리(`§7` 규칙 7)가 걸리는 순간 단순 CRUD 가 아니게 되고, 그 조건 누락은 실행해 보면 정상으로 보인다.
