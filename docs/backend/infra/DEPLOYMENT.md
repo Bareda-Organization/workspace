@@ -1329,7 +1329,7 @@ class FirebasePushTokenSource implements PushTokenSource {
 | 방송 중계 | 이벤트 1건 = Redis 메시지 1건(`schoolbus:relay:ws`). 발행한 인스턴스도 Redis 를 거쳐 받는다 | `BroadcastRelayRedisTest` · `BroadcastRelayEveryEventTest` |
 | 승인 · 경유 지점 미리보기 캐시 | Redis(`schoolbus:approval-preview:*` · `schoolbus:waypoint-preview:*`) | `RedisApprovalPreviewCacheTest` · `RedisWaypointPreviewCacheTest` |
 | 캐시 비움 신호 | Redis 채널 `schoolbus:relay:cache-evict` — 놓치면 계정 상태 5초 · 위치 방송 목록 5분 뒤 만료가 상한 | `CacheEvictionRelayTest` · `RunBroadcastCacheRelayTest` |
-| 감사 조회 묶기 | Redis `SET NX EX 600`(`schoolbus:audit-dedup:*`) | `AuditRecorderDedupTest` |
+| 감사 조회 묶기 | Redis `SET NX EX 600`(`schoolbus:audit-dedup:*`) | `AuditRecorderRedisWindowTest` |
 | `@Scheduled` 중복 실행 방지 | ShedLock + 건너뛴 실행을 `outcome="SKIPPED"` 로 세고 `*Stalled` 경보가 합쳐 본다 | `SchedulerLockConventionTest` · `ScheduledLockSkipMetricsTest` · `alerts.test.yml` |
 | 종료 | 종료 신호에 열린 WebSocket 세션을 `1012` 로 먼저 닫고 처리 중 요청을 마친다. `stop_grace_period` 35초 | `WebSocketShutdownCloseTest` |
 | 브로커 목적지 | `/topic` 하나 | `WebSocketBrokerPrefixTest` |
