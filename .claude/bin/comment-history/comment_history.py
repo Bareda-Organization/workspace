@@ -128,7 +128,7 @@ def same_code(repo, base):
     return 1 if bad else 0
 
 # 문자열 검사 대상 구문 — 애너테이션 3종과 단언 메시지 호출 5종(R60 P-2)
-STR_CALL = re.compile(r"@(?:Operation|DisplayName|AcademyScopeExempt)\s*\(|\.(?:as|describedAs|withFailMessage|overridingErrorMessage)\s*\(|(?<![\w$])fail\s*\(")
+STR_CALL = re.compile(r"@(?:[\w$]+\.)*(?:Operation|DisplayName|AcademyScopeExempt)\s*\(|\.(?:as|describedAs|withFailMessage|overridingErrorMessage)\s*\(|(?<![\w$])fail\s*\(")
 
 def string_calls(text):
     """(줄 번호, 이어붙인 문자열) — STR_CALL 괄호 안의 문자열 리터럴(텍스트 블록 포함)을 구문마다 공백으로 이어 낸다. 주석 · 문자 리터럴 · 괄호 밖 문자열은 보지 않는다."""
@@ -275,12 +275,14 @@ void t() {
       \"\"\").isTrue();
   assertThat(x).as("앞 조각 " + y + " 뒤 조각 " +
       "2026-10-17 결정").isTrue();
+  @org.junit.jupiter.api.DisplayName("패키지 이름을 붙여도 R57 은 센다")
+  void q() {}
   String plain = "R57 은 일반 문자열이라 세지 않는다";
   // .as("R57 주석 안의 호출") 도 세지 않는다
   assertThat(x).as("쓰이는 값").isTrue(); char q = '"';
 }'''
     got["str"] = [ln for ln, _ in str_hits(sj)]
-    want["str"] = [1, 3, 5, 8, 10, 12, 14, 16, 18, 21]
+    want["str"] = [1, 3, 5, 8, 10, 12, 14, 16, 18, 21, 23]
     ok = got == want
     print("selftest", "OK" if ok else f"FAIL got={got} want={want}")
     return 0 if ok else 1
