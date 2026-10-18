@@ -1391,3 +1391,12 @@ compose 의 한도와 주석 값을 더한 것이다(실측이 아니다).
 - 캐시 비움 신호(Redis 채널 `schoolbus:relay:cache-evict`)를 놓치면 다른 인스턴스의 계정 상태 캐시는 최대 5초, 위치 방송 목록 캐시는 최대 5분 뒤에야 비워진다(`Ruling 916` A).
 - 사진 저장소는 한 호스트의 볼륨이다. 두 대를 서로 다른 호스트로 나누면 사진이 한쪽 호스트에만 쌓이므로 그 구성은 지원하지 않는다.
 - 방송 중계 메시지는 Redis Pub/Sub 를 평문으로 지난다 — 비상 신고 메시지에는 신고자 전화번호가 들어 있다. Redis 포트는 compose 내부 망에만 두고 호스트 · 인터넷에 열지 않는다(운영 compose 의 지금 상태 · 바꾸면 이 줄을 먼저 본다).
+
+### 15.9 2대로 바꿀 때 할 일 (`Ruling 917` — 운영은 1대로 시작)
+
+R59 단계 2 에서 뺀 2대 측정이다. 2대로 바꾸기 전에 한다.
+
+- 부하 측정 L-4(2대 + nginx 에서 1대와 같은 통과 기준 · 인스턴스 간 전달 손실 0) · L-5(부하 중 한 대씩 배포 — 클라이언트별 메시지 공백 최대값 · `5xx` 는 재기동 순간 진행 중 요청만) — 기준은 `LOAD_TESTING §8`
+- 한 대 정지 확인(`infra/scripts/check-instance-failover.sh`)이 가려내는 결함 찾기 — `max_fails=0` · `max_fails` 삭제 · `proxy_next_upstream off` 를 심어도 통과했다(멈춘 컨테이너를 `resolve` 가 빼기 때문). 부하 중 `resolve` 제거 + `proxy_next_upstream off` 로 `5xx` 가 늘어나는지 본다
+- 같은 확인 6회 중 2회 세션 재접속이 54초(나머지 1초) — 원인을 보고 상한을 정한다
+- 받은 수 < 발행 수 × 대수 를 보는 경보 또는 패널(`schoolbus_ws_relay_received_total` · `…_published_total`) — 이 인스턴스의 Redis 구독만 끊긴 틈(`Ruling 916` C)을 드러낸다
