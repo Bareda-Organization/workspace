@@ -343,31 +343,104 @@ make down
 ⚠ 대시보드 1~4(API·서버·데이터·파이프라인)는 `job="backend"` 를 8080(컨테이너) 기준으로 만든 것이라
 이 모드(18080·호스트)에서는 값이 비어 보인다 — 부하 시험 중에는 "5. 부하 시험" 하나만 본다.
 
-## 8. R59 — 서버 2대 대비 부하 재측정 (단계 2 · 측정 전)
+## 8. R59 — 1대 운영 크기 부하 재측정 (2026-10-18)
 
-**목적** — 1대(2 vCPU · 3GB) 컨테이너를 먼저 재고, 그다음 2대를 nginx 뒤에 두고 같은 기준으로 잰다. 판정 기준은 `IMPLEMENTATION_PLAN §8.110` 목표 표의 L-1 ~ L-6 · J-1 이다.
+**목적** — 운영 1대(`Ruling 917`)의 앱 컨테이너를 운영 JVM 설정 그대로 두고 어디까지 버티는지 잰다. 판정 기준은 `IMPLEMENTATION_PLAN §8.110` 목표 표(L-1 · L-2 · L-3 · L-6 · J-1)이고, 수치와 해석은 `backend/report/2026-10-18-R59-부하.md`(git 밖)에 있다. 운영 기계는 전용 홈 PC(8코어 16스레드 · 16GB · Ubuntu, `Ruling 922`)라 아래 컨테이너 크기는 **그 기계 위의 하한**이다.
 
 ### 8.1 환경
 
-- Docker Desktop 메모리 12GB. 8GB 에서는 3GB × 2대 외의 여유가 약 1GB 뿐이라 `Ruling 915` D 에 따라 12GB 로 잰다.
-- 컨테이너는 `cpus: 2` · `mem_limit: 3072m` 으로 띄운다(`docker-compose.scale.yml`). 운영과 같은 값이다.
-- 프로파일은 `load` 이고 지도는 가짜 응답(stub)을 쓴다. 네이버 실호출은 0이다.
-- `-v` 를 붙이지 않는다. 볼륨을 지우지 않는다.
+- 앱 컨테이너 한 대 `r59-load-app` — 운영 `JAVA_TOOL_OPTIONS`(`docker-compose.prod.yml` 에서 읽는다) 그대로, `load` 프로파일, 지도는 가짜 응답(stub)이라 네이버 실호출은 0이다.
+- 두 크기로 잰다. **2 vCPU · 3GB** (`--cpus 2 --memory 3072m` — 최초 기준) 와 **4코어 8스레드 · 8GB** (`--cpus 4 --memory 8192m`, `-XX:ActiveProcessorCount=8` 를 `JAVA_TOOL_OPTIONS` 에 덧붙임 — `Ruling 923` · `924`). 크기는 `start_prod_sized.sh` 의 `APP_CPUS` · `APP_MEM` · `APP_PROCESSORS` 로 바꾼다.
+- 운영값 그대로 맞춘 것: Hikari 풀 20 · 연결 대기 3초 · DB 세션 시간 상한 · 톰캣 스레드 100 · accept-count 100 · 동시 연결 4,000 · STOMP 송신 실행기 32 · 관리 포트 8081(호스트 18081). `application-load.yml` 이 다르게 두는 값(풀 10 · 연결 대기 30초)은 기동 인자로 덮는다.
+- DB 는 개발 Postgres 의 `schoolbus_load`(목표 규모 시드), Redis 는 DB 13 칸. Postgres · Redis 컨테이너의 CPU 초는 회차마다 참고값으로 남긴다(운영 기계에서는 같은 기계를 나눠 쓴다).
+- k6 는 호스트에서 돈다(같은 기계의 Docker 로 앱을 제한하므로 k6 가 앱 CPU 를 빼앗지 않는다). 호스트 잡음이 300% 를 넘으면 `prod_sized_round.sh` 가 시작을 거절한다.
 
 ### 8.2 회차
 
 | 회차 | 무엇을 재나 | 통과 기준 | 도구 |
 |---|---|---|---|
-| L-1 | 1대 · 2 vCPU · 3GB 컨테이너의 E · E2 수치와 최대 RSS | `Ruling 484` 통과 기준 5항 통과(관리자 50 · 목표 규모 · 위치 2초) · 컨테이너 강제 종료 0(`OOMKilled=false`) | `r3_mixed.sh` · `r46_judge.py` · `docker inspect` |
-| L-2 | 2,000 세션 동시 재접속 — 전부 다시 붙는 데 걸린 시간 · 커넥션 대기 최대 · ERROR 프레임 수 | 60초 안 전원 재접속 · 세 값 기록 | 새 k6 시나리오 (단계 2에서 작성) |
-| L-3 | 서로 다른 학생 목적지 3,000개 이상의 위치 p95 (R57 구독 캐시 상한 확인) | p95 가 `Ruling 484` 기준 이내 | 새 k6 시나리오 (단계 2에서 작성) |
-| L-4 | 2대 + nginx 에서 L-1 과 같은 부하 · 인스턴스 간 전달 | L-1 과 같은 기준 통과 · 인스턴스 간 전달 손실 0 (받은 건수 = 보낸 건수) | k6 + `infra/scripts/check-cross-instance.sh` |
-| L-5 | 부하 중 한 대씩 배포 — 클라이언트별 메시지 공백 최대값 · REST `5xx` | 공백 최대값 기록 · REST `5xx` 는 재기동 순간 진행 중 요청만 | k6 + `deploy.sh` |
-| L-6 | 토큰 만료 재접속 (`Ruling 901` — 세션 2,000 · 15분 주기 = 초당 약 2.2회 재접속 + 화면 REST 재조회) | L-1 기준 안 · 결과를 PRD §11.3 F-11 재도입 조건 판정에 기록 | 새 k6 시나리오 (단계 2에서 작성) · 토큰 수명을 줄여 주기를 압축해도 된다 |
+| L-1 | 관리자 50 · 시청 570 · 위치 2초 고정 주기 · 확정 배치 100 에서 **연속 3회** + E · E2 각 1회 | `Ruling 484` 판정 5항 · `OOMKilled=false` · E · E2 는 기록만 | `prod_sized_round.sh` · `r3_mixed.sh` · `r46_judge.py`(미통과면 종료 코드 1, `Ruling 921` G) |
+| L-2 | L-1 배경 위에서 세션 2,000(학생 1,900 · 학원 90 · 관제 10)을 같은 순간에 닫고 대기 없이 재접속 · 재구독 · REST 스냅샷 1회 | 전원 60초 안 재구독 · 닫기 전 구독 2,000 확인 | `scenario7_reconnect_storm.js` |
+| L-3 | 학생 목적지 3,200곳 구독 · 곳마다 위치 수신 | 위치를 받은 목적지 ≥ 3,000 · 위치 POST p95 < 2,000ms · 방송 지연 p95 ≤ 5,000ms · 실패 0 | `scenario6_student_destinations.js` |
+| L-4 · L-5 | 2대 + nginx 에서 L-1 부하 · 부하 중 한 대씩 배포 | **`917` B 로 뺐다** (운영 1대 결정, 2대 기동 제거 `918`). 기준 · 손실 계산식은 `DEPLOYMENT §15.9` | — |
+| L-6 | 토큰 만료 전 계획된 재접속(`Ruling 901`): 재발급(`API_SPEC §2.6`) · 닫기 · 접속 · 재구독 · 스냅샷 1회. 실제 비율(초당 약 2.2회, 600초)과 5배(초당 약 11회, 240초) 각 1회 | L-1 판정 5항 · 재발급 실패 0 · 5초 안 구독 복원 | `scenario8_token_reconnect.js` |
 
-### 8.3 판정과 연결
+### 8.3 파일과 실행법
 
-- **L-4** 는 두 가지로 센다. ① I-1 의 확인 스크립트 `infra/scripts/check-cross-instance.sh` — 한 대에 보낸 위치 N건 · 비상 1건을 다른 대의 구독자가 받은 건수가 보낸 건수와 같다. ② 부하 규모에서는 각 인스턴스 관리 포트(8081)의 `schoolbus_ws_relay_published_total`(그 인스턴스가 Redis 에 낸 메시지) · `schoolbus_ws_relay_received_total`(그 인스턴스가 받아 처리를 마친 메시지, 자기가 낸 것 포함)의 부하 전후 차이로 센다. 인스턴스가 N 대면 **모든 인스턴스의 received 합 = 모든 인스턴스의 published 합 × N** 이어야 하고, 어긋나면 전달 손실이다. 발행 실패 `schoolbus_ws_relay_publish_failed_total{event}` 가 0 이어야 손실 0 판정이 성립한다.
-- **J-1** 은 JVM 힙 비율 · 직접 메모리 상한을 L-1 의 RSS · 힙 수치로 정한다. 판정 문장의 수치는 보고서 수치와 같아야 한다.
+| 파일 | 하는 일 |
+|---|---|
+| `start_prod_sized.sh` | 운영 크기 컨테이너를 띄운다. `REDIS_DB=13 ./start_prod_sized.sh` (2 vCPU · 3GB 는 `APP_CPUS=2 APP_MEM=3072m APP_PROCESSORS=`) |
+| `prod_sized_round.sh <라벨> <명령…>` | 호스트 잡음 검사 → 회차 → cgroup 메모리 · CPU(앱 · Postgres · Redis) → `<라벨>_env.json` → `r46_judge.py`. 라벨은 `ROUND_LABEL` 로 명령에 넘어간다 |
+| `retry_round.sh` | 잡음 검사(종료 코드 3)에 걸리면 1분마다 같은 회차를 다시 건다 |
+| `cgroup_sampler.sh` · `sampler.sh` | 컨테이너 안 cgroup 값 · 앱 지표(힙 확정 · 비힙 · 직접 버퍼 · GC 정지)를 1초마다 CSV 로 |
+| `results_table.py <라벨…>` | 회차별 메모리 · CPU 를 표로 모은다 |
+| `sql/destination_seed.sql` · `destination_link_riders.sql` · `destination_cleanup.sql` | L-3 학생 1,200명 · 학부모 · 명단 심기 / 지우기 |
+| `destination_round.sh` | L-3 한 회차(학생 세션과 위치 송신을 k6 프로세스 둘로 나눠 건다) |
+| `reconnect_pre.sh` · `reconnect_storm_hook.sh` · `token_reconnect_hook.sh` · `reconnect_summarize.py` | L-2 · L-6 의 토큰 발급 · 배경 훅 · 결과 요약 |
+| `capture_storm_diag.sh` | 재접속 직후 스레드 덤프 3회 · 1초 지표 · 서버 WARN/ERROR 수집 |
 
-**결과:** 단계 2 에서 `backend/report/` 의 측정 보고서와 함께 채운다 — 이 절에는 아직 수치가 없다.
+```bash
+cd backend/load
+# L-1 (판정 회차) — 같은 명령을 라벨만 바꿔 3회
+REDIS_DB=13 R3_ADMINS=50 R3_INTERVAL=2 R3_FIXED_RATE=1 ./prod_sized_round.sh <라벨> ./r3_mixed.sh 570 1 && echo 통과
+# L-2 — 배경(L-1) 위에 세션 2,000 올린 뒤 230초째 전원 닫기
+REDIS_DB=13 R3_ADMINS=50 R3_INTERVAL=2 R3_FIXED_RATE=1 R3_HOLD=300 R3_POS_DUR=260 PRE_HOOK=$PWD/reconnect_pre.sh \
+  BACKGROUND_HOOK=$PWD/reconnect_storm_hook.sh BACKGROUND_DELAY=40 CLOSE_AFTER_SEC=230 STORM_RAMP_SEC=100 ./retry_round.sh <라벨> ./r3_mixed.sh 570 1
+./reconnect_summarize.py <라벨> storm
+# L-6 실제 비율 (5배는 R3_HOLD=430 R3_POS_DUR=400 RATE_FACTOR=5 RECONNECT_SEC=240)
+REDIS_DB=13 R3_ADMINS=50 R3_INTERVAL=2 R3_FIXED_RATE=1 R3_HOLD=720 R3_POS_DUR=700 PRE_HOOK=$PWD/reconnect_pre.sh \
+  BACKGROUND_HOOK=$PWD/token_reconnect_hook.sh BACKGROUND_DELAY=40 RATE_FACTOR=1 RECONNECT_SEC=600 START_AFTER_SEC=150 STORM_RAMP_SEC=100 ./retry_round.sh <라벨> ./r3_mixed.sh 570 1
+./reconnect_summarize.py <라벨> token
+# L-3 — 시드 한 번 뒤 (docker exec -i school-bus-postgres-1 psql … < sql/destination_seed.sql)
+REDIS_DB=13 NO_JUDGE=1 DESTINATIONS=3200 MIN_DESTINATIONS=3000 ./prod_sized_round.sh <라벨> ./destination_round.sh
+```
+
+### 8.4 결과
+
+**L-1 — 2 vCPU · 3GB, 연속 3회 모두 통과** (`p59L1_r1` ~ `r3`, 관리자 50 · 시청 570 · 위치 2초)
+
+| 회차 | 위치 달성률 · POST p95 | WS 지연 p95 (학원 · 학생 · 관계자 채널) | 확정 드레인 | 앱 평균 코어 | 컨테이너 메모리 최고 | 힙 사용 최대 |
+|---|---|---|--:|--:|--:|--:|
+| r1 | 99.0% · 9ms | 7 · 6 · 6ms | 60초 | 0.29 | 1,695MB | 852MB |
+| r2 | 99.0% · 19ms | 11 · 13 · 14ms | 87초 | 0.33 | 1,481MB | 718MB |
+| r3 | 99.1% · 8ms | 6 · 6 · 6ms | 83초 | 0.30 | 1,440MB | 700MB |
+
+위치 POST 실패 · 5xx · Hikari 시간초과는 전 회차 0, 확정 100/100, `OOMKilled=false`. **한계** — r1 ~ r3 은 위치 관측자 소켓의 하트비트 고침(§8.5)보다 먼저 돌았다. 관측자 소켓이 위치 구간 120초 중 약 60초에 닫혀 그 회차 2개가 절반 시간만 위치를 보냈고(달성률 99.0 ~ 99.1%), 학원 채널 지연은 소켓이 살아 있던 동안만 측정됐다. 판정 5항 통과는 그대로다.
+
+**E · E2 — 2 vCPU · 3GB 는 미통과 (기록만)**. 4코어 8GB 재측정은 하지 않았다(`Ruling 926` A). 2026-10-01 의 4 vCPU 호스트 수치는 E 통과(위치 p95 36ms · 관제 p95 291ms)였다.
+
+| 조건 | 위치 달성률 · POST p95 | 관제 채널 방송 지연 p95 | 확정 드레인 | 힙 사용 최대 · 컨테이너 최고 | GC 정지 최대 |
+|---|---|---|--:|---|--:|
+| E 세션 3,000 · 5초 · 배치 100 | 84.7% · 2,023ms | 14,329ms | 90초 | 1,439MB · 2,781MB | 1.28초 |
+| E2 세션 2,000 · 위치 2배 · 배치 200 | 80.8% · 16,261ms | 33,751ms | 160초 | 1,936MB · 2,903MB | 0.42초 |
+
+**L-3 — 통과** (`p59L3_h`, 2 vCPU · 3GB): 3,200곳 모두 위치 수신, 위치 POST 6,001건 실패 0 · p95 136ms, 학생 채널 방송 지연 p95 1,196ms(p99 2,585 · 최대 4,126), 학원 채널 p95 43ms, Hikari 시간초과 0. 결함 심기(목적지 2,000곳 요청)는 임계 `destinations_received >= 3000` 이 어겨져 k6 종료 코드 99.
+
+**L-2 — 4코어 8스레드 · 8GB, 확인 1회 통과** (`p59L2_4c_c1`): 닫기 전 구독 2,000(학생 1,900 · 학원 90 · 관제 10) 확인 뒤 전원 닫음 → 2,000 전원 재구독, 가장 늦은 세션 15.6초 · p50 4.7초 · p95 12.2초(이 값에는 다음 방송까지 최대 2초가 들어 있다), REST 스냅샷 p95 4.2초 · 실패 0, Hikari 대기 최대 70 · 연결 획득 최대 3.5초, 톰캣 동시 연결 최대 3,806. ERROR 프레임은 전 회차 0건으로 읽는다(`p59L2_1` · `p59L2_4c_1` ~ `4`, `p59L2_4c_c1` — 지표 `error_frames` 는 ERROR 프레임을 받을 때만 값이 더해지고 요약에 없었다. 같은 핸들러가 방송 프레임을 처리했으므로 0건으로 읽지만, 이 판의 요약만으로는 0건과 미측정을 가를 수 없다. 이후 판은 0 으로 남긴다). 같은 회차의 배경 판정은 위치 POST 4건 실패(Hikari 시간초과 28) · 달성률 96.3% · POST p95 2,512ms 로 5항 중 1 · 2항이 미통과 — 전원 재접속 순간 풀 20개를 2,000건이 다툰다. **원인과 고침** — 4코어 첫 네 회차는 전원 재구독 실패(1,964/2,000) 또는 가장 늦은 재구독 68~84초였다. 닫은 직후 약 55초 동안 톰캣 동시 연결 수가 상한 4,000 에 붙어 있었고 요청 스레드 · Hikari · CPU 는 한산했다(1초 지표). k6 가 REST 스냅샷을 톰캣에 직접 HTTP/1.1 keep-alive 로 보내 2,000개의 유휴 연결이 남은 것이다. 운영 nginx 는 업스트림과 HTTP/1.0 이라 REST 한 건마다 연결을 닫으므로 시험 방식이 만든 현상이다. REST 요청에 `Connection: close` 를 주어 맞췄고 그 한 가지 변경으로 가장 늦은 재구독 74.8초 → 15.6초, 스냅샷 실패 694건 → 0 이 되었다(직전 회차 `p59L2_4c_4` 대비).
+
+**L-6 — 4코어 8스레드 · 8GB**
+
+| 회차 | 재접속 | 재발급 실패 | 공백 p50 · p95 · 최대 | 스냅샷 p95 | Hikari 대기 최대 | 판정 5항 |
+|---|---|--:|---|--:|--:|---|
+| 실제 비율 (`p59L6_real3`, 600초) | 1,334회 = 초당 2.22 | 0 | 974 · 1,909 · 2,102ms | 31ms | 0 | 모두 통과 |
+| 5배 (`p59L6_x5`, 240초) | 2,670회 = 초당 11.12 | 0 | 995 · 1,965 · 3,826ms | 278ms | 76 | 1항 미통과 — 위치 POST 5건 실패 · 5xx 16 · Hikari 시간초과 19 |
+
+공백은 닫은 순간부터 새 연결에서 첫 방송을 받을 때까지이고 위치 방송 주기 2초가 들어 있어 구독 복원 자체는 이보다 짧다. 실제 비율에서는 5초 안에 구독을 복원하지 못한 재접속이 0이었다. 5배는 기록용 여유 측정이다 — 재접속 여유는 실제 비율의 1~5배 사이에 있고 초당 11회에서는 Hikari 풀 20개가 포화한다(`Ruling 926` B).
+
+### 8.5 이번에 확인된 시험 도구의 문제
+
+- **위치 송신 관측자 VU 2개가 처음부터 위치를 못 보냈다** — 관측자는 학원 1 직원(`staffA`)으로 자기 회차의 학원 채널을 구독하는데, 위치용 회차를 LOADCAP 학원마다 나눠 심은 뒤로(`Ruling 676`) 다른 학원 채널이라 구독이 `ACADEMY_SCOPE_VIOLATION`(4403)으로 닫히고, 그 소켓 안의 송신 타이머도 시작하지 못했다. 그 회차 2개의 학생 36명이 방송을 한 건도 못 받았고(재접속 시험 구독 확인 1,864/1,900) 학원 채널 지연이 `n/a` 였다. 학원 1 이 아니면 메인 관리자로 구독하게 고쳤다.
+- **새 시나리오의 WebSocket 은 10초마다 하트비트를 보내야 한다** — 서버는 하트비트를 협상하지 않은 세션을 무수신 60초에 닫는다(`API_SPEC §7.2`). 없으면 세션이 60~70초에 끊긴다. 관측자 소켓에도 같다.
+- **서버(심플 브로커)는 `SUBSCRIBE` 의 `receipt` 에 `RECEIPT` 를 돌려주지 않는다** — "구독이 섰다"는 그 채널의 방송을 1건 받은 것으로 센다.
+- **VU 번호로 이름표를 가르지 않는다** — 시나리오 안의 반복 번호(`scenario.iterationInTest`)로 가른다. 세션을 한 반복 한 번으로 올리려면 도착률 실행기를 쓰고 `gracefulStop` 을 시험 길이보다 길게 준다.
+- **한 k6 프로세스에 방송 수신 세션 3,200개와 위치 송신을 같이 두면 k6 가 병목이 된다**(버려진 반복) — 프로세스를 둘로 나눈다. REST 는 `Connection: close`, 스냅샷은 비동기로 보낸다(동기로 부르면 응답 대기 중 하트비트가 멈춘다).
+- **`--summary-export` 의 임계 값은 `true` 가 어김이다.**
+- **고정 `maxDuration: 10m`** — 위치 송신이 10분을 넘는 회차에서 VU 가 중간에 끊겨 달성률이 89.6% 로 떨어진다. 송신 시간 + 180초로 맞췄다.
+- **앱 포트의 동시 연결 상한(4,000)에 닿으면 같은 포트의 지표 요청이 응답하지 않아 1초 표본이 빠진다** — 관리 포트(호스트 18081)에서 읽는다.
+- 시험 컨테이너 직전 구성(회차 `p59L1_a`~`c`)의 98% 달성률은 위 관측자 문제의 표시였다 — 같은 조건 재측정(`r1`~`r3`)이 기준이다. `r1`~`r3` 은 관측자 하트비트 고침 전이라 위치 구간 약 60초에 관측자 소켓이 닫힌 값(99.0 ~ 99.1%)이고, 고친 뒤 `p59J1_confirm` 은 달성률 100.0% 였다.
+- 판정 도구(`r46_judge.py`)는 재야 할 채널(학원 채널 관측자 · 방식에 따라 학생 · 관계자 · 관제 채널)에 표본이 없으면 3항을 미통과로 친다 — 관측자가 비어도 나머지 채널만으로 통과하던 것을 막는다.
+
+### 8.6 판정과 연결
+
+- **J-1** 은 JVM 힙 비율 · 직접 메모리 상한을 4코어 8스레드 · 8GB 의 L-2 · L-6 메모리 수치로 정한다. 판정 문장의 수치는 보고서 수치와 같아야 한다.
+- L-6 결과의 `PRD §11.3` F-11 재도입 판단은 그 행에 적혀 있다.
