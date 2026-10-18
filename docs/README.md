@@ -107,7 +107,7 @@ grep -n '🔸' docs/planning/FEATURE_SPEC.md docs/planning/PRD.md docs/planning/
 
 | 문서 | 담는 것 |
 |---|---|
-| **[infra/DEPLOYMENT.md](backend/infra/DEPLOYMENT.md)** | 운영 배포 절차(EC2 1대 + `docker-compose.prod.yml` · 백엔드는 1대 기본, 2대는 `docker-compose.scale.yml` — `DEPLOYMENT §15`) · 백업·복구(`DEPLOYMENT §7`) · 운영 관측·경보(`DEPLOYMENT §11`) · 관계자 웹 Vercel 배포(`DEPLOYMENT §12`, `Ruling 481`) · 운영 규칙(`DEPLOYMENT §13`) · 외부 연동 준비물(`DEPLOYMENT §14`). 설계 근거는 [archive/specs/2026-08-10-mvp-배포-design.md](archive/specs/2026-08-10-mvp-배포-design.md) |
+| **[infra/DEPLOYMENT.md](backend/infra/DEPLOYMENT.md)** | 운영 배포 절차(EC2 1대 + `docker-compose.prod.yml` · 백엔드는 1대, 2대로 늘릴 때 준비된 것과 새로 할 것 — `DEPLOYMENT §15`) · 백업·복구(`DEPLOYMENT §7`) · 운영 관측·경보(`DEPLOYMENT §11`) · 관계자 웹 Vercel 배포(`DEPLOYMENT §12`, `Ruling 481`) · 운영 규칙(`DEPLOYMENT §13`) · 외부 연동 준비물(`DEPLOYMENT §14`). 설계 근거는 [archive/specs/2026-08-10-mvp-배포-design.md](archive/specs/2026-08-10-mvp-배포-design.md) |
 | **[qa/QA_SCENARIOS.md](qa/QA_SCENARIOS.md)** | QA 시나리오 — 부천 Mock 데이터(backend `db/qa-seed`)의 계정 · 데이터 지도 · 초기화 뒤 시간표 · 역할별 시나리오. 2026-10-03 옛 `TEST_SCENARIOS.html`(9-30 판)을 대체 |
 | **[infra/STAGING.md](backend/infra/STAGING.md)** | 팀원 체험용 서버 — 집 PC + Cloudflare Tunnel + `docker-compose.staging.yml` · Android APK QR 설치(`Ruling 363`) · 운영(AWS) 변경 중 스테이징에 해당하지 않는 것(`STAGING §10`) |
 | `infra/OPERATIONS_PLAN.html` | 운영 계획(사람용 렌더) |

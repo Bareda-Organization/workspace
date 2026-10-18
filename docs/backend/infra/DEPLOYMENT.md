@@ -39,7 +39,7 @@
 - **API·인프라**: `backend/` + `docker-compose.prod.yml` → GitHub Actions 가 이미지 빌드해 ECR 에 올리고 SSM 으로 EC2 에 배포(`.github/workflows/deploy-backend.yml`)
 - ~~**모바일**: `frontend/` → 로컬에서 수동 빌드 후 스토어 콘솔에 직접 업로드(§9)~~ — **2026-09-09 삭제, 실행 불가**
 
-**백엔드 대수 — 기본 1대, 2대는 `docker-compose.scale.yml` 을 얹는다(§15).** 운영 대수는 배포 때 정한다. 2대에서 막히던 세 가지는 이렇게 해소했다 (표 전체와 확인: `ARCHITECTURE §9.5`):
+**백엔드 대수 — 운영은 1대다(`Ruling 918`).** 2대로 늘릴 때를 위해 2대에서 막히던 세 가지는 구조에서 해소해 두었다 (늘릴 때 새로 할 일: §15, 표 전체: `ARCHITECTURE §9.5`):
 
 1. `@Scheduled` 중복 실행 — 분산 락(ShedLock)으로 한 인스턴스만 돈다
 2. 버스 위치 공유 — `RedisBusLocationRepository`(2026-08-21)
@@ -525,7 +525,6 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml \
 | `NAVER_SEARCH_CLIENT_ID` · `NAVER_SEARCH_CLIENT_SECRET` | SecureString | NCP 콘솔 → NAVER API HUB → Application(지도 키와 **다른** 애플리케이션). 없으면 장소 이름 검색이 401 로 실패해 주소 후보만 나간다 |
 | `NAVER_DIRECTIONS_PATH` · `NAVER_DIRECTIONS_MAX_POINTS` | String | **짝** — 하나만 있으면 배포 중단(`Ruling 361`). Directions 15 일일 한도(3,000)가 바닥났을 때 Directions 5 로 전환: `/map-direction/v1/driving` + `7`. 되돌리려면 두 파라미터를 함께 삭제하고 재배포 |
 | `BOOTSTRAP_ADMIN_LOGIN_ID` · `BOOTSTRAP_ADMIN_PASSWORD_HASH` | String · SecureString | **짝** — 첫 메인 관리자(`prod` 첫 배포용, 아래). 해시는 §4 절차로 만든 bcrypt 해시이며 평문이면 배포가 멈춘다 |
-| `BACKEND_INSTANCES` | String | **선택** — 백엔드 대수. `1`(기본, 값이 없어도 1) 또는 `2`. 2 이면 `deploy.sh` 가 `docker-compose.scale.yml` 을 얹고 백엔드를 한 대씩 다시 만든다(§15). 2대는 메모리 약 8GB 이상 기계가 필요하다 — 그 전에 값을 바꾸지 않는다. 그 밖의 값이면 배포가 멈춘다 |
 | `ALERT_TELEGRAM_BOT_TOKEN` · `ALERT_TELEGRAM_CHAT_ID` | SecureString · String | **짝** — 경보를 텔레그램으로 받는다(§11.3). 토큰은 `<숫자>:<문자열>`, 채팅 ID 는 숫자(그룹은 음수). 없으면 텔레그램으로 안 보낸다 |
 | `ALERT_EMAIL_TO` · `ALERT_SMTP_HOST` · `ALERT_SMTP_USER` · `ALERT_SMTP_PASSWORD` | String · String · String · SecureString | **넷이 짝** — 경보 이메일 예비 채널(§11.3). `ALERT_SMTP_HOST` 는 `호스트:포트`(예 `smtp.gmail.com:587`), 발신 주소는 SMTP 계정과 같다. 없으면 이메일로 안 보낸다. 반쪽(일부만 등록)이면 `deploy.sh` 가 배포를 멈춘다 |
 
@@ -628,7 +627,6 @@ aws ssm put-parameter --name /school-bus/demo/SEED_PASSWORD_HASH --type SecureSt
 - 첫 배포 뒤 확인: 배포 로그의 `== 3-1.` 아래에 `configuration file /etc/nginx/nginx.conf test is successful` 가 있어야 한다. EC2 의 compose 는 v2.29.7 이고 위 동작(`run --no-deps`·`restart`)은 v2 공통이지만, "backend 재생성이 proxy 를 다시 만들지 않는다" 는 로컬 v5.5.1 에서만 확인했다
 - 검사용 컨테이너도 `x-logging` 을 받아 배포마다 CloudWatch 로그 스트림이 하나 늘고 2줄이 남는다
 - `.htpasswd` 는 `s3 sync` 가 건드리지 않는 EC2 직접 파일이라(§2.12) 이 단계의 대상이 아니다. 그 파일을 새로 만들었을 때의 재기동(§2.12 3번)은 그대로 필요하다
-- 백엔드 2대 모드(`BACKEND_INSTANCES=2`, §15)는 이 단계에서 검사(`nginx -t`)만 하고 **proxy 를 다시 시작하지 않는다** — 다시 시작하면 열린 WebSocket 세션 전부가 한꺼번에 끊긴다. 대신 nginx 설정 파일을 고친 배포는 반영되지 않으므로(위 마운트 이유) 점검 시간에 `docker compose -f docker-compose.prod.yml -f docker-compose.scale.yml --env-file /opt/school-bus/.env restart proxy` 를 따로 한다
 
 ---
 
@@ -882,8 +880,8 @@ flutter build ipa --release --dart-define=API_BASE_URL=https://api.<도메인> -
 
 | 한계 | 사유 |
 |---|---|
-| 배포 시 수십 초 다운타임 | 백엔드 1대 구성의 한계. 2대 구성(§15)은 한 대씩 다시 만들어 전체 중단이 없다 |
-| 배포마다 proxy 1~2초 추가 끊김(백엔드 1대 구성 — 2대 구성은 proxy 를 다시 시작하지 않는다, §15.4) | 파일 하나를 마운트한 nginx 는 reload 로 새 설정을 못 읽어 다시 시작한다(`Ruling 615` · `648`, §5.3). 폴더 마운트로 바꾸면 없앨 수 있으나 설정 파일 이름이 코드·시험·문서 20여 곳에 있다 |
+| 배포 시 수십 초 다운타임 | 백엔드 1대 구성의 한계. 2대로 늘려 한 대씩 다시 만들면(§15.2) 전체 중단이 없다 |
+| 배포마다 proxy 1~2초 추가 끊김(백엔드 1대 구성 — 2대로 늘리면 proxy 를 다시 시작하지 않게 한다, §15.2) | 파일 하나를 마운트한 nginx 는 reload 로 새 설정을 못 읽어 다시 시작한다(`Ruling 615` · `648`, §5.3). 폴더 마운트로 바꾸면 없앨 수 있으나 설정 파일 이름이 코드·시험·문서 20여 곳에 있다 |
 | 인스턴스 사망 시 복구가 수동(목표 1시간) | 데모 성격. Auto Scaling Group 미구성. 절차는 §7.3 |
 | DB 최대 1시간 · 사진 최대 하루 유실 | 매시 덤프 + 매일 스냅샷(RPO 1시간, `Ruling 480 ①`). WAL 아카이빙(PITR)은 채택하지 않았다 — 이 규모에서 설정·복구 복잡도가 이득보다 크다 |
 | APM 부재 · 서버 통째 사망은 외부 감시로만 감지 | 경보 수신(텔레그램·이메일, §11.3)은 있으나 Prometheus·Alertmanager 가 EC2 안에 있어 서버가 죽으면 같이 죽는다 — `/healthz` 외부 감시(§11.4)를 걸어야 알 수 있다 |
@@ -1318,87 +1316,78 @@ class FirebasePushTokenSource implements PushTokenSource {
 
 ---
 
-## 15. 백엔드 2대 구성 (`Ruling 900` · `915`)
+## 15. 백엔드 2대로 늘릴 때 (`Ruling 900` · `915` · `918`)
 
-백엔드는 기본 1대이고, `docker-compose.scale.yml` 을 `docker-compose.prod.yml` 에 얹으면 2대가 된다. 운영 대수는 배포 때 사용자가 정한다. 2대에서 막히던 것과 그 해소·확인은 `ARCHITECTURE §9.5`.
+운영 백엔드는 1대다(`Ruling 917` · `918`). 구조는 2대를 허용하지만 2대로 띄우는 파일(compose 오버레이 · nginx 업스트림 · 한 대씩 배포 · 확인 스크립트)은 저장소에 없다. 이 절은 2대로 늘릴 때 이미 되어 있는 것과 새로 만들 것을 적는다. 2대에서 막히던 것과 해소 방법의 전체 표는 `ARCHITECTURE §9.5`.
 
-### 15.1 무엇이 달라지나
+옛 2대 파일은 backend 저장소 `2b5699ba` 에 남아 있다 — `git -C backend show 2b5699ba:<경로>` 로 읽는다(compose 오버레이 · nginx 업스트림 · Prometheus 수집 대상 · 한 대씩 재시작 스크립트 · 확인 스크립트 5종 · k6 시나리오 2개). 만든 커밋은 R59 의 `432e1d1d` ~ `e56f25cf` 이고, 새로 만들 때 시작점으로 쓴다.
 
-| 대상 | 1대(기본) | 2대 |
+### 15.1 이미 되어 있는 것 (1대에서도 같은 길을 지난다)
+
+| 대상 | 상태 | 시험 |
 |---|---|---|
-| compose | `docker-compose.prod.yml` | + `docker-compose.scale.yml` — `backend2` 를 더하고 두 대 모두 `cpus: 2` · `mem_limit: 3072m` · `stop_grace_period: 35s` |
-| nginx 업스트림 | `infra/proxy/backend-pool.single.conf` (서버 1개) | `backend-pool.scale.conf` — `least_conn` · 두 서버에 `max_fails=2 fail_timeout=10s` · `resolve` + `resolver 127.0.0.11 valid=5s` |
-| Prometheus 수집 대상 | `backend-targets.single.yml` (`backend:8081`) | `backend-targets.scale.yml` — 같은 job `backend` 아래 `instance` 라벨이 `backend:8081` · `backend2:8081` |
-| 학생 사진 | `photo-data` 볼륨 | 같은 볼륨을 두 대가 공유한다 — 두 대가 한 호스트에 있을 때만 맞고, 호스트를 나누는 계획은 없다(사진을 S3 로 옮기는 계획도 없다) |
-| 배포 | `up -d` 한 번 · 재생성 중 수십 초 다운타임(§10) | 백엔드를 한 대씩 다시 만든다(§15.4) · nginx 는 다시 시작하지 않는다 |
+| 방송 중계 | 이벤트 1건 = Redis 메시지 1건(`schoolbus:relay:ws`). 발행한 인스턴스도 Redis 를 거쳐 받는다 | `BroadcastRelayRedisTest` · `BroadcastRelayEveryEventTest` |
+| 승인 · 경유 지점 미리보기 캐시 | Redis(`schoolbus:approval-preview:*` · `schoolbus:waypoint-preview:*`) | `RedisApprovalPreviewCacheTest` · `RedisWaypointPreviewCacheTest` |
+| 캐시 비움 신호 | Redis 채널 `schoolbus:relay:cache-evict` — 놓치면 계정 상태 5초 · 위치 방송 목록 5분 뒤 만료가 상한 | `CacheEvictionRelayTest` · `RunBroadcastCacheRelayTest` |
+| 감사 조회 묶기 | Redis `SET NX EX 600`(`schoolbus:audit-dedup:*`) | `AuditRecorderRedisWindowTest` |
+| `@Scheduled` 중복 실행 방지 | ShedLock + 건너뛴 실행을 `outcome="SKIPPED"` 로 세고 `*Stalled` 경보가 합쳐 본다 | `SchedulerLockConventionTest` · `ScheduledLockSkipMetricsTest` · `alerts.test.yml` |
+| 종료 | 종료 신호에 열린 WebSocket 세션을 `1012` 로 먼저 닫고 처리 중 요청을 마친다. `stop_grace_period` 35초 | `WebSocketShutdownCloseTest` |
+| 브로커 목적지 | `/topic` 하나 | `WebSocketBrokerPrefixTest` |
 
-`resolve` 가 있는 이유 — 컨테이너를 다시 만들면 IP 가 바뀌는데 nginx 는 기동할 때 이름을 한 번만 풀어, `resolve` 가 없으면 배포 뒤에 옛 IP 로 계속 간다. Docker 내장 DNS 를 5초마다 다시 묻고, 멈춘 컨테이너(이름이 풀리지 않음)는 풀에서 뺀다. `max_fails=0`(실패를 세지 않는 값)으로 바꾸면 멈춘 대에 요청이 계속 가서 5초 뒤 `504` 가 난다 — `infra/scripts/check-instance-failover.sh` 가 이 값에서 실패한다.
+### 15.2 새로 만들 것
 
-### 15.2 기계 크기 — 4GB 기계 1대(`t3.medium`)에는 안 들어간다
+1. **compose** — `docker-compose.prod.yml` 에 두 번째 백엔드 서비스(`backend2`)를 더한다. `replicas` 로 늘리지 않는다: 서비스 이름이 nginx 업스트림과 Prometheus 수집 대상에 박혀 있다. 두 대 모두 `cpus: 2` · `mem_limit: 3072m` · `stop_grace_period: 35s` 를 명시한다. `extends` 는 `depends_on` 을 물려주지 않으므로 postgres · redis healthy 를 다시 적는다. proxy 는 두 대 모두 healthy 일 때 뜬다.
+2. **nginx 업스트림** — `infra/proxy/backend-pool.single.conf` 자리에 서버 2개짜리 파일을 둔다: `least_conn` · 두 서버에 `max_fails=2 fail_timeout=10s` · `resolve` + `resolver 127.0.0.11 valid=5s`. `resolve` 가 있는 이유 — 컨테이너를 다시 만들면 IP 가 바뀌는데 nginx 는 기동할 때 이름을 한 번만 풀어, `resolve` 가 없으면 배포 뒤에 옛 IP 로 계속 간다. Docker 내장 DNS 를 5초마다 다시 묻고 멈춘 컨테이너(이름이 풀리지 않음)는 풀에서 뺀다.
+3. **Prometheus 수집 대상** — `backend-targets.single.yml` 자리에 같은 job `backend` 아래 `backend:8081` · `backend2:8081` 두 줄을 둔다(`instance` 라벨로 갈린다).
+4. **한 대씩 배포** — `deploy.sh` 가 백엔드를 한 대씩 다시 만들게 한다(`deploy.sh` 와 배포 워크플로가 새 compose 파일을 EC2 로 보내는 것까지).
+   1. DB · Redis 를 먼저 올리고 건강해질 때까지 기다린다.
+   2. `backend` 를 다시 만든다(`up -d --no-deps --force-recreate`). 옛 컨테이너는 열린 WebSocket 세션을 `1012` 로 닫고 처리 중 요청을 마친 뒤 내려간다(35초 안). 클라이언트는 기존 재접속 규칙으로 `backend2` 에 붙는다(`API_SPEC §7.2`).
+   3. 새 `backend` 가 healthy 가 되면 8초 쉰다 — nginx 가 컨테이너 이름을 다시 풀어(5초 주기) 새 IP 를 잡을 시간이다.
+   4. 같은 방식으로 `backend2` 를 다시 만든다. 한 대를 내리기 전에 다른 대가 healthy 인지 보고, 아니면 멈춘다(마지막 건강한 대를 내리지 않는다). 다른 대가 하나도 안 떠 있으면(첫 배포) 막지 않는다.
+   5. 스모크 테스트는 두 대의 `/actuator/health` 가 모두 `UP` 인지 본다.
 
-compose 의 한도와 주석 값을 더한 것이다(실측이 아니다).
+   nginx 는 다시 시작하지 않는다 — 다시 시작하면 열린 WebSocket 세션 전부가 한꺼번에 끊긴다. 그래서 nginx 설정 파일을 고친 배포는 반영되지 않으므로(바인드 마운트가 옛 파일을 본다, §5.3) 점검 시간에 `restart proxy` 를 따로 한다. 1대→2대 전환 배포는 proxy 의 마운트(업스트림 파일)가 바뀌어 proxy 가 한 번 다시 만들어진다 — WebSocket 이 모두 끊기니 점검 시간에 한다.
+5. **첫 기동** — 빈 DB 로 처음 뜨는 배포에서는 `BOOTSTRAP_ADMIN_*` 가 들어 있고(§3) 두 대가 같은 순간 기동하면 `FirstSystemAdminBootstrap` 이 둘 다 "메인 관리자가 없다" 고 보고 계정을 만들려 해 한쪽의 기동이 UNIQUE 제약 위반으로 실패한다. 한 대씩 기동하면 겹치지 않는다 — 두 대를 손으로 한꺼번에 `up -d` 하지 않는다.
+6. **기계 크기** — 4GB 기계 1대(`t3.medium`)에는 안 들어간다. compose 의 한도와 주석 값을 더한 것이다(실측이 아니다).
 
-| 항목 | 메모리 |
-|---|---|
-| 백엔드 2대 | 3,072MB × 2 = 6,144MB |
-| prometheus · grafana · alertmanager · node-exporter | 512 + 256 + 96 + 64 = 928MB |
-| postgres · redis(`maxmemory 128mb`) · nginx | 약 250 + 128 + 50 = 428MB (`docker-compose.prod.yml` 주석의 값) |
-| 합계 | 약 7,500MB + 운영체제 |
+   | 항목 | 메모리 |
+   |---|---|
+   | 백엔드 2대 | 3,072MB × 2 = 6,144MB |
+   | prometheus · grafana · alertmanager · node-exporter | 512 + 256 + 96 + 64 = 928MB |
+   | postgres · redis(`maxmemory 128mb`) · nginx | 약 250 + 128 + 50 = 428MB (`docker-compose.prod.yml` 주석의 값) |
+   | 합계 | 약 7,500MB + 운영체제 |
 
-그래서 2대는 메모리 약 8GB 이상 기계가 필요하다. 사양 · 비용은 사용자가 정한다(`Ruling 898` ②). JVM 힙 비율 · 직접 메모리 상한은 2대 부하 재측정(`LOAD_TESTING` §8) 뒤에 정한다 — 측정 전에는 값을 바꾸지 않는다(`Ruling 900` J).
+   현재 운영 기계는 16GB 홈 PC 한 대다(`Ruling 922`). JVM 힙 비율 · 직접 메모리 상한은 `TECH_DECISIONS §16.4` J.
+7. **Postgres 연결 수** — 기본 `max_connections` 는 100이다(`docker-compose.prod.yml` 이 따로 지정하지 않는다). 백엔드 한 대의 커넥션 풀 `maximum-pool-size` 는 20이므로 2대 = 40이고, 운영자 접속 · 백업을 더해도 100 안에 든다. 풀 크기를 올릴 때는 `대수 × maximum-pool-size + 여유 ≤ max_connections` 를 다시 확인한다.
+8. **학생 사진** — `photo-data` 볼륨을 두 대가 공유한다. 두 대가 한 호스트에 있을 때만 맞고, 호스트를 나누는 계획은 없다(사진을 S3 로 옮기는 계획도 없다).
 
-### 15.3 켜는 법 · 되돌리는 법
+### 15.3 늘리기 전에 확인할 것
 
-1. SSM `/school-bus/demo/BACKEND_INSTANCES` 에 `2` 를 등록한다(§3). 값이 없으면 1대다. `1` · `2` 가 아니면 `deploy.sh` 가 컨테이너에 닿기 전에 멈춘다.
-2. 평소처럼 배포한다. **1대→2대 전환 배포는 proxy 가 한 번 다시 만들어진다** — proxy 의 마운트(업스트림 파일)가 바뀌기 때문이다. 그 뒤 배포에는 없다. 이 한 번은 WebSocket 이 모두 끊기니 점검 시간에 한다.
-3. 2대→1대: SSM 값을 `1` 로 바꿔 배포하면 proxy 가 1대용 업스트림으로 다시 만들어진다. `backend2` 컨테이너는 남으므로 지운다 — `docker compose -f docker-compose.prod.yml -f docker-compose.scale.yml --env-file /opt/school-bus/.env rm -sf backend2`.
+확인 스크립트는 새로 만든다(옛 것이 시작점). 모두 Docker Desktop 메모리 8GB 이상에서 한 명령으로 도는 것을 기준으로 삼는다 — 스택을 띄우고 확인한 뒤 `down` 한다(`-v` 없음).
 
-### 15.4 한 대씩 배포 (`Ruling 900` I)
-
-`deploy.sh` 의 3단계가 `BACKEND_INSTANCES=2` 일 때 `infra/scripts/rolling-restart.sh backend backend2` 를 부른다.
-
-1. DB · Redis 를 먼저 올리고 건강해질 때까지 기다린다.
-2. `backend` 를 다시 만든다(`up -d --no-deps --force-recreate`). 종료 신호를 받은 옛 컨테이너는 열린 WebSocket 세션을 `1012` 로 닫고 처리 중 요청을 마친 뒤 내려간다(`stop_grace_period` 35초 안). 클라이언트는 기존 재접속 규칙으로 `backend2` 에 붙는다(`API_SPEC §7.2`).
-3. 새 `backend` 가 healthy 가 되면 8초(`ROLLING_SETTLE_SEC`) 쉰다 — nginx 가 컨테이너 이름을 다시 풀어(5초 주기) 새 IP 를 잡을 시간이다.
-4. 같은 방식으로 `backend2` 를 다시 만든다. 한 대를 내리기 전에 다른 대가 healthy 인지 보고, 아니면 멈춘다(마지막 건강한 대를 내리지 않는다). 다른 대가 하나도 안 떠 있으면(첫 배포) 막지 않는다.
-5. 스모크 테스트는 두 대의 `/actuator/health` 가 모두 `UP` 인지 본다.
-
-중간에 멈추면 남은 대는 계속 요청을 받는다. 롤백은 §6 과 같다 — 이전 태그로 다시 배포하면 같은 순서로 한 대씩 바뀐다. nginx 설정 파일을 고친 배포는 §5.3 마지막 단락의 `restart proxy` 를 따로 한다.
-
-### 15.5 첫 기동 — 첫 메인 관리자 부트스트랩은 한 대씩
-
-빈 DB 로 처음 뜨는 배포에서는 `BOOTSTRAP_ADMIN_*` 가 들어 있고(§3) 두 대가 같은 순간 기동하면 `FirstSystemAdminBootstrap` 이 둘 다 "메인 관리자가 없다" 고 보고 계정을 만들려 해 한쪽의 기동이 UNIQUE 제약 위반으로 실패한다. `deploy.sh` 의 2대 모드는 한 대씩 기동하므로(§15.4) 겹치지 않는다 — 두 대를 손으로 한꺼번에 `up -d` 하지 않는다.
-
-### 15.6 Postgres 연결 수
-
-기본 `max_connections` 는 100이다(`docker-compose.prod.yml` 이 따로 지정하지 않는다). 백엔드 한 대의 커넥션 풀 `maximum-pool-size` 는 20이므로 2대 = 40이고, 운영자 접속 · 백업 · `postgres-exporter` 없는 관측을 더해도 100 안에 든다. 풀 크기를 올릴 때는 `대수 × maximum-pool-size + 여유 ≤ max_connections` 를 다시 확인한다.
-
-### 15.7 로컬에서 같은 구성을 확인하는 스크립트
-
-모두 Docker Desktop 메모리 8GB 이상에서 `infra/scripts/` 아래 한 명령으로 돈다. 스택(프로젝트 `r59-infra`)을 띄우고 확인한 뒤 `down` 한다(`-v` 없음). 백엔드는 한 대 1,536MB 로 낮춰 뜬다(`SCALE_CHECK_MEM` 으로 바꾼다). 이미지는 `backend/` 에서 새로 빌드하고, 다시 빌드하지 않으려면 `SCALE_SKIP_BUILD=1`.
-
-| 스크립트 | 확인하는 것 | 통과 기준 |
+| 확인 | 하는 일 | 통과 기준 |
 |---|---|---|
-| `check-scale-stack.sh` | compose 합성(1대 · 2대) · 백엔드 2대 healthy · nginx `-t` · nginx 업스트림에 backend2 · Prometheus 수집 대상 2개 | `PASS` 7줄 · 종료 0 |
-| `check-deploy-delivery.sh` | `deploy.sh` 가 읽는 compose 파일을 배포 워크플로가 S3 로 올리고 EC2 로 내려받는가(Docker 불필요) | 파일마다 `PASS` 2줄 · 종료 0 |
-| `check-cross-instance.sh` | 한 대에 보낸 위치 · 비상을 다른 대의 구독자가 받는가 | 이벤트 종류마다 받은 건수 = 보낸 건수 |
-| `check-instance-failover.sh` | 한 대를 멈춰도 REST 연속 요청이 이어지고 세션이 남은 대로 다시 붙는가 | 멈춘 뒤 시작한 요청 실패 0 · 세션 전부 재접속 |
-| `check-rolling-restart.sh` | `rolling-restart.sh` 를 부하 중에 돌려 다른 대의 세션이 유지되고 nginx 가 그대로인가 | 세션 감소 0 · nginx 시작 시각 불변 |
+| compose 합성 확인 | compose 합성(1대 · 2대) · 백엔드 2대 healthy · nginx `-t` · nginx 업스트림에 `backend2` · Prometheus 수집 대상 2개 | 항목마다 `PASS` · 종료 0 |
+| 배포 파일 전달 확인 | `deploy.sh` 가 읽는 compose 파일을 배포 워크플로가 S3 로 올리고 EC2 로 내려받는가(Docker 불필요) | 파일마다 `PASS` 2줄 · 종료 0 |
+| 인스턴스 간 전달 확인 | 한 대에 보낸 위치 · 비상을 다른 대의 구독자가 받는가 | 이벤트 종류마다 받은 건수 = 보낸 건수 |
+| 한 대 정지 확인 | 한 대를 멈춰도 REST 연속 요청이 이어지고 세션이 남은 대로 다시 붙는가 | 멈춘 뒤 시작한 요청 실패 0 · 세션 전부 재접속 |
+| 한 대씩 배포 확인 | 한 대씩 재시작 스크립트를 부하 중에 돌려 다른 대의 세션이 유지되고 nginx 가 그대로인가 | 세션 감소 0 · nginx 시작 시각 불변 |
 
-### 15.8 알려진 한계
+부하 측정(L-4 · L-5) — 기준은 아래, 1대 측정 도구와 실행법은 `LOAD_TESTING §8`.
+
+- **L-4** (2대 + nginx 에서 1대와 같은 부하): `LOAD_TESTING §8.2` L-1 과 같은 판정 5항 통과 · 인스턴스 간 전달 손실 0. 손실은 두 가지로 센다.
+  - ① 위 표의 인스턴스 간 전달 확인 — 한 대에 보낸 위치 N건 · 비상 1건을 다른 대의 구독자가 받은 건수가 보낸 건수와 같다.
+  - ② 부하 규모에서는 각 인스턴스 관리 포트(8081)의 두 지표를 부하 전후로 뺀 차이로 센다. `schoolbus_ws_relay_published_total` 은 그 인스턴스가 Redis 에 낸 메시지, `schoolbus_ws_relay_received_total` 은 그 인스턴스가 받아 처리를 마친 메시지(자기가 낸 것 포함)다.
+  - 인스턴스가 N 대면 **모든 인스턴스의 received 합 = 모든 인스턴스의 published 합 × N** 이어야 하고, 어긋나면 전달 손실이다.
+  - 발행 실패 `schoolbus_ws_relay_publish_failed_total{event}` 가 0 이어야 손실 0 판정이 성립한다.
+- **L-5** (부하 중 한 대씩 배포 — `deploy.sh`): 클라이언트별 메시지 공백 최대값을 기록한다 · REST `5xx` 는 재기동 순간 진행 중이던 요청만.
+- 위 표의 한 대 정지 확인이 가려내는 결함 찾기 — `max_fails=0` · `max_fails` 삭제 · `proxy_next_upstream off` 를 심어도 통과했다(멈춘 컨테이너를 `resolve` 가 빼기 때문). 부하 중 `resolve` 제거 + `proxy_next_upstream off` 로 `5xx` 가 늘어나는지 본다.
+- 위 표의 한 대 정지 확인을 6회 돌렸을 때 2회는 세션 재접속이 54초(나머지 1초)였다 — 원인을 보고 상한을 정한다.
+- 위 표의 인스턴스 간 전달 확인과 별개로, 받은 수 < 발행 수 × 대수 를 보는 경보 또는 패널(`schoolbus_ws_relay_received_total` · `…_published_total`)을 둔다 — 이 인스턴스의 Redis 구독만 끊긴 틈(`Ruling 916` C)을 드러낸다.
+
+### 15.4 알려진 한계
 
 - 2대 운영에서 Redis 가 멈춘 동안은 인스턴스 사이 전달이 빠진다(같은 대에 붙은 구독자에게는 직접 간다). 소켓이 붙어 있는 클라이언트는 안전망 조회가, 재접속한 클라이언트는 재접속 직후 REST 보충이 메운다(`Ruling 900` B · `API_SPEC §7.2`). 발행은 되는데 이 인스턴스의 Redis 구독만 끊긴 틈에도 대체 경로가 없고 같은 조회가 메운다(`Ruling 916` C). Redis 는 여전히 한 대다. 중계 상태는 `schoolbus_ws_relay_*` 지표(발행 · 수신 · 발행 실패)와 경보 `WebSocketRelayPublishFailing` 으로 본다.
 - 캐시 비움 신호(Redis 채널 `schoolbus:relay:cache-evict`)를 놓치면 다른 인스턴스의 계정 상태 캐시는 최대 5초, 위치 방송 목록 캐시는 최대 5분 뒤에야 비워진다(`Ruling 916` A).
 - 사진 저장소는 한 호스트의 볼륨이다. 두 대를 서로 다른 호스트로 나누면 사진이 한쪽 호스트에만 쌓이므로 그 구성은 지원하지 않는다.
 - 방송 중계 메시지는 Redis Pub/Sub 를 평문으로 지난다 — 비상 신고 메시지에는 신고자 전화번호가 들어 있다. Redis 포트는 compose 내부 망에만 두고 호스트 · 인터넷에 열지 않는다(운영 compose 의 지금 상태 · 바꾸면 이 줄을 먼저 본다).
-
-### 15.9 2대로 바꿀 때 할 일 (`Ruling 917` — 운영은 1대로 시작)
-
-R59 단계 2 에서 뺀 2대 측정이다. 2대로 바꾸기 전에 한다.
-
-- 부하 측정 L-4 · L-5 — 기준은 아래 블록, 1대 측정 도구와 실행법은 `LOAD_TESTING §8`
-  - **L-4** (2대 + nginx 에서 1대와 같은 부하): `LOAD_TESTING §8.2` L-1 과 같은 판정 5항 통과 · 인스턴스 간 전달 손실 0. 손실은 두 가지로 센다. ① `infra/scripts/check-cross-instance.sh` — 한 대에 보낸 위치 N건 · 비상 1건을 다른 대의 구독자가 받은 건수가 보낸 건수와 같다. ② 부하 규모에서는 각 인스턴스 관리 포트(8081)의 `schoolbus_ws_relay_published_total`(그 인스턴스가 Redis 에 낸 메시지) · `schoolbus_ws_relay_received_total`(그 인스턴스가 받아 처리를 마친 메시지, 자기가 낸 것 포함)의 부하 전후 차이로 센다. 인스턴스가 N 대면 **모든 인스턴스의 received 합 = 모든 인스턴스의 published 합 × N** 이어야 하고, 어긋나면 전달 손실이다. 발행 실패 `schoolbus_ws_relay_publish_failed_total{event}` 가 0 이어야 손실 0 판정이 성립한다
-  - **L-5** (부하 중 한 대씩 배포 — `deploy.sh`): 클라이언트별 메시지 공백 최대값을 기록한다 · REST `5xx` 는 재기동 순간 진행 중이던 요청만
-- 한 대 정지 확인(`infra/scripts/check-instance-failover.sh`)이 가려내는 결함 찾기 — `max_fails=0` · `max_fails` 삭제 · `proxy_next_upstream off` 를 심어도 통과했다(멈춘 컨테이너를 `resolve` 가 빼기 때문). 부하 중 `resolve` 제거 + `proxy_next_upstream off` 로 `5xx` 가 늘어나는지 본다
-- 같은 확인 6회 중 2회 세션 재접속이 54초(나머지 1초) — 원인을 보고 상한을 정한다
-- 받은 수 < 발행 수 × 대수 를 보는 경보 또는 패널(`schoolbus_ws_relay_received_total` · `…_published_total`) — 이 인스턴스의 Redis 구독만 끊긴 틈(`Ruling 916` C)을 드러낸다
