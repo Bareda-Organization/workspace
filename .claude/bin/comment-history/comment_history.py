@@ -3,7 +3,7 @@
 코드 주석(//, ///, /* */) 안에서 경위 표지(라운드 · Phase · 날짜 · 경위 낱말 · 커밋 해시)가 든 줄을 영역별로 센다. 문자열 · 텍스트 블록 · 템플릿 안의 // 와 /* 는 주석이 아니다.
 `Ruling N` · `BR-N` · 기능 ID 는 표지가 아니다(남긴다 — query.py goal-rows 가 코드 주석에서 판정 번호를 찾는다). --check 는 baseline.json 을 넘거나 kept-lines.tsv 의 남긴 줄이 낡았으면 종료 코드 1.
 --repo backend=<워크트리> 처럼 저장소 위치를 바꿔 워크트리를 잰다. --kept <파일> 은 kept-lines.tsv 대신 그 파일을 쓴다. 범위 밖 — yml · sql · sh 주석.
-문자열 검사(R60) — backend-main-str · backend-test-str 영역은 주석이 아니라 @Operation · @DisplayName · @AcademyScopeExempt 괄호 안과 .as · .describedAs · .withFailMessage · .overridingErrorMessage · fail 호출 괄호 안의 문자열(텍스트 블록 · `+` 로 이은 조각 포함)을 같은 표지로 센다.
+문자열 검사 — backend-main-str · backend-test-str 영역은 주석이 아니라 @Operation · @DisplayName · @AcademyScopeExempt 괄호 안과 .as · .describedAs · .withFailMessage · .overridingErrorMessage · fail 호출 괄호 안의 문자열(텍스트 블록 · `+` 로 이은 조각 포함)을 같은 표지로 센다.
 --same-code <기준 커밋> (--repo backend=<경로> 와 함께) — 기준 → 작업 트리에서 바뀐 .java 마다 주석 뺀 코드 · 설명 주석(/**) 수 · Ruling/BR 표시 집합을 비교한다. 어긋나면 종료 코드 1."""
 import json, os, re, subprocess, sys
 sys.dont_write_bytecode = True
@@ -127,7 +127,7 @@ def same_code(repo, base):
     print(f"same-code — 비교한 파일 {n} · 어긋남 {len(bad)}")
     return 1 if bad else 0
 
-# 문자열 검사 대상 구문 — 애너테이션 3종과 단언 메시지 호출 5종(R60 P-2)
+# 문자열 검사 대상 구문 — 애너테이션 3종과 단언 메시지 호출 5종
 STR_CALL = re.compile(r"@(?:[\w$]+\.)*(?:Operation|DisplayName|AcademyScopeExempt)\s*\(|\.(?:as|describedAs|withFailMessage|overridingErrorMessage)\s*\(|(?<![\w$])fail\s*\(")
 
 def string_calls(text):
@@ -183,6 +183,8 @@ def read_literal(text, i, line):
     j = i + 1
     while j < n and text[j] != q and text[j] != "\n":
         j += 2 if text[j] == "\\" else 1
+    if j < n and text[j] == "\n":  # 줄 끝에서 닫히지 않은 리터럴 — 줄바꿈을 먹으면 이어지는 줄 번호가 밀린다
+        return j, line, None
     return j + 1, line, (text[i + 1:j] if q == '"' else None)
 
 def str_hits(text):
@@ -281,6 +283,8 @@ void t() {
   // .as("R57 주석 안의 호출") 도 세지 않는다
   assertThat(x).as("쓰이는 값").isTrue(); char q = '"';
 }'''
+    got["unterminated"] = [ln for ln, _ in str_hits('String s = "닫히지 않은 리터럴\n@DisplayName("R57 이후")\n')]  # 줄 끝에서 끝난 리터럴이 다음 줄 번호를 밀면 안 된다
+    want["unterminated"] = [2]
     got["str"] = [ln for ln, _ in str_hits(sj)]
     want["str"] = [1, 3, 5, 8, 10, 12, 14, 16, 18, 21, 23]
     ok = got == want
