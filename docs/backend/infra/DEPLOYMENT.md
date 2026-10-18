@@ -870,7 +870,18 @@ $C start backend
 3. 복구를 확인한다: `docker compose exec redis redis-cli PUBSUB NUMSUB schoolbus:relay:ws` 가 1 이상이고 `RedisFallbackActive` 가 해소됐는지 본다. 다시 켠 뒤 서킷은 약 3~6초 안에 닫히고 중계 구독은 약 2초 안에 선다.
 4. 장애 시작 · 복구 시각과 서킷이 열린 시간을 남긴다.
 
-하지 말 것: 없다. Redis 가 멈춘 동안 배포해도 된다. 다만 인스턴스 안 기억은 다시 시작하면 사라지므로 그 사이 열어 둔 승인 · 경유 지점 미리보기는 다시 요청해야 한다(`409 PREVIEW_STALE`).
+배포(`docker compose up -d`)는 Redis 상태에 따라 다르다 — 로컬 1대 스택에서 시험한 결과다(`docker-compose.prod.yml` 의 backend 는 `redis` 를 `service_started` 로만 기다린다):
+
+| Redis 상태 | 명령 | 결과 |
+|---|---|---|
+| 떠 있는데 응답 없음(컨테이너 `running` · 헬스 `unhealthy`) | `docker compose up -d --force-recreate backend` | 종료 코드 0, 새 백엔드 17초에 `healthy`. `service_healthy` 로 되돌리면 `dependency failed to start: container … is unhealthy` 로 실패한다 |
+| 멈춤(`Exited`) | `docker compose up -d --force-recreate backend` | compose 가 Redis 도 다시 켜고 종료 코드 0, 백엔드 15.9초에 `healthy` |
+| 얼림(`docker pause`, 컨테이너 `Paused`) | `docker compose up -d`, `docker compose up -d --force-recreate backend` | **실패** — `cannot start a paused container, try unpause instead`(compose 가 의존 서비스를 시작하려다 멈춘다) |
+| 얼림 | `docker compose up -d --no-deps --force-recreate backend` | 종료 코드 0, 백엔드 28.7초에 `healthy` |
+
+얼림은 운영에서 보기 드문 상태다(운영 장애는 대개 위 첫 줄이다). 만나면 `docker compose unpause redis` 를 먼저 하거나 `--no-deps` 로 백엔드만 다시 만든다. 이 표는 `infra/scripts/check-redis-outage.sh` 가 그대로 재현한다.
+
+하지 말 것: 없다. 위 표대로 Redis 가 멈추거나 응답이 없어도 백엔드를 다시 시작하거나 배포할 수 있다. 다만 인스턴스 안 기억은 다시 시작하면 사라지므로 그 사이 열어 둔 승인 · 경유 지점 미리보기는 다시 요청해야 한다(`409 PREVIEW_STALE`).
 
 ---
 
