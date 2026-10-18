@@ -282,7 +282,7 @@ public interface RouteOptimizer {
 
 **주석에 경위를 쓰지 않는다** — 라운드 · Phase · 날짜 · "어떻게 여기까지 왔는가" 서술은 커밋 메시지와 `IMPLEMENTATION_PLAN` 에 두고 주석에는 적지 않는다(`Ruling 903` A). 남기는 것은 무엇 · 왜 · 지켜야 할 조건 문장과 `Ruling N` · `BR-N` · 기능 ID 표시다(`query.py goal-rows` 가 코드 주석에서 판정 번호를 찾는다). 경위는 코드가 바뀔 때 함께 갱신되지 않아 가장 먼저 낡는다.
 
-**문자열(위 4종)에도 경위를 쓰지 않는다** — 같은 규칙이 `@Operation` 의 `summary`·`description`, `@DisplayName`, `@AcademyScopeExempt` 사유, 단언 메시지(`as` · `describedAs` · `withFailMessage` · `overridingErrorMessage` · `fail`)의 문자열에도 걸린다. 텍스트 블록과 `+` 로 이은 조각도 같다. 확인은 `.claude/bin/comment-history/comment_history.py <작업 공간> --check` 이고, 주석 영역(`backend-main` · `backend-test`)과 같은 표지로 문자열 영역(`backend-main-str` · `backend-test-str`)을 세며 기준치는 0 이다.
+**문자열 4종에도 경위를 쓰지 않는다** — 같은 규칙이 `@Operation` 의 `summary`·`description`, `@DisplayName`, `@AcademyScopeExempt` 사유, 단언 메시지(`as` · `describedAs` · `withFailMessage` · `overridingErrorMessage` · `fail`) 4종의 문자열에도 걸린다. 텍스트 블록과 `+` 로 이은 조각도 같다. 확인은 `.claude/bin/comment-history/comment_history.py <작업 공간> --check` 이고, 주석 영역(`backend-main` · `backend-test`)과 같은 표지로 문자열 영역(`backend-main-str` · `backend-test-str`)을 세며 기준치는 0 이다.
 
 **주석이 사양을 복제하지 않는다** — 30분·±3분 같은 값은 주석에 적지 않고 규칙 ID(`C-04` · `RTE-02`)로 참조한다(`IMPLEMENTATION_PLAN §7` 규칙 18과 같은 이유).
 
