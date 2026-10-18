@@ -839,7 +839,7 @@ $C start backend
 | Swagger UI 401 · 기동 실패 | §2.12 절차 확인 | EC2 에서 `.htpasswd` 재생성 후 `proxy` 컨테이너 재기동 | 재생성 시각 |
 | 배포가 `== 3-1.` 단계에서 멈춤(`nginx -t` 실패 · `Ruling 648`) | 배포 로그의 `nginx: [emerg] … default.conf:<줄>` — 줄 번호는 `infra/proxy/nginx.prod.conf` 의 줄이다. `host not found in upstream "backend:8080"` 이면 설정이 아니라 backend 가 안 떠 있는 것 — `docker compose ps backend` | 설정 오류는 그 줄을 고쳐 커밋하고 다시 배포한다(§5.3). proxy 는 다시 시작하지 않아 **옛 설정으로 응답 중**이라 API 는 살아 있다 | 실패 로그 줄 · 고친 줄 |
 | 지도 API 장애(노선 계산 ③단계 영향) | `resilience4j_circuitbreaker_state{name="geocoding"\|"mapRoute"}` 값 확인(관측 목표 8) | 자동 폴백 — 직선거리 근사로 배차 유지, 화면에 폴백 사실 표시, 배치는 계속 진행. 서킷 닫히면 다음 회차부터 정상, 이미 배포된 노선은 재계산 제외 | 폴백 지속 시간 |
-| Redis 장애(최신 좌표·캐시 영향) | `docker compose logs redis`, `redis-cli ping`, 지표 `schoolbus.position.fallback` 증가 | 자동 대체 — 위치 조회 3종(학부모 버스 위치 · 관계자 관제 · 메인 관리자 관제)과 비상 신고 위치는 DB 이력 최신 행으로 조회(현재 정차지 이름은 비어 나감). 근접·출발 판정은 그 틱을 건너뛰고 다음 틱에 다시 본다. 캐시 미스로 계산 반복 | 장애 지속 시간 |
+| Redis 멈춤 · 응답 없음(최신 좌표 · 방송 중계 · 미리보기 · 감사 묶기 영향, `Ruling 919`) | `docker compose ps redis` · `docker compose logs --tail 50 redis` · `docker compose exec redis redis-cli ping`(컨테이너는 떠 있는데 `ping` 이 답하지 않으면 "응답 없음"). `resilience4j_circuitbreaker_state{name="redis"}` — `closed` 가 0 이면 대체 경로로 도는 중(경보 `RedisFallbackActive`, §11.2) · 지표 `schoolbus_position_fallback_total` · `schoolbus_ws_relay_publish_failed_total` 증가 | **자동 대체 — 사람이 하지 않아도 서비스는 계속된다.** 최신 좌표는 DB 이력 최신 행으로(현재 정차지 이름은 비어 나감) · 방송은 이 인스턴스의 구독자에게 직접 · 승인 · 경유 지점 미리보기와 감사 묶기는 이 인스턴스 안의 기억으로 · 캐시 비움 신호는 각 캐시의 만료(5초)까지 · 위치 수신은 DB 적재가 성공하면 응답한다. 응답 없는 Redis 앞에서는 명령 하나가 최대 0.5초 기다리고, 실패가 5번 이어지면 `redis` 서킷이 열려 Redis 를 부르지 않는다(5초 뒤 시험 호출). **사람이 할 일**: ① 멈췄으면(`Exited`) `docker compose up -d redis`(`-v` 금지 — 볼륨은 없지만 습관으로 막는다) ② 떠 있는데 답이 없으면 `docker compose restart redis` — Redis 에는 영속 데이터가 없다(`--save ""` · 캐시와 중계만) ③ 복구 확인: `docker compose exec redis redis-cli PUBSUB NUMSUB schoolbus:relay:ws` 가 1 이상이고 `RedisFallbackActive` 가 해소됐는지. **하지 말 것**: 이 동안 백엔드를 다시 시작하거나 배포하지 않는다. 컨테이너 헬스체크(`/actuator/health`)와 `/healthz` 는 Redis 를 포함해 DOWN(503)이다 — 실측(2026-10-18 로컬 1대 스택): Redis 가 멈춘 지 약 150초(연속 10회 실패) 뒤 컨테이너가 `unhealthy` 가 되지만 재시작 정책은 건드리지 않아 서비스는 계속되고, 그 상태에서 백엔드를 다시 시작하면 5분이 지나도 `starting` 에 머물러 배포 게이트가 통과하지 못한다. Redis 를 먼저 살린 뒤(복구 15초 안에 `healthy`) 배포한다. `/healthz` 503 은 외부 감시가 "저하" 로 알리는 정상 신호다(서비스는 계속된다) | 장애 시작 · 복구 시각 · 서킷이 열린 시간 · 한 일 |
 | DB 장애(전면 영향) | `docker compose ps postgres`, 헬스체크 UP 여부 확인 | 매니저 앱은 오프라인 큐로 승하차만 지속, 나머지 제품은 조회 불가. 복구 후 큐 동기화(멱등, `client_key` UNIQUE) | 장애 시작·복구 시각 |
 | 앱 인스턴스 재시작(WS 끊김·배치 중단) | `docker compose ps backend`, 재시작 로그 확인 | 자동 복구 — 클라이언트 자동 재접속, 배치는 폴링이라 놓친 회차를 다음 틱에 자동 회수. 별도 절차 부재 | 재시작 원인 |
 | 배치 밀림(확정 지연) | `schoolbus_run_confirmation_lag_seconds` 값 확인(관측 목표 8 — 값이 계속 늘면 워커 수·인스턴스 증설 신호) | 도래분은 다음 틱으로 자동 이월. 지속되면 워커 수 증설, 그다음 인스턴스(§3) | 지연 수치 추이 |
@@ -937,6 +937,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 | `Http5xxRatioHigh` | 최근 5분 요청의 5% 초과가 5xx(actuator·`/healthz` 제외 · 분당 6건 이상일 때만 판정)인 상태가 2분 유지 | 즉시(critical) | (표 밖) |
 | `HikariPoolWaiting` | `hikaricp_connections_pending > 0` 이 1분 유지 | 경고 | (표 밖 — 풀 20개가 마르면 3초 뒤 500) |
 | `CircuitBreakerNotClosed` | 지도 API 서킷(`geocoding` · `mapRoute` · `placeSearch`)이 열림·반열림으로 2분 넘게 닫히지 않음 | 경고 | 4행 |
+| `RedisFallbackActive` | `redis` 서킷이 열림·반열림으로 1분 넘게 닫히지 않음 — 최신 좌표 · 방송 중계 · 미리보기 · 감사 묶기가 대체 경로로 돌고 있다(`Ruling 919`) | 경고 | (표 밖 — 사용자에게 보이는 품질 저하가 바로 생겨 `CircuitBreakerNotClosed` 의 2분보다 짧게 둔다. `CircuitBreakerNotClosed` 는 `redis` 서킷을 보지 않는다) |
 | `SchedulerStalled` | 확정·알림 재전송 스케줄러가 2분, 근접 판정이 1분(각 주기의 3~4배) 동안 성공 실행(`outcome="SUCCESS"`)이 없는 상태가 1분 유지 | 즉시(critical) | (표 밖 — 확정이 멈추면 `RunUnconfirmed` 보다 먼저 안다) |
 | `RetentionCleanupStalled` | 보존 정리(매일 00:15)가 3일 넘게 성공하지 않음 | 경고 | (표 밖) |
 | `RunPositionPartitionStalled` | 위치 이력 파티션 미리 만들기(매일 00:10 · 7일 앞까지, `Ruling 670`)가 3일 넘게 성공하지 않음 | 경고 | (표 밖 — 미리 만든 파티션이 4일치 남아 있는 동안 알려 기본 파티션에 행이 쌓이기 전에 고친다) |
@@ -959,6 +960,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 | `Http5xxRatioHigh` | Grafana 대시보드의 오류 패널 → `docker compose logs backend \| grep ERROR`. `HikariPoolWaiting` 이 같이 울리면 연결 풀 문제 |
 | `HikariPoolWaiting` | §11.5 의 쿼리 통계로 느린 쿼리 → `SELECT state, count(*) FROM pg_stat_activity GROUP BY 1`(`idle in transaction` 이 쌓이면 트랜잭션이 안 끝나는 곳) |
 | `CircuitBreakerNotClosed` | §8 "지도 API 장애" 행 — 직선거리 근사로 계속 확정되는 상태 |
+| `RedisFallbackActive` | §8 "Redis 멈춤 · 응답 없음" 행 — `docker compose ps redis` → 멈췄으면 `up -d redis`, 떠 있는데 답이 없으면 `restart redis`. 복구되면 5초 안에 서킷이 닫히고 중계 구독이 10초 안에 선다 |
 | `SchedulerStalled` | 경보 라벨 `code_namespace`(스케줄러 클래스 전체 이름)의 `tasks_scheduled_execution_seconds_count{outcome="ERROR"}` 가 느는지 보고 로그에서 그 클래스의 예외를 찾는다. 푸시 발송이 외부에서 멈춘 것이면 아웃박스가 길어진다(`FCM`) |
 | `RetentionCleanupStalled` | 새벽 00:15 전후 로그에서 `retention` 예외 · 마지막 재배포 시각(3일 안이면 이 경보는 못 본다) |
 | `RunPositionPartitionStalled` | 새벽 00:10 전후 로그에서 `run-position-partition` 예외 · `schoolbus_scheduler_failures_total` · 마지막 재배포 시각(재배포 뒤 한 번도 성공하지 못했으면 이 경보는 못 본다) |
