@@ -64,7 +64,7 @@ Boot 4 특유의 아티팩트 분리(주석이 `build.gradle`에 상세히 있�
 
 ## test-runner
 
-- **실서버 계약 시험(웹 · 앱) 정식 명령** — 서버는 `fixture` 시드(`local,fixture`)로 띄우고, **학부모 앱은 `--dart-define=FIXTURE_DB=schoolbus` 를 반드시 붙인다**(빼면 `real_backend_p5_test` "목표 8" 이 건너뛰어 28건 중 27건만 돈다 — R59 단계 1 실측). 판정은 실패 0 · **건너뜀 0**(웹은 의도된 1건 제외) · 이미지는 병합 커밋 뒤에 다시 빌드
+- **실서버 계약 시험(웹 · 앱) 정식 명령** — 서버는 `fixture` 시드(`local,fixture`)로 띄우고, **학부모 앱은 `--dart-define=FIXTURE_DB=schoolbus` 를 반드시 붙인다**(빼면 `real_backend_p5_test` "목표 8" 이 건너뛰어 28건 중 27건만 돈다 — R59 단계 1 실측). 판정은 실패 0 · **건너뜀 0**(웹은 의도된 1건 제외) · 이미지는 병합 커밋 뒤에 다시 빌드 · ⚠ **웹 계약을 먼저 돌린 같은 시드에서는 학부모 `real_backend_signup_test` 가 1건 실패한다**(웹 시험이 그 가입 신청을 반려해 `pending` 대신 `rejected` — R59 · R60 두 번) → 앱 계약 앞에서 시드를 다시 깐다(`docker compose -f docker-compose.yml -f docker-compose.app.yml down` → `up -d`, `BACKEND_PROFILES=local,fixture` · `-v` 없음)
 
 ```bash
 cd backend
