@@ -839,7 +839,7 @@ $C start backend
 | Swagger UI 401 · 기동 실패 | §2.12 절차 확인 | EC2 에서 `.htpasswd` 재생성 후 `proxy` 컨테이너 재기동 | 재생성 시각 |
 | 배포가 `== 3-1.` 단계에서 멈춤(`nginx -t` 실패 · `Ruling 648`) | 배포 로그의 `nginx: [emerg] … default.conf:<줄>` — 줄 번호는 `infra/proxy/nginx.prod.conf` 의 줄이다. `host not found in upstream "backend:8080"` 이면 설정이 아니라 backend 가 안 떠 있는 것 — `docker compose ps backend` | 설정 오류는 그 줄을 고쳐 커밋하고 다시 배포한다(§5.3). proxy 는 다시 시작하지 않아 **옛 설정으로 응답 중**이라 API 는 살아 있다 | 실패 로그 줄 · 고친 줄 |
 | 지도 API 장애(노선 계산 ③단계 영향) | `resilience4j_circuitbreaker_state{name="geocoding"\|"mapRoute"}` 값 확인(관측 목표 8) | 자동 폴백 — 직선거리 근사로 배차 유지, 화면에 폴백 사실 표시, 배치는 계속 진행. 서킷 닫히면 다음 회차부터 정상, 이미 배포된 노선은 재계산 제외 | 폴백 지속 시간 |
-| Redis 멈춤 · 응답 없음(최신 좌표 · 방송 중계 · 미리보기 · 감사 묶기 영향, `Ruling 919`) | `docker compose ps redis` · `docker compose logs --tail 50 redis` · `docker compose exec redis redis-cli ping`(컨테이너는 떠 있는데 `ping` 이 답하지 않으면 "응답 없음"). `resilience4j_circuitbreaker_state{name="redis"}` — `closed` 가 0 이면 대체 경로로 도는 중(경보 `RedisFallbackActive`, §11.2) · 지표 `schoolbus_position_fallback_total` · `schoolbus_ws_relay_publish_failed_total` 증가 | **자동 대체 — 사람이 하지 않아도 서비스는 계속된다.** 최신 좌표는 DB 이력 최신 행으로(현재 정차지 이름은 비어 나감) · 방송은 이 인스턴스의 구독자에게 직접 · 승인 · 경유 지점 미리보기와 감사 묶기는 이 인스턴스 안의 기억으로 · 캐시 비움 신호는 각 캐시의 만료(5초)까지 · 위치 수신은 DB 적재가 성공하면 응답한다. 응답 없는 Redis 앞에서는 명령 하나가 최대 0.5초 기다리고, 실패가 5번 이어지면 `redis` 서킷이 열려 Redis 를 부르지 않는다(5초 뒤 시험 호출). **사람이 할 일**: ① 멈췄으면(`Exited`) `docker compose up -d redis`(`-v` 금지 — 볼륨은 없지만 습관으로 막는다) ② 떠 있는데 답이 없으면 `docker compose restart redis` — Redis 에는 영속 데이터가 없다(`--save ""` · 캐시와 중계만) ③ 복구 확인: `docker compose exec redis redis-cli PUBSUB NUMSUB schoolbus:relay:ws` 가 1 이상이고 `RedisFallbackActive` 가 해소됐는지. **하지 말 것**: 이 동안 백엔드를 다시 시작하거나 배포하지 않는다. 컨테이너 헬스체크(`/actuator/health`)와 `/healthz` 는 Redis 를 포함해 DOWN(503)이다 — 실측(2026-10-18 로컬 1대 스택): Redis 가 멈춘 지 약 150초(연속 10회 실패) 뒤 컨테이너가 `unhealthy` 가 되지만 재시작 정책은 건드리지 않아 서비스는 계속되고, 그 상태에서 백엔드를 다시 시작하면 5분이 지나도 `starting` 에 머물러 배포 게이트가 통과하지 못한다. Redis 를 먼저 살린 뒤(복구 15초 안에 `healthy`) 배포한다. `/healthz` 503 은 외부 감시가 "저하" 로 알리는 정상 신호다(서비스는 계속된다) | 장애 시작 · 복구 시각 · 서킷이 열린 시간 · 한 일 |
+| Redis 멈춤 · 응답 없음(`Ruling 919` · `932`) | `docker compose ps redis` · `docker compose exec redis redis-cli ping` · 지표 `resilience4j_circuitbreaker_state{name="redis"}`(`closed` 가 0 이면 대체 경로로 도는 중 — 경보 `RedisFallbackActive`, §11.2) | **자동 대체 — 서비스는 계속된다.** 아래 "Redis 멈춤 · 응답 없음 런북" 순서대로 Redis 를 살린다. 백엔드 재시작 · 배포는 해도 된다 | 장애 시작 · 복구 시각 · 서킷이 열린 시간 · 한 일 |
 | DB 장애(전면 영향) | `docker compose ps postgres`, 헬스체크 UP 여부 확인 | 매니저 앱은 오프라인 큐로 승하차만 지속, 나머지 제품은 조회 불가. 복구 후 큐 동기화(멱등, `client_key` UNIQUE) | 장애 시작·복구 시각 |
 | 앱 인스턴스 재시작(WS 끊김·배치 중단) | `docker compose ps backend`, 재시작 로그 확인 | 자동 복구 — 클라이언트 자동 재접속, 배치는 폴링이라 놓친 회차를 다음 틱에 자동 회수. 별도 절차 부재 | 재시작 원인 |
 | 배치 밀림(확정 지연) | `schoolbus_run_confirmation_lag_seconds` 값 확인(관측 목표 8 — 값이 계속 늘면 워커 수·인스턴스 증설 신호) | 도래분은 다음 틱으로 자동 이월. 지속되면 워커 수 증설, 그다음 인스턴스(§3) | 지연 수치 추이 |
@@ -849,6 +849,28 @@ $C start backend
 | 자동 거절이 잘못 나감 | `change_request` 상태와 자동 거절 이력 확인 | 되돌리기 수단 부재 — 관계자가 ①구간 경로로 다시 처리 | 자동 거절 이력 그대로 보존 |
 | 하원 종료 보류가 안 풀림 | 미하차 학생 목록 확인 | 동승자에게 처리 요청. 강제 종료 경로는 두지 않음(미하차 상태로 회차를 끝내는 경로가 생기면 `RUN-06` 우회 가능 — 종료 보류는 결함이 아니라 아직 안 내린 아이가 있다는 신호) | 처리 요청 시각·대상 학생 |
 | 운행 시작 ±10분 창을 놓침 | 해당 없음 — `X-01`(Ruling 202)로 창을 ±10분으로 확장, 예외 절차 자체를 폐지 | 없음(정상 처리 경로로 흡수) | 없음 |
+
+
+**Redis 멈춤 · 응답 없음 런북 (`Ruling 919` · `932`)**
+
+자동으로 일어나는 일(사람이 하지 않아도 된다):
+
+1. 최신 좌표는 DB 이력(`run_position`) 최신 행으로 읽는다. 현재 정차지 이름은 비어 나간다.
+2. 방송은 이 인스턴스의 구독자에게 직접 보낸다.
+3. 승인 · 경유 지점 미리보기와 감사 묶기는 이 인스턴스 안의 기억이 받는다.
+4. 캐시 비움 신호는 각 캐시의 만료(5초)까지 낡은 값이 남는다.
+5. 위치 수신은 DB 적재가 성공하면 응답한다.
+6. 응답 없는 Redis 앞에서 명령 하나는 최대 0.5초 기다리고, 실패가 5번 이어지면 `redis` 서킷이 열려 Redis 를 부르지 않는다(5초 뒤 시험 호출로 스스로 닫는다).
+7. `/healthz` 와 컨테이너 헬스는 Redis 때문에 DOWN 이 되지 않는다. DB 가 끊기면 DOWN(503)이다. 그래서 Redis 가 멈춘 동안에도 서버는 서비스에서 빠지지 않고 백엔드를 다시 시작해도 건강해진다(로컬 1대 스택 실측: 15.9초).
+
+사람이 할 일:
+
+1. `docker compose ps redis` 로 멈춘 것(`Exited`)인지 떠 있는데 답이 없는 것인지 본다.
+2. 멈췄으면 `docker compose up -d redis`, 답이 없으면 `docker compose restart redis`. Redis 에는 영속 데이터가 없다(`--save ""` — 캐시와 중계만). `-v` 는 쓰지 않는다.
+3. 복구를 확인한다: `docker compose exec redis redis-cli PUBSUB NUMSUB schoolbus:relay:ws` 가 1 이상이고 `RedisFallbackActive` 가 해소됐는지 본다. 다시 켠 뒤 서킷은 약 3~6초 안에 닫히고 중계 구독은 약 2초 안에 선다.
+4. 장애 시작 · 복구 시각과 서킷이 열린 시간을 남긴다.
+
+하지 말 것: 없다. Redis 가 멈춘 동안 배포해도 된다. 다만 인스턴스 안 기억은 다시 시작하면 사라지므로 그 사이 열어 둔 승인 · 경유 지점 미리보기는 다시 요청해야 한다(`409 PREVIEW_STALE`).
 
 ---
 
@@ -950,7 +972,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 - 새 규칙은 전부 스크레이프 `job="backend"` 로 걸러 **부하 시험 프로파일을 보지 않는다** — 부하 시험 앱은 별도 관측 스택(`LOAD_TESTING §6`)이 다른 `job` 이름으로 긁고, 그쪽은 풀 10 · 연결 대기 100~190 · 서킷 실패 주입이 정상이다
 - ⚠ **`BackendDown` 이 울리는 동안 위 `RunUnconfirmed` · `RunPositionLost` · `PushDeliveryFailing` 은 침묵이 정상이 아니다** — 백엔드가 죽으면 Prometheus 가 그 시계열을 즉시 끝난 것으로 표시해 **이미 발화 중이던 경보도 해소로 바뀐다.** 그 사이 미확정 회차·위치 유실·푸시 실패는 지표로 볼 수 없다
 - `SchedulerStalled` 의 창(2분·1분)은 스케줄러 주기(`poll-interval-ms` 30초 · 10초)의 3~4배다 — 주기를 바꾸면 규칙의 숫자도 같이 바꾼다(`alerts.yml` 주석). 스케줄러 실행 지표(`tasks_scheduled_execution_seconds_count{code_namespace=…, outcome="SUCCESS"|"ERROR"}`)는 앱을 재기동하면 새로 시작하고 그 스케줄러의 첫 실행 때 시리즈가 생기므로, **`RetentionCleanupStalled` 는 재배포 뒤 한 번도 성공하지 못한 경우를 못 본다** — 정리가 계속 실패하는 경우는 건별 실패 카운터(`schoolbus_scheduler_failures_total`)가 따로 있다. 시리즈가 1 이상으로 태어나 `increase()` 가 0 으로 읽히는 첫 실행은 경보 식이 `unless … offset 창` 으로 걸러 낸다
-- 5xx 비율은 `/actuator/*` 와 `/healthz` 요청을 뺀다(스크레이프·헬스체크·외부 감시가 요청 수에 늘 섞이고 Redis 장애 때 헬스가 503). 관리 포트(§11.8)의 요청은 `http_server_requests` 에 잡히지 않아 앞의 제외는 운영 계열에서 할 일이 없고, 앱 포트에 남는 헬스 주소 `/healthz` 가 뒤의 제외 대상이다. 분당 6건 미만이면 판정하지 않는다 — 새벽에 한두 건 실패한 것이 비율 50% 로 보여 울리는 것을 막는 하한이다
+- 5xx 비율은 `/actuator/*` 와 `/healthz` 요청을 뺀다(스크레이프·헬스체크·외부 감시가 요청 수에 늘 섞이고 DB 장애 때 헬스가 503). 관리 포트(§11.8)의 요청은 `http_server_requests` 에 잡히지 않아 앞의 제외는 운영 계열에서 할 일이 없고, 앱 포트에 남는 헬스 주소 `/healthz` 가 뒤의 제외 대상이다. 분당 6건 미만이면 판정하지 않는다 — 새벽에 한두 건 실패한 것이 비율 50% 로 보여 울리는 것을 막는 하한이다
 
 **울렸을 때 첫 확인**
 
@@ -960,7 +982,7 @@ Grafana 는 볼륨이 없어 컨테이너를 다시 만들 때마다 SSM 값으�
 | `Http5xxRatioHigh` | Grafana 대시보드의 오류 패널 → `docker compose logs backend \| grep ERROR`. `HikariPoolWaiting` 이 같이 울리면 연결 풀 문제 |
 | `HikariPoolWaiting` | §11.5 의 쿼리 통계로 느린 쿼리 → `SELECT state, count(*) FROM pg_stat_activity GROUP BY 1`(`idle in transaction` 이 쌓이면 트랜잭션이 안 끝나는 곳) |
 | `CircuitBreakerNotClosed` | §8 "지도 API 장애" 행 — 직선거리 근사로 계속 확정되는 상태 |
-| `RedisFallbackActive` | §8 "Redis 멈춤 · 응답 없음" 행 — `docker compose ps redis` → 멈췄으면 `up -d redis`, 떠 있는데 답이 없으면 `restart redis`. 복구되면 5초 안에 서킷이 닫히고 중계 구독이 10초 안에 선다 |
+| `RedisFallbackActive` | §8 "Redis 멈춤 · 응답 없음 런북" — Redis 를 살린다. 서비스는 계속되고 백엔드 재시작 · 배포도 된다 |
 | `SchedulerStalled` | 경보 라벨 `code_namespace`(스케줄러 클래스 전체 이름)의 `tasks_scheduled_execution_seconds_count{outcome="ERROR"}` 가 느는지 보고 로그에서 그 클래스의 예외를 찾는다. 푸시 발송이 외부에서 멈춘 것이면 아웃박스가 길어진다(`FCM`) |
 | `RetentionCleanupStalled` | 새벽 00:15 전후 로그에서 `retention` 예외 · 마지막 재배포 시각(3일 안이면 이 경보는 못 본다) |
 | `RunPositionPartitionStalled` | 새벽 00:10 전후 로그에서 `run-position-partition` 예외 · `schoolbus_scheduler_failures_total` · 마지막 재배포 시각(재배포 뒤 한 번도 성공하지 못했으면 이 경보는 못 본다) |
@@ -1026,7 +1048,7 @@ sudo docker compose -f /opt/school-bus/docker-compose.prod.yml --env-file /opt/s
 
 ### 11.4 외부 가동 감시 — `/healthz`
 
-`https://api.<도메인>/healthz` 는 인터넷에서 닿는 유일한 헬스 주소다(UptimeRobot 같은 외부 감시용). backend **앱 포트**의 `/healthz`(헬스 그룹 `external` — `application.yml` `management.endpoint.health.group.external.additional-path: server:/healthz`)를 프록시하므로 응답은 `{"status":"UP"}` 뿐이고(상세는 `show-details: never`), backend 나 DB·Redis 가 DOWN 이면 503, backend 가 죽으면 502·504 라 외부 감시가 실패를 본다. 정적 200 이 아니다 — 정적 200 은 backend 가 죽어도 초록이다. IP 당 분당 30회로 제한한다(초과 429). `/actuator` 의 나머지(`prometheus` 등)는 계속 404 다. **관리 포트(§11.8)로는 가지 않는다** — 앱 커넥터가 연결 상한에 닿아 사용자가 못 붙는 동안 이 주소가 실패해야 외부 감시가 그 상태를 본다.
+`https://api.<도메인>/healthz` 는 인터넷에서 닿는 유일한 헬스 주소다(UptimeRobot 같은 외부 감시용). backend **앱 포트**의 `/healthz`(헬스 그룹 `external` — `application.yml` `management.endpoint.health.group.external.additional-path: server:/healthz`)를 프록시하므로 응답은 `{"status":"UP"}` 뿐이고(상세는 `show-details: never`), backend 나 DB 가 DOWN 이면 503(Redis 는 대체 경로가 있어 DOWN 으로 치지 않는다 — `Ruling 932`), backend 가 죽으면 502·504 라 외부 감시가 실패를 본다. 정적 200 이 아니다 — 정적 200 은 backend 가 죽어도 초록이다. IP 당 분당 30회로 제한한다(초과 429). `/actuator` 의 나머지(`prometheus` 등)는 계속 404 다. **관리 포트(§11.8)로는 가지 않는다** — 앱 커넥터가 연결 상한에 닿아 사용자가 못 붙는 동안 이 주소가 실패해야 외부 감시가 그 상태를 본다.
 
 ⚠ EC2 가 통째로 죽으면 Prometheus·Alertmanager 도 함께 죽는다 — 서버 사망은 이 외부 감시로만 알 수 있다(등록은 사용자 작업).
 
