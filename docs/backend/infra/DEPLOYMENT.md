@@ -1375,11 +1375,15 @@ class FirebasePushTokenSource implements PushTokenSource {
 
 부하 측정(L-4 · L-5) — 기준은 아래, 1대 측정 도구와 실행법은 `LOAD_TESTING §8`.
 
-- **L-4** (2대 + nginx 에서 1대와 같은 부하): `LOAD_TESTING §8.2` L-1 과 같은 판정 5항 통과 · 인스턴스 간 전달 손실 0. 손실은 두 가지로 센다. ① 위 인스턴스 간 전달 확인 — 한 대에 보낸 위치 N건 · 비상 1건을 다른 대의 구독자가 받은 건수가 보낸 건수와 같다. ② 부하 규모에서는 각 인스턴스 관리 포트(8081)의 `schoolbus_ws_relay_published_total`(그 인스턴스가 Redis 에 낸 메시지) · `schoolbus_ws_relay_received_total`(그 인스턴스가 받아 처리를 마친 메시지, 자기가 낸 것 포함)의 부하 전후 차이로 센다. 인스턴스가 N 대면 **모든 인스턴스의 received 합 = 모든 인스턴스의 published 합 × N** 이어야 하고, 어긋나면 전달 손실이다. 발행 실패 `schoolbus_ws_relay_publish_failed_total{event}` 가 0 이어야 손실 0 판정이 성립한다.
+- **L-4** (2대 + nginx 에서 1대와 같은 부하): `LOAD_TESTING §8.2` L-1 과 같은 판정 5항 통과 · 인스턴스 간 전달 손실 0. 손실은 두 가지로 센다.
+  - ① 위 표의 인스턴스 간 전달 확인 — 한 대에 보낸 위치 N건 · 비상 1건을 다른 대의 구독자가 받은 건수가 보낸 건수와 같다.
+  - ② 부하 규모에서는 각 인스턴스 관리 포트(8081)의 두 지표를 부하 전후로 뺀 차이로 센다. `schoolbus_ws_relay_published_total` 은 그 인스턴스가 Redis 에 낸 메시지, `schoolbus_ws_relay_received_total` 은 그 인스턴스가 받아 처리를 마친 메시지(자기가 낸 것 포함)다.
+  - 인스턴스가 N 대면 **모든 인스턴스의 received 합 = 모든 인스턴스의 published 합 × N** 이어야 하고, 어긋나면 전달 손실이다.
+  - 발행 실패 `schoolbus_ws_relay_publish_failed_total{event}` 가 0 이어야 손실 0 판정이 성립한다.
 - **L-5** (부하 중 한 대씩 배포 — `deploy.sh`): 클라이언트별 메시지 공백 최대값을 기록한다 · REST `5xx` 는 재기동 순간 진행 중이던 요청만.
-- 한 대 정지 확인이 가려내는 결함 찾기 — `max_fails=0` · `max_fails` 삭제 · `proxy_next_upstream off` 를 심어도 통과했다(멈춘 컨테이너를 `resolve` 가 빼기 때문). 부하 중 `resolve` 제거 + `proxy_next_upstream off` 로 `5xx` 가 늘어나는지 본다.
-- 같은 확인 6회 중 2회 세션 재접속이 54초(나머지 1초) — 원인을 보고 상한을 정한다.
-- 받은 수 < 발행 수 × 대수 를 보는 경보 또는 패널(`schoolbus_ws_relay_received_total` · `…_published_total`) — 이 인스턴스의 Redis 구독만 끊긴 틈(`Ruling 916` C)을 드러낸다.
+- 위 표의 한 대 정지 확인이 가려내는 결함 찾기 — `max_fails=0` · `max_fails` 삭제 · `proxy_next_upstream off` 를 심어도 통과했다(멈춘 컨테이너를 `resolve` 가 빼기 때문). 부하 중 `resolve` 제거 + `proxy_next_upstream off` 로 `5xx` 가 늘어나는지 본다.
+- 위 표의 한 대 정지 확인을 6회 돌렸을 때 2회는 세션 재접속이 54초(나머지 1초)였다 — 원인을 보고 상한을 정한다.
+- 위 표의 인스턴스 간 전달 확인과 별개로, 받은 수 < 발행 수 × 대수 를 보는 경보 또는 패널(`schoolbus_ws_relay_received_total` · `…_published_total`)을 둔다 — 이 인스턴스의 Redis 구독만 끊긴 틈(`Ruling 916` C)을 드러낸다.
 
 ### 15.4 알려진 한계
 
