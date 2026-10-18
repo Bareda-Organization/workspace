@@ -3,6 +3,7 @@
 코드 주석(//, ///, /* */) 안에서 경위 표지(라운드 · Phase · 날짜 · 경위 낱말 · 커밋 해시)가 든 줄을 영역별로 센다. 문자열 · 텍스트 블록 · 템플릿 안의 // 와 /* 는 주석이 아니다.
 `Ruling N` · `BR-N` · 기능 ID 는 표지가 아니다(남긴다 — query.py goal-rows 가 코드 주석에서 판정 번호를 찾는다). --check 는 baseline.json 을 넘거나 kept-lines.tsv 의 남긴 줄이 낡았으면 종료 코드 1.
 --repo backend=<워크트리> 처럼 저장소 위치를 바꿔 워크트리를 잰다. --kept <파일> 은 kept-lines.tsv 대신 그 파일을 쓴다. 범위 밖 — yml · sql · sh 주석.
+문자열 검사 — backend-main-str · backend-test-str 영역은 주석이 아니라 @Operation · @DisplayName · @AcademyScopeExempt 괄호 안과 .as · .describedAs · .withFailMessage · .overridingErrorMessage · fail 호출 괄호 안의 문자열(텍스트 블록 · `+` 로 이은 조각 포함)을 같은 표지로 센다.
 --same-code <기준 커밋> (--repo backend=<경로> 와 함께) — 기준 → 작업 트리에서 바뀐 .java 마다 주석 뺀 코드 · 설명 주석(/**) 수 · Ruling/BR 표시 집합을 비교한다. 어긋나면 종료 코드 1."""
 import json, os, re, subprocess, sys
 sys.dont_write_bytecode = True
@@ -24,10 +25,12 @@ MARK = re.compile("|".join(f"(?:{v})" for v in MARKERS.values()))
 SKIP_DIRS = {"build", "node_modules", ".dart_tool", "graft", ".next", "design-system", ".gradle"}
 # 영역 → (저장소 이름, 저장소 안 하위 경로들, 확장자)
 AREAS = {
-    "backend-main": ("backend", ["backend/src/main/java"], (".java",)),
-    "backend-test": ("backend", ["backend/src/test/java"], (".java",)),
-    "web": ("web", ["src"], (".ts", ".tsx")),
-    "mobile": ("mobile", ["apps", "packages"], (".dart",)),
+    "backend-main": ("backend", ["backend/src/main/java"], (".java",), "comment"),
+    "backend-test": ("backend", ["backend/src/test/java"], (".java",), "comment"),
+    "backend-main-str": ("backend", ["backend/src/main/java"], (".java",), "string"),
+    "backend-test-str": ("backend", ["backend/src/test/java"], (".java",), "string"),
+    "web": ("web", ["src"], (".ts", ".tsx"), "comment"),
+    "mobile": ("mobile", ["apps", "packages"], (".dart",), "comment"),
 }
 
 def comments(text, spans=None):
@@ -124,6 +127,69 @@ def same_code(repo, base):
     print(f"same-code — 비교한 파일 {n} · 어긋남 {len(bad)}")
     return 1 if bad else 0
 
+# 문자열 검사 대상 구문 — 애너테이션 3종과 단언 메시지 호출 5종
+STR_CALL = re.compile(r"@(?:[\w$]+\.)*(?:Operation|DisplayName|AcademyScopeExempt)\s*\(|\.(?:as|describedAs|withFailMessage|overridingErrorMessage)\s*\(|(?<![\w$])fail\s*\(")
+
+def string_calls(text):
+    """(줄 번호, 이어붙인 문자열) — STR_CALL 괄호 안의 문자열 리터럴(텍스트 블록 포함)을 구문마다 공백으로 이어 낸다. 주석 · 문자 리터럴 · 괄호 밖 문자열은 보지 않는다."""
+    i, n, line = 0, len(text), 1
+    while i < n:
+        c = text[i]
+        if c == "\n":
+            line += 1; i += 1; continue
+        if text.startswith("//", i):
+            while i < n and text[i] != "\n":
+                i += 1
+            continue
+        if text.startswith("/*", i):
+            j = text.find("*/", i + 2); j = n if j < 0 else j + 2
+            line += text.count("\n", i, j); i = j; continue
+        if c in "\"'":                       # 괄호 밖 리터럴은 건너뛴다
+            i, line, _ = read_literal(text, i, line); continue
+        m = STR_CALL.match(text, i) if c in "@.f" else None
+        if not m:
+            i += 1; continue
+        i, depth, first, parts = m.end(), 1, None, []
+        while i < n and depth:
+            c = text[i]
+            if c == "\n":
+                line += 1; i += 1
+            elif text.startswith("//", i):
+                while i < n and text[i] != "\n":
+                    i += 1
+            elif text.startswith("/*", i):
+                j = text.find("*/", i + 2); j = n if j < 0 else j + 2
+                line += text.count("\n", i, j); i = j
+            elif c in "\"'":
+                start_line = line
+                i, line, lit = read_literal(text, i, line)
+                if lit is not None:
+                    first = start_line if first is None else first
+                    parts.append(lit)
+            else:
+                depth += (c == "(") - (c == ")"); i += 1
+        if parts:
+            yield first, " ".join(parts)
+
+def read_literal(text, i, line):
+    """text[i] 의 문자열 · 텍스트 블록 · 문자 리터럴을 읽어 (다음 위치, 줄 번호, 내용) — 문자 리터럴이면 내용 None."""
+    n, q = len(text), text[i]
+    if text.startswith('"""', i):
+        j = i + 3
+        while j < n and not text.startswith('"""', j):
+            j += 2 if text[j] == "\\" else 1
+        body = text[i + 3:j]
+        return j + 3, line + body.count("\n"), " ".join(body.split())
+    j = i + 1
+    while j < n and text[j] != q and text[j] != "\n":
+        j += 2 if text[j] == "\\" else 1
+    if j < n and text[j] == "\n":  # 줄 끝에서 닫히지 않은 리터럴 — 줄바꿈을 먹으면 이어지는 줄 번호가 밀린다
+        return j, line, None
+    return j + 1, line, (text[i + 1:j] if q == '"' else None)
+
+def str_hits(text):
+    return [(ln, t) for ln, t in string_calls(text) if MARK.search(t)]
+
 def hits(text):
     return [(ln, c.strip()) for ln, c in comments(text) if MARK.search(c)]
 
@@ -147,13 +213,13 @@ def load_kept(p):
 def measure(repos, kept):
     """영역 → {'lines': [(경로, 줄, 주석)], 'kept': 수} · 쓰인 kept 항목 집합"""
     out, used = {}, set()
-    for area, (repo, subs, exts) in AREAS.items():
+    for area, (repo, subs, exts, kind) in AREAS.items():
         root = repos[repo]
         rows, k = [], 0
         for sub in subs:
             for p in files(root, sub, exts):
                 rel = os.path.relpath(p, root)
-                for ln, c in hits(open(p, encoding="utf-8", errors="ignore").read()):
+                for ln, c in (str_hits if kind == "string" else hits)(open(p, encoding="utf-8", errors="ignore").read()):
                     m = [j for j, e in enumerate(kept) if e[0] == area and e[1] == rel and e[2] in c]
                     if m:
                         used.update(m); k += 1
@@ -188,6 +254,39 @@ class A {
     want["more"] = [True, True, True, True, True, True, False, False, True, True, True, True, False, False]
     got["joined"] = [bool(JOINED.search(t)) for t in (" * 계속 늘어난다. *", " * 성립하지 않는다.     */", " *", " */", " * <p>문단")]
     want["joined"] = [True, True, False, False, False]
+    # 문자열 검사 — 종류마다 경위 표지가 든 것(양)과 든 것이 없거나 대상 밖인 것(음)
+    sj = '''@Operation(summary = "R58 에서 추가한 조회")
+@Operation(summary = "목록 조회", description = "학생 목록을 준다")
+@DisplayName("Phase 3 이후 동작")
+@DisplayName("Ruling 903 · BR-5 를 지킨다")
+@AcademyScopeExempt("2026-10-01 에 면제")
+@AcademyScopeExempt(reason = "로그인 전이라 학원이 없다")
+void t() {
+  assertThat(x).as("당시 값").isEqualTo(1);
+  assertThat(x).as("현재 값이다").isEqualTo(1);
+  assertThat(x).describedAs("R50 라운드 기록").isTrue();
+  assertThat(x).describedAs("정상 값").isTrue();
+  assertThat(x).withFailMessage("이전에는 달랐다").isTrue();
+  assertThat(x).withFailMessage("달라서는 안 된다").isTrue();
+  assertThat(x).overridingErrorMessage("커밋 a1b2c3d 에서 바뀜").isTrue();
+  assertThat(x).overridingErrorMessage("바뀌면 안 된다").isTrue();
+  fail("Phase 7 에서 도입된 경로");
+  fail("도달하면 안 되는 경로");
+  assertThat(x).as(\"\"\"
+      여러 줄 메시지 R57
+      \"\"\").isTrue();
+  assertThat(x).as("앞 조각 " + y + " 뒤 조각 " +
+      "2026-10-17 결정").isTrue();
+  @org.junit.jupiter.api.DisplayName("패키지 이름을 붙여도 R57 은 센다")
+  void q() {}
+  String plain = "R57 은 일반 문자열이라 세지 않는다";
+  // .as("R57 주석 안의 호출") 도 세지 않는다
+  assertThat(x).as("쓰이는 값").isTrue(); char q = '"';
+}'''
+    got["unterminated"] = [ln for ln, _ in str_hits('String s = "닫히지 않은 리터럴\n@DisplayName("R57 이후")\n')]  # 줄 끝에서 끝난 리터럴이 다음 줄 번호를 밀면 안 된다
+    want["unterminated"] = [2]
+    got["str"] = [ln for ln, _ in str_hits(sj)]
+    want["str"] = [1, 3, 5, 8, 10, 12, 14, 16, 18, 21, 23]
     ok = got == want
     print("selftest", "OK" if ok else f"FAIL got={got} want={want}")
     return 0 if ok else 1
