@@ -64,6 +64,8 @@ Boot 4 특유의 아티팩트 분리(주석이 `build.gradle`에 상세히 있�
 
 ## test-runner
 
+- **실서버 계약 시험(웹 · 앱) 정식 명령** — 서버는 `fixture` 시드(`local,fixture`)로 띄우고, **학부모 앱은 `--dart-define=FIXTURE_DB=schoolbus` 를 반드시 붙인다**(빼면 `real_backend_p5_test` "목표 8" 이 건너뛰어 28건 중 27건만 돈다 — R59 단계 1 실측). 판정은 실패 0 · **건너뜀 0**(웹은 의도된 1건 제외) · 이미지는 병합 커밋 뒤에 다시 빌드
+
 ```bash
 cd backend
 ./gradlew test -PtestDbUrl=jdbc:postgresql://localhost:15432/<전용 DB 이름>              # 전체
