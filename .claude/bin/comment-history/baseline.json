@@ -1,6 +1,8 @@
 {
  "backend-main": 0,
  "backend-test": 0,
+ "backend-main-str": 0,
+ "backend-test-str": 0,
  "web": 404,
  "mobile": 362
 }
