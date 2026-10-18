@@ -662,6 +662,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 
 | 항목 | 내용 | 처리 |
 |---|---|---|
+| **R60 — 서버 2대 기동 제거 · Redis 장애 대비 · CI 단축 · 권한 전수 시험 · 문자열 경위 · 지도 코드 합치기**(2026-10-18 · 사용자 "다음 라운드") | `918` · `919` · `920` · `917` C · 판정 929 · 작업 창 4개(BE-SCALE · BE-REDIS · BE-PERM · MOBILE) | **진행** — 계획 · 목표 표 §8.111 |
 | **R59 — 서버 2대 대비 · 2 vCPU 부하 재측정**(2026-10-17 · 사용자 "다음 계획까지 만들어줘") | Redis Pub/Sub 중계 · 미리보기 캐시 Redis · 캐시 비움 전파 · 2대 compose · 한 대씩 배포 · 부하 재측정(1대 2 vCPU · 2대) · 판정 900 · 단계 1 작업 창 2개(BE-SCALE · INFRA) → 병합 → 단계 2 측정 창 1개 | **완료**(2026-10-18) — 단계 1 · 2 결과 §8.110 「R59 단계 1 결과」 · 「R59 단계 2 결과」 · 판정 915~927 · backend `2b5699ba` · 작업 공간 `44f722c`(단계 2 push 안 함). 운영 1대(`917` · `918`) · 운영 기계 = 집 PC 16GB(`922`) · 목표 규모 통과(L-1 · L-2 · L-3 · L-6) · J-1 반영(`927`). 다음 = R60 |
 | **R58 — 과설계 정리 · 무중단 토큰 교체 제거**(2026-10-17 · 사용자 "1. 없애줘, 하지만 추후 고도화 계획에 넣어는 줘 2. 새로운 라운드로 진행") | 과설계 점검 정리(주석 경위 · 시험 도우미 · 문자열 대조 시험 · `@Can` · 기본 계측 · 앱 공통 패키지 · 안 쓰는 위젯 · 웹 재접속 · API 응답 변환) + 무중단 토큰 교체 제거 · 판정 901~903 · 단계 1 작업 창 3개(BE-CODE · web · mobile) → 병합 → 단계 2 백엔드 주석 창 1개 | **완료**(2026-10-18) — 1단계 결과 §8.109 「R58 1단계 코드 결과」 · 판정 906~912 · 2단계(백엔드 주석 C-1~3) 결과 「R58 2단계 결과」 · 판정 913~914 · backend `16678c0f` · 작업 공간 `c1ecc7f`. **다음 라운드로 넘김** — 문자열 안의 경위(Swagger `@Operation` 설명 · 시험 `@DisplayName` · `@AcademyScopeExempt` 사유 · 단언 메시지 — 주석이 아니라 동작이 바뀌어 2단계 계약 밖) · M-5 지도 연결 코드 합치기(화면 확인과 함께 · `906`) · 엔드포인트 → 권한을 전수로 고정하는 시험(B-1 결함 심기를 컨트롤러 시험만 잡음 — 인가 결함 종류) · 작업 창의 `GRAFT_SKIP` 289회(검색 차단 훅을 비켜 감 — 지시서 · 훅 손볼 것). **알려 둠** — 매니저 앱 오프라인 대기열 DB 가 스키마 5 → 1 이라 옛 빌드가 깔린 기기는 재설치 · 웹 관리자 반려 사유 대화상자 간격 14 → 12px 눈 확인 안 함 |
 | **R57 — 구조 점검 결과 전부 수정 + 옛 R57 작은 항목**(2026-10-17 · 사용자 "전부 고칠꺼고 계획만 잡아줘") | 아키텍처 · 데이터 접근 · 스레드 · 메모리 · WebSocket 점검 지적 전부(1대 운영 결함) + 옛 R57 6개 · 판정 898~899 · 작업 창 5개(BE-RT · BE-DATA · BE-ARCH · web · mobile) + 조율자 문서 | **완료**(2026-10-17) — 결과 §8.108 「코드 결과」 · 판정 898~899 · 904~905. R53 열린 항목 "`880` 요청당 기본키 조회 1회" 닫힘(`899` A · 실제 요청 경로 위치 1건 SQL 3). **R58 로 넘김** — 웹 `handleUnauthorized()` 를 `Ruling 905` 에 맞춤(R58 W-5 웹 재접속 교체와 같은 코드) · RT-5 를 실제 요청 경로로 고정하는 시험(`RunPositionQueryCountTest` 를 캐시 5초로 · 데워진 요청 3건 단언 — 시험 JVM 은 `build.gradle` 이 캐시를 0초로 둔다) · `student.dto.RoadPoint` 가 `routing.domain.GeoPoint` 의 거리 계산을 복제(위경도 범위 검사 없음 → `GeoPoint` 를 `global` 로 옮겨 하나로). **알려 둠** — 학생 사진 응답 `Cache-Control: private, max-age=1일` 이라 매니저 앱 디스크 캐시가 사진 변경 뒤 최대 하루 옛 사진(로그아웃 때 지움) · 매니저 앱 새 네이티브 의존성은 Android 빌드만 확인(iOS 미확인) |
@@ -1371,6 +1372,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 926 | 목표 규모에 닿았으면 더 재지 않음 — 4코어 8GB E · E2 뺌 · L-6 5배(DB 커넥션 포화 · 여유 1~5배 미만)는 기록만 · L-3 결함 심기는 짧은 회차로 | 본문 §8.110 |
 | 927 | J-1 — 운영 backend `mem_limit 8192m` · `MaxRAMPercentage=50` · `MaxDirectMemorySize=256m` · L-1 확인 1회 · R60 집 PC 전환 전 EC2 배포 금지 | 본문 §8.110 |
 | 928 | 배포 전환(`922` C)을 계획에서 뺌 — R60 범위는 918 · 919 · 920 · 917 C · `927` 의 EC2 배포 불가 경고는 남음 | 본문 §8.110 |
+| 929 | R60 착수 조정 — 갈래 4개 동시 · 파일 주인 · CI 는 작업 브랜치를 원격에 올려 측정(사용자) · Sentinel 기준 = 멈춘 동안 실패 0 · 복구 10초(사용자) · 지우는 파일은 사용자 `!` 명령 · 반려 대화상자 캡처는 t4 | 본문 §8.111 |
 
 
 ## 8.73 ⚖ `R46-BE` — 성능 개선(감사 제외) + 바로 고칠 것 (2026-10-01 · 분기점 `ea37ba6c` · 번호대 410~419 · 백엔드 갈래)
@@ -2801,3 +2803,52 @@ Code navigation uses the graft CLI with the repo folder as the last argument (`b
 - **검증** — round-verify 1회: 측정 창 "수정"(목표 7/7 · HIGH 0 · MEDIUM 3) · 문서 창 "통과" → 후속 1건으로 고침: 판정 도구가 재야 할 채널에 표본이 없으면 3항 미통과(관측자 결함을 가린 빈틈 · `p59L1_a` → 종료 코드 1 · 조율자가 다시 심어 확인) · L-2 ERROR 프레임 0건도 기록 · L-1 단서 · L-4 · L-5 기준 이동
 - **시험 도구에서 고친 결함 8가지**(모두 k6 · 판정 쪽) — 관측자가 남의 학원 채널 구독(→ 회차 2개 위치 0건) · 관측자 · 새 시나리오 하트비트 누락(서버가 60초 무수신 세션을 닫음) · REST keep-alive 가 연결 상한을 채움 · 지표를 앱 포트에서 읽음(→ 관리 포트) · k6 임계 값 `true`(= 어김) 를 거꾸로 읽음 · 위치 송신 VU 10분 고정 · 재접속 구간 밖 계수 · k6 한 프로세스에 세션 3,200 + 송신(→ 프로세스 분리)
 - **알려 둠** — ⚠ 배포 경로는 아직 EC2 `t3.medium`(4GB)이라 8GB 상한과 맞지 않는다 → 배포 경로를 집 PC 로 바꾸기 전에는 EC2 로 배포하지 않는다(`927` · 배포 전환은 `928` 로 계획에서 뺐다). nginx 없이 백엔드에 직접 붙는 구성이라면 톰캣 연결 상한 4,000 이 동시 재접속의 한계가 된다
+
+## 8.111 ⚖ `R60` — 서버 2대 기동 제거 · Redis 장애 대비 · CI 단축 · 권한 전수 시험 · 문자열 경위 · 지도 코드 합치기 (진행 · 2026-10-18 · 번호 929~ · 사용자 결정 `917` C · `918` · `919` · `920` · `928`)
+
+사용자 지시(2026-10-18) — *"다음 라운드"*. 범위는 `928` 이 고정한 `918` · `919` · `920` · `917` C. 근거 커밋 backend `2b5699ba` · web `0de406c` · mobile `cefac15` · 작업 공간 `38f8685`.
+
+조율자 확인(2026-10-18) — 제품 코드에서 `StringRedisTemplate` 을 직접 쓰는 클래스 6개(`BroadcastRelay` · `AuditRecorder` · `CacheEvictionRelay` · `RedisApprovalPreviewCache` · `RedisWaypointPreviewCache` · `RunPositionStore` — `graft grep` · 리스너 컨테이너 · 연결 설정 사용처는 세지 않음) · Redis 명령 시간 상한 500ms(`application.yml` `spring.data.redis` · BR-166)와 경보 `CircuitBreakerNotClosed` · `WebSocketRelayPublishFailing` 은 이미 있다 · Redis 에 시도 횟수 제한 · 잠금 · 인증번호를 두는 코드는 찾지 못함(`git grep -il redis` 36파일 훑음 — 창이 전수로 다시 센다) · 두 노드를 만드는 시험 클래스 후보 6개(`AuditRecorderTwoInstanceDedupTest` · `CacheEvictionRelayTest` · `BroadcastRelayEveryEventTest` · `BroadcastRelayRedisTest` · `RedisApprovalPreviewCacheTest` · `RedisWaypointPreviewCacheTest` — 앱 컨텍스트가 아니라 객체 · 중계 2벌) · 개발 postgres `max_connections=300`.
+
+| Ruling | 판정 | 근거 |
+|---|---|---|
+| **929** | **R60 착수 조정**(조율자 결정 + 사용자 답 · 뒤집기 가능 · 2026-10-18) — **A. 갈래 4개 동시** — t1 BE-SCALE(`918` + `920` — 같은 시험 · 워크플로 파일을 고치므로 한 창) · t2 BE-REDIS(`919`) · t3 BE-PERM(`917` C 백엔드 — 권한 전수 시험 + 문자열 경위) · t4 MOBILE(`917` C M-5 + R58 넘김 반려 대화상자 캡처). 모두 `claude-sonnet-5-5[1m]` · `high`. **B. 파일 주인** — 아래 「R60 갈래」 표. 같은 파일의 다른 줄(t1 이 시험 클래스 머리의 컨텍스트 설정을 바꾸고 t3 가 같은 파일의 `@DisplayName` 을 고침)은 허용하고, 병합은 t1 → t2 → t3 순서 · 충돌은 조율자가 푼다. **C. CI 측정**(사용자 답 "작업 브랜치를 원격에 올려 측정") — t1 이 `.env` 값 대조 뒤 측정 브랜치와 결함 하나 심은 브랜치를 원격에 올려 `gh workflow run ci --ref <브랜치>` 로 돌리고, 시간을 잰 뒤 원격 브랜치를 지운다. 병합본은 사용자가 main 을 push 할 때 조율자가 한 번 더 잰다(G-4). **D. Sentinel 판단 기준**(사용자 답 "실패 0 · 복구 10초") — 멈춤 연습에서 Redis 가 멈춘 동안 Redis 와 무관한 REST 의 5xx 0 · 위치 송신 실패 0, 다시 켠 뒤 중계 구독 복구 10초 안. 고친 뒤에도 하나라도 넘으면 Sentinel 을 사용자에게 다시 묻는다(이번 라운드에 만들지 않는다). **E. 지우는 파일**은 착수 전에 사용자 `!` 명령으로 지운다(Skill `parallel-agents` 「시험 파일을 지우는 일은 자동 승인 분류기가 막는다」 절 — 자동 승인이 시험 · 점검 스크립트 삭제를 거부한다) — `918` 이 이름으로 정한 15개. 시험 클래스 삭제 · 축소는 창이 지울 것 · 컨텍스트 1개로 줄일 것을 나눈 뒤 묻는다. **F.** 반려 사유 대화상자 간격 캡처(R58 넘김 · 사용자가 고른 준비 거리)는 t4 가 화면 확인 때 함께 한다(읽기 전용) | 같은 저장소 3창 — R59 단계 1 은 2창이 줄 겹침 없이 병합됐다. CI 단축의 "후" 시간은 2대 시험 정리 · 새 Redis 시험이 다 들어간 병합본에서만 확정된다 |
+
+### R60 갈래 (Orca 작업 창 4개 · 동시)
+
+| 창 | 저장소 · 작업 공간 | 맡는 것(파일 주인) |
+|---|---|---|
+| t1 BE-SCALE | backend `r60-be-scale` + 작업 공간 `r60-scale-docs` | 지우는 2대 파일 · 두 노드를 만드는 시험 클래스(위 6개) · 시험 공통 설정(컨텍스트 재사용 · `build.gradle` 시험 블록) · `.github/**` · `infra/scripts/deploy.sh` · `docker-compose*.yml` · `infra/proxy/**` · `infra/observability/prometheus/{backend-targets,prometheus}*` · backend `CLAUDE.md` · `README.md` · 문서 `DEPLOYMENT §1 · §5 · §15` · `ARCHITECTURE §9.5` · `TECH_DECISIONS §16` · `LOAD_TESTING` |
+| t2 BE-REDIS | backend `r60-be-redis` + 작업 공간 `r60-redis-docs` | Redis 사용처 제품 코드 · `application*.yml` 의 `spring.data.redis` · `resilience4j` · `management.health` · `alerts*.yml` · 새 시험 클래스(기존 6개는 t1 몫) · 새 연습 스크립트 · k6 새 파일 · 문서 `TECH_DECISIONS §14` · `DEPLOYMENT §8 · §11` · `ARCHITECTURE §14` |
+| t3 BE-PERM | backend `r60-be-perm` + 작업 공간 `r60-perm-docs` | 새 권한 전수 시험 · 문자열 4종(t1 · t2 주인 파일 밖) · `.claude/bin/comment-history/` · 문서 `CODE_CONVENTIONS` · 사양 어긋남은 묻고 `API_SPEC` · `FEATURE_SPEC` |
+| t4 MOBILE | mobile `r60-mobile` | mobile 전부 · 문서 `docs/frontend/**` 는 보고서 ② 로(조율자가 옮김) · web 은 읽기 전용(캡처) |
+
+### R60 목표 표 (착수 때 `.claude/r60/GOALS.md` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
+
+| ID | 조건 | 명령 | 결함 심기(✱) |
+|---|---|---|---|
+| S-1 | 2대 기동 파일 0 — `918` 목록 15개(`docker-compose.scale.yml` · `docker-compose.scale-local.yml` · `infra/proxy/backend-pool.scale.conf` · `infra/observability/prometheus/backend-targets.scale.yml` · `infra/scale-check/placeholder.env` · `infra/scripts/{check-cross-instance,check-instance-failover,check-rolling-restart,check-scale-stack,check-deploy-delivery,rolling-restart,scale-stack}.sh` · `backend/load/k6/r59_{cross_instance,failover}.js`)가 저장소에 없고 그 이름 · `BACKEND_INSTANCES` 를 가리키는 줄 0 | `git ls-files` · `git grep -nE 'scale\.yml\|scale-local\|backend-pool\.scale\|targets\.scale\|scale-check\|check-cross-instance\|check-instance-failover\|check-rolling-restart\|check-scale-stack\|check-deploy-delivery\|rolling-restart\|scale-stack\|r59_cross\|r59_failover\|BACKEND_INSTANCES'` → 0 | — |
+| S-2 | 시험이 인스턴스 · 중계 · 미리보기 캐시를 2벌 만드는 곳 0 — 교차 단언만 있던 시험은 지우고, 1대 동작도 보던 것은 1벌로 줄여 남긴다(방송 중계 · 미리보기 캐시 2개 · 비움 채널 · 감사 묶기의 1대 시험이 각 1건 이상 통과) | 창이 정한 세기 명령(보고서 ③) → 0 · 해당 클래스 결과 XML | ✱ `BroadcastRelay` 수신 쪽이 자기 인스턴스가 발행한 메시지를 버리게 → 1대 방송 시험 실패 |
+| S-3 | 배포 경로 1대 — `deploy.sh` · `deploy-backend.yml` 에 2대 분기 0 · 운영 compose 를 읽는 시험(`global.infra`) 실패 0 · 건너뜀 0 | `git grep` · 시험 | — |
+| S-4 | 문서 — `DEPLOYMENT §15` 는 "운영 1대 · 2대로 늘릴 때 준비된 것과 새로 할 것"(옛 `§15.9` 내용 포함) 짧은 절 · `ARCHITECTURE §9.5` 운영 1대 명시 · `LOAD_TESTING` · `TECH_DECISIONS §16` · backend `CLAUDE.md` 가 지운 파일을 가리키지 않는다 | S-1 의 `grep` 을 `docs/` 에(`IMPLEMENTATION_PLAN.md` · `docs/archive/` 밖) → 0 · 닿는 곳 표 `touch-t1.md` | — |
+| C-1 | promtool 단계 ≤ 30초(전 140초 · `gh run view 39057522603`) | `gh run view <id> --json jobs` 단계 시간 | — |
+| C-2 | CI 시험 단계 ≤ 6분(전 491초) · CI 전체 ≤ 9분(전 13분 10초) · 시험 수 = 전 − 지운 시험 + 새 시험 · 실패 0 · 건너뜀 0 | `gh run view` · 결과 XML 수 | — |
+| C-3 | 스프링 시험 컨텍스트 생성 수가 줄었다(전 N → 후 M) · 병렬 실행을 켰다면 시험끼리 DB · Redis 데이터를 밟지 않는다는 근거 | 세는 방법은 창이 정해 보고서 ③ 에 적음 | — |
+| C-4 | 결함 하나 심은 커밋의 CI 결론이 `failure` 다(병렬 · 컨텍스트 재사용 뒤에도) | 심은 브랜치 `gh run view` · 실패 시험 이름 | ✱ 이 행 자체(S-2 의 심기와 같은 결함) |
+| R-1 | Redis 사용처 전수 표 — 제품 코드에서 Redis 를 직접 쓰는 클래스(템플릿 · 연결 팩터리 · 리스너 컨테이너 주입) 전부가 `TECH_DECISIONS §14` 표에 1:1 · 행마다 대체 경로 · 보안 사용처 여부 | `graft callers` · `graft grep` 목록과 표 행 대조 → 차이 0 | — |
+| R-2 | 사용처마다 Redis 가 멈춘 동안(컨테이너 정지 · 응답 없음 두 가지)의 대체 경로 시험 — 캐시 · 중계 · 최신 좌표는 DB 또는 직접 처리로 성공 · 보안 사용처가 있으면 거절(fail-closed) | 새 시험 클래스 결과 XML | ✱ 한 사용처의 대체 경로를 예외 다시 던지기로 → 그 사용처 시험만 실패 |
+| R-3 | 응답 없는 Redis(`docker pause`) 앞에서 요청 스레드가 묶이지 않는다 — 명령 시간 상한 + 차단 장치(resilience4j): 실패가 이어지면 Redis 를 부르지 않고 곧바로 대체 경로 · 회복되면 자동으로 Redis 경로 | 시험(응답 시간 상한 · 차단 장치 상태 전이 · 복귀) | ✱ 설정 쪽 — 창이 그 성질을 지키는 설정을 찾아 심기를 제안하고 묻는다 |
+| R-4 | 대체 경로로 도는 동안을 지표 · 경보로 본다 — 경보 규칙 + promtool 시험(첫 실패 계열 포함 — `Ruling 911` ③) | promtool | ✱ 경보 식 문턱을 바꿈 → promtool 실패 |
+| R-5 | 멈춤 연습(1대 · 부하 중 · `docker kill` · `docker pause` 각 1회 · 스크립트로 고정 · 작은 회차 먼저) — 멈춘 동안 Redis 무관 REST 5xx 0 · 위치 송신 실패 0 · 다시 켠 뒤 중계 구독 복구 ≤ 10초(`929` D) · 놓친 방송을 클라이언트가 메우는 시간 · DB 질의 · Hikari 대기 · 응답 시간 변화 · 지도 API(stub) 호출 수가 멈춤 전후 같은 비율 · `/healthz` 와 그때 nginx · 외부 감시가 하는 일 기록 | 새 스크립트 종료 코드 0 + 출력 | 작은 회차에서 문턱이 실패할 수 있음을 보인다(예: 복구 상한 1초 → 실패) |
+| R-6 | 문서 — `TECH_DECISIONS §14` 사용처 표 · 대가(`919` B ⑤) · Sentinel 판단(`929` D 결과) · `DEPLOYMENT §8` 런북(Redis 멈춤 때 할 일) · `§11` 경보 표 | 닿는 곳 표 `touch-t2.md` | — |
+| P-1 | 엔드포인트 → 권한 전수 고정 시험 — 핸들러 매핑의 모든 엔드포인트가 표(엔드포인트 → `@Can` 권한 · 공개 · 인증만)의 행과 1:1 · 표의 값은 사양(`API_SPEC` 각 절 「권한」 · `FEATURE_SPEC §6`)과 대조한 것 · 어긋남은 묻는다 | 시험 결과 XML | ✱ 한 컨트롤러 메서드의 `@Can` 권한을 다른 권한으로 → **이 시험** 실패 · ✱ 표에 없는 엔드포인트 하나 추가 → 실패 |
+| P-2 | 문자열 안 경위 0 — 백엔드 `@Operation` 설명 · `@DisplayName` · `@AcademyScopeExempt` 사유 · 단언 메시지(`as` · `describedAs` · `withFailMessage` · `overridingErrorMessage` · `fail`)에 라운드 · Phase · 날짜 · 지난 목표 번호 · 경위 문장 0(`Ruling N` · `BR-N` · 기능 ID 는 남김 — `913` · `914` 와 같은 기준) · 측정 스크립트가 문자열도 센다 · 기준치 0 · `--selftest` | `comment_history.py --check`(문자열 포함) 종료 코드 0 — 병합본에서 한 번 더 | ✱ 경위 문자열 하나를 되살림 → 종료 코드 1 |
+| P-3 | 규칙 문서 — `CODE_CONVENTIONS §19` 에 "문자열(위 4종)에도 경위를 쓰지 않는다" | `grep -c` | — |
+| M-1 | 지도 연결 코드가 `baraeda_app` 에 1벌 — 두 앱의 `core/map/map_surface.dart` · `core/map/naver/naver_map_adapter.dart` 가 공용 패키지로 · 앱별 차이(학부모 번호 핀 · 부드러운 이동 · "버스 없이 맞추기" ↔ 매니저 경유지 칩 · 건너뛴 정류장 · "버스 2km 안 포함해 맞추기")는 앱 쪽 설정 · 콜백 · "SDK 타입은 이 파일 밖에 없음" 경계 시험 유지 | `git ls-files` · 경계 시험 · `scripts/verify.sh` | ✱ 공용 어댑터 밖 파일 하나에 SDK 타입 import → 경계 시험 실패 |
+| M-2 | 두 앱 시뮬레이터 화면 확인 — 학부모: 지도 · 번호 핀 · 버스 부드러운 이동 · 맞추기 / 매니저: 경유지 칩 · 건너뛴 정류장 · 맞추기 — 합치기 전 · 후 캡처 쌍 · 앱 종료 0 | 캡처 파일(라운드 폴더) + 비교 표 | — |
+| M-3 | 앱 verify 통과(core · ui · app · 매니저 · 학부모 시험 수 · 실패 0 · 건너뜀 0) · APK 2개 빌드 | `scripts/verify.sh` | — |
+| M-4 | 웹 관리자 반려 사유 대화상자 간격 12px 화면 캡처(R58 넘김) | 캡처 파일 | — |
+| G-1 | backend 병합본 전체 시험 실패 0 · 건너뜀 0 | `scripts/test.sh --rerun` 결과 XML | — |
+| G-2 | 깨진 참조 0 · 규칙 사본 검사 · 주석 · 문자열 경위 검사(병합본) 통과 · 닿는 곳 표 마지막 칸 채움 | `query.py` · `.claude/bin/` 스크립트 | — |
+| G-3 | 실서버 계약 시험(이미지 새로 빌드) — 웹 · 학부모(`FIXTURE_DB=schoolbus`) · 매니저 실패 0 · 건너뜀 0(웹 의도 1 제외) | `.claude/PROJECT_NOTES.md` 정식 명령 | — |
+| G-4 | main push 뒤 CI 단계별 시간(C-1 · C-2 와 같은 방식) | `gh run view` | — (사용자 push 뒤) |
