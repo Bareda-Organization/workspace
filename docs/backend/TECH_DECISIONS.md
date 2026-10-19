@@ -102,9 +102,7 @@ Spring Security 는 기능이 넓어 "쓴다"만으로는 범위가 안 잡힌�
 ```java
 public enum Permission {
     STUDENT_READ_BASIC, STUDENT_READ_SENSITIVE, STUDENT_READ_PHOTO, STUDENT_WRITE,
-    ROSTER_READ, BOARDING_WRITE, BOARDING_REVERT,
-    RUN_START, RUN_ARRIVE, DELAY_NOTIFY,
-    EMERGENCY_RAISE, EMERGENCY_ACK, EXCEPTION_REPORT,
+    ROSTER_READ, EMERGENCY_RAISE, EMERGENCY_ACK, EXCEPTION_REPORT_READ,
     ROUTE_READ, ROUTE_MANAGE, INTENT_WRITE, CHANGE_REQUEST_WRITE, CHANGE_APPROVE,
     SIGNUP_APPROVE, MANAGER_MANAGE, BUS_MANAGE, SCHEDULE_MANAGE,
     MONITOR_ACADEMY, MONITOR_ALL, NOTIFICATION_LOG_READ,
@@ -114,18 +112,16 @@ public enum Permission {
 // 역할 → 권한. 이 파일 하나가 FEATURE_SPEC §6.2 의 정본 구현
 static final Map&lt;Role, Set&lt;Permission&gt;&gt; ROLE_PERMISSIONS = Map.of(
     ESCORT, EnumSet.of(ROSTER_READ, STUDENT_READ_BASIC, STUDENT_READ_PHOTO,
-                       BOARDING_WRITE, BOARDING_REVERT, DELAY_NOTIFY,
-                       EMERGENCY_RAISE, EXCEPTION_REPORT, ROUTE_READ),
-    // DRIVER 에는 BOARDING_* 와 DELAY_NOTIFY 가 부재 — 운전 중 조작 차단 (C-06 · M-05)
+                       EMERGENCY_RAISE, ROUTE_READ),
+    // 승하차 · 지연 알림 · 운행 시작 · 예외 보고는 상수가 아니라 서비스 계층이 역할과 회차 배치로 판정 (C-06 · M-05)
     DRIVER, EnumSet.of(ROSTER_READ, STUDENT_READ_BASIC, STUDENT_READ_PHOTO,
-                       RUN_START, RUN_ARRIVE,
-                       EMERGENCY_RAISE, EXCEPTION_REPORT, ROUTE_READ)
+                       EMERGENCY_RAISE, ROUTE_READ)
     // ...
 );
 ```
 
 ```java
-@PreAuthorize("hasPermission('BOARDING_WRITE')")
+@PreAuthorize("hasPermission('EMERGENCY_RAISE')")
 ```
 
 **권한을 토큰에 싣지 않는다.** JWT 에는 `role` 만 넣고 권한은 서버가 매핑에서 유도한다. 토큰에 권한 목록을 실으면 **매핑을 고쳐도 기존 토큰이 옛 권한을 그대로 들고 다닌다** — refresh 만료까지 최대 며칠. 역할 하나는 계정 상태와 함께 어차피 검증하므로 유도 비용이 없다.
