@@ -187,7 +187,7 @@ Container(color: const Color(0xFF1F5C4D))
 
 ## 9. 금지
 
-- **주석에 경위 서술** — 라운드 · Phase · 날짜 · "어떻게 여기까지 왔는가" 는 커밋 메시지와 `IMPLEMENTATION_PLAN` 에 둔다(`Ruling 903` A). 남기는 것은 무엇 · 왜 · 지켜야 할 조건 문장과 `Ruling N` · `BR-N` · 기능 ID 표시. 기존 경위 문단은 그 파일을 고칠 때 함께 지움
+- **주석에 경위 서술** — 라운드 · Phase · 날짜 · "어떻게 여기까지 왔는가" 는 커밋 메시지와 `IMPLEMENTATION_PLAN` 에 둔다(`Ruling 903` A). 남기는 것은 무엇 · 왜 · 지켜야 할 조건 문장과 `Ruling N` · `BR-N` · 기능 ID 표시. 기존 경위 문단은 그 파일을 고칠 때 함께 지움 · **시험 이름 · 단언 메시지 문자열에도 경위를 쓰지 않음** — `group` · `test` · `testWidgets` 의 이름 인자 · `reason:` · `fail` 메시지. 작업 공간의 경위 검사(`.claude/bin/comment-history/` · 영역 `mobile` · `mobile-str`)가 주석과 이 문자열을 셈(`Ruling 935`)
 - `print` — `logger` 사용
 - `dynamic` 남용 · `as` 로 강제 캐스팅
 - `!`(null 단언) — `??` · `?.` · 조기 반환으로 대체

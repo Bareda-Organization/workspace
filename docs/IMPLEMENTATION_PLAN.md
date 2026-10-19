@@ -662,6 +662,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 
 | 항목 | 내용 | 처리 |
 |---|---|---|
+| **R61 — 쓰지 않는 권한 상수 · 사양 「권한」 빈 줄 · DB 대체 위치의 정류장 이름 · 웹 · 앱 주석 · 문자열 경위**(2026-10-19 · 사용자 "r61 진행") | 상수 6개 삭제 · 「권한」 줄 29개 · 대체 위치 정류장 이름 · 경위 web 404 · mobile 354줄 + 문자열 · 판정 935 · 작업 창 3개(BE · WEB · MOBILE) | **진행** — §8.112 |
 | **R60 — 서버 2대 기동 제거 · Redis 장애 대비 · CI 단축 · 권한 전수 시험 · 문자열 경위 · 지도 코드 합치기**(2026-10-18 · 사용자 "다음 라운드") | `918` · `919` · `920` · `917` C · 판정 929 · 작업 창 4개(BE-SCALE · BE-REDIS · BE-PERM · MOBILE) | **완료**(2026-10-19) — 결과 §8.111 「R60 결과」 · 판정 929~934 · backend `ae7719b9` · mobile `0dbf236` · push 안 함 |
 | **R59 — 서버 2대 대비 · 2 vCPU 부하 재측정**(2026-10-17 · 사용자 "다음 계획까지 만들어줘") | Redis Pub/Sub 중계 · 미리보기 캐시 Redis · 캐시 비움 전파 · 2대 compose · 한 대씩 배포 · 부하 재측정(1대 2 vCPU · 2대) · 판정 900 · 단계 1 작업 창 2개(BE-SCALE · INFRA) → 병합 → 단계 2 측정 창 1개 | **완료**(2026-10-18) — 단계 1 · 2 결과 §8.110 「R59 단계 1 결과」 · 「R59 단계 2 결과」 · 판정 915~927 · backend `2b5699ba` · 작업 공간 `44f722c`(단계 2 push 안 함). 운영 1대(`917` · `918`) · 운영 기계 = 집 PC 16GB(`922`) · 목표 규모 통과(L-1 · L-2 · L-3 · L-6) · J-1 반영(`927`). 다음 = R60 |
 | **R58 — 과설계 정리 · 무중단 토큰 교체 제거**(2026-10-17 · 사용자 "1. 없애줘, 하지만 추후 고도화 계획에 넣어는 줘 2. 새로운 라운드로 진행") | 과설계 점검 정리(주석 경위 · 시험 도우미 · 문자열 대조 시험 · `@Can` · 기본 계측 · 앱 공통 패키지 · 안 쓰는 위젯 · 웹 재접속 · API 응답 변환) + 무중단 토큰 교체 제거 · 판정 901~903 · 단계 1 작업 창 3개(BE-CODE · web · mobile) → 병합 → 단계 2 백엔드 주석 창 1개 | **완료**(2026-10-18) — 1단계 결과 §8.109 「R58 1단계 코드 결과」 · 판정 906~912 · 2단계(백엔드 주석 C-1~3) 결과 「R58 2단계 결과」 · 판정 913~914 · backend `16678c0f` · 작업 공간 `c1ecc7f`. **다음 라운드로 넘김** — 문자열 안의 경위(Swagger `@Operation` 설명 · 시험 `@DisplayName` · `@AcademyScopeExempt` 사유 · 단언 메시지 — 주석이 아니라 동작이 바뀌어 2단계 계약 밖) · M-5 지도 연결 코드 합치기(화면 확인과 함께 · `906`) · 엔드포인트 → 권한을 전수로 고정하는 시험(B-1 결함 심기를 컨트롤러 시험만 잡음 — 인가 결함 종류) · 작업 창의 `GRAFT_SKIP` 289회(검색 차단 훅을 비켜 감 — 지시서 · 훅 손볼 것). **알려 둠** — 매니저 앱 오프라인 대기열 DB 가 스키마 5 → 1 이라 옛 빌드가 깔린 기기는 재설치 · 웹 관리자 반려 사유 대화상자 간격 14 → 12px 눈 확인 안 함 |
@@ -1378,6 +1379,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 932 | Redis 장애 중 헬스 UP(DB 는 DOWN) · Redis 없이 기동 + 구독 자동 복구 · compose 의존 service_started | 본문 §8.111 |
 | 933 | CI 시간 측정값 인정(사용자) — 시간 때문에 시험을 빼거나 약하게 하지 않음 | 본문 §8.111 |
 | 934 | 배포는 팀 QA 뒤 · 호스팅은 이 Mac 의 Docker + ngrok(사용자) · EC2 경로 안 씀 | 본문 §8.111 |
+| 935 | R61 범위 — 안 쓰는 권한 상수 6개 삭제 · 「권한」 빈 줄 29개는 코드 값 · DB 대체 위치도 정류장 이름(사용자) · 작업 창 3개(조율자) | 본문 §8.112 |
 
 
 ## 8.73 ⚖ `R46-BE` — 성능 개선(감사 제외) + 바로 고칠 것 (2026-10-01 · 분기점 `ea37ba6c` · 번호대 410~419 · 백엔드 갈래)
@@ -2894,3 +2896,40 @@ Code navigation uses the graft CLI with the repo folder as the last argument (`b
 - **바뀐 줄** — backend 158파일 +4,410 / −1,548(커밋 42) · mobile 46파일 +1,070 / −1,154 · 문서 10파일 +343 / −111
 - **비용** — 합계 약 $127 · 조율자 38% · 목표 행당 $5.1(`round-cost.py`)
 - **다음 라운드 후보** — 사양 「권한」 줄 빈 절 30개 · 쓰지 않는 권한 상수 3개 · 웹 · 앱 주석 경위(404 · 362줄)와 문자열 검사 확대 · DB 대체 경로의 현재 정류장 이름(지금은 빈칸 · `TECH_DECISIONS §14.5` 한계) · 그 전에 팀 QA 준비(`934`)
+
+## 8.112 ⚖ `R61` — 쓰지 않는 권한 상수 · 사양 「권한」 빈 줄 · DB 대체 위치의 정류장 이름 · 웹 · 앱 주석 · 문자열 경위 (진행 · 2026-10-19 · 번호 935 · 사용자 결정)
+
+사용자 지시(2026-10-19) — *"r61 진행"* · *"다음 라운드"*. 범위는 §8.111 「R60 결과」 의 다음 라운드 후보 4개(팀 QA 준비 `934` 는 R61 뒤). 근거 커밋 backend `04615d20` · web `0de406c` · mobile `0dbf236` · 작업 공간 `ece80de`.
+
+조율자 확인(2026-10-19) — 권한 상수 35개 중 엔드포인트 표(`src/test/resources/authz/endpoint-permissions.tsv`)의 `can:` 값에 나오는 것은 29개 · 안 쓰는 것은 R60 기록의 3개(`BOARDING_WRITE` · `BOARDING_REVERT` · `DELAY_NOTIFY`) 외에 `RUN_START` · `RUN_ARRIVE` · `EXCEPTION_REPORT` 까지 6개(쓰는 곳은 `RolePermissions` · `RolePermissionsTest` 뿐) · 그 기능의 엔드포인트는 서비스 계층(`RunAssignmentAccess` · `BoardingCommandService#requireEscort` 등)이 역할 + 회차 배치를 함께 보고 `403 DRIVER_ONLY` · `ESCORT_ONLY` 를 돌려준다(`Ruling 874` ⑧) · 사양 「권한」 줄이 없는 엔드포인트 29개(21절 — R60 의 30 은 `/dev/reset` 포함) · DB 대체 위치는 `RunPositionStore#fromHistory` 가 `currentStopName` 을 `null` 로 만든다(`TECH_DECISIONS §14.5` 한계) · 현재 정류장 규칙은 `CurrentRunStopResolver` 한 곳 · 주석 경위 web 415줄(152파일 — 경위 검사의 따옴표 처리를 고쳐 가려져 있던 9줄 · 루트 설정 파일 2줄 포함) · mobile 354줄(203파일) · 문자열 경위 web 57 · mobile 94.
+
+| Ruling | 판정 | 근거 |
+|---|---|---|
+| **935** | **R61 범위와 방식**(사용자 결정 A~C · 2026-10-19 AskUserQuestion + 조율자 D) — **A. 쓰지 않는 권한 상수 6개를 지운다**(사용자 "지우기") — 상수 · 역할 매핑에서 삭제하고 `FEATURE_SPEC §6.2` 표의 6행 대신 "서비스 계층이 역할 + 회차 배치를 확인 · 다른 역할은 실제 코드가 돌려주는 403 코드" 문장 · 남은 상수가 모두 표의 `can:` 값에 1번 이상 나오는지 보는 시험을 더한다(다시 생기면 실패). 권한 동작 변화 0. **B. 사양 「권한」 빈 줄 29개는 코드 값으로 채운다**(사용자 "코드 값으로 채우기" — `930` 과 같은 방식) — 그 절이 이미 쓰는 형태(`**권한** …` 또는 키-값 표 `\| 권한 \| … \|`)로 역할 + 상수 이름. **C. DB 대체 위치에도 현재 정류장 이름을 채운다**(사용자 "채우기") — Redis 경로와 같은 규칙(`CurrentRunStopResolver`) · 회차 N개를 대체 조회하는 질의 수가 N 에 따라 늘지 않는다. **D. 작업 창 3개 동시**(조율자) — t1 BE(A · B · C — backend + 작업 공간 문서) · t2 WEB(주석 · 문자열 경위) · t3 MOBILE(주석 · 문자열 경위) · 모두 `claude-sonnet-5-5[1m]` · `high`. 완료 도구(경위 검사의 웹 · 앱 문자열 영역 · `--same-code` 웹 · 앱 확장 · 「권한」 줄 검사 `.claude/r61/check_perm_lines.py`)와 규칙 문장(`CONVENTIONS_REACT` · `CONVENTIONS_FLUTTER`)은 착수 전 조율자가 준비 | 상수 6개 기능은 배치 확인이 필요해 `@Can` 만으로 대신할 수 없고, 붙이면 403 코드가 `DRIVER_ONLY` · `ESCORT_ONLY` 에서 바뀐다. 「권한」 빈 줄은 R60 대조에서 사양이 금지하는 권한을 코드가 여는 곳 0개 |
+
+### R61 갈래 (Orca 작업 창 3개 · 동시)
+
+| 창 | 저장소 · 작업 공간 | 맡는 것(파일 주인) |
+|---|---|---|
+| t1 BE | backend `r61-be` + 작업 공간 `r61-be-docs` | `global/security/authz/**` · 그 시험 · `endpoint-permissions.tsv` · `location/**` 의 대체 경로 · 그 시험 · 문서 `API_SPEC` · `FEATURE_SPEC §6.2` · `ARCHITECTURE` · `TECH_DECISIONS` |
+| t2 WEB | web `r61-web` | web 의 주석 · 시험 이름 · 단언 메시지(코드 동작 변경 없음) |
+| t3 MOBILE | mobile `r61-mobile` | mobile 의 주석 · 시험 이름 · `reason:` · `fail` 메시지(코드 동작 변경 없음) |
+
+### R61 목표 표 (착수 때 `.claude/r61/GOALS.md` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
+
+| ID | 조건 | 명령 | 결함 심기(✱) |
+|---|---|---|---|
+| P-1 | 권한 상수 6개가 코드에 없다 · 남은 상수 전부가 엔드포인트 표의 `can:` 값에 1번 이상 · 그것을 확인하는 시험 | `git -C <backend> grep -nwE 'BOARDING_WRITE\|BOARDING_REVERT\|DELAY_NOTIFY\|RUN_START\|RUN_ARRIVE\|EXCEPTION_REPORT'` → 0 · 새 시험 결과 XML | ✱ 안 쓰는 상수 하나를 `Permissions` 에 되살림 → 새 시험 실패 |
+| P-2 | 문서 — `FEATURE_SPEC §6.2` 에서 6행이 빠지고 서비스 계층 확인 문장(엔드포인트별 실제 403 코드) · `ARCHITECTURE` · `TECH_DECISIONS` 예시가 남은 상수만 쓴다 · `Permissions` 클래스 설명의 개수가 맞다 | 같은 `git grep` 을 `docs/`(`IMPLEMENTATION_PLAN.md` · `docs/archive/` 밖)에 → 0(`ERD.md` 의 표 이름 `EXCEPTION_REPORT` 1줄 제외) · 닿는 곳 표 `touch-t1.md` | — |
+| P-3 | 사양 「권한」 줄 — 엔드포인트 표 123행이 가리키는 절마다 「권한」 줄이 있고, R60 의 빈 29개는 그 줄에 코드의 상수 이름이 있다 | `python3 .claude/r61/check_perm_lines.py <docs>/docs/planning/API_SPEC.md <backend>/backend/src/test/resources/authz/endpoint-permissions.tsv` → 어긋남 0 · 종료 코드 0 | ✱ 새 줄 하나를 지움 → 종료 코드 1 |
+| F-1 | DB 대체 위치의 `current_stop_name` 이 같은 회차 상태의 Redis 경로 값과 같다(출발 전 · 중간 정차지 도착 뒤 · 마지막 정차지 도착 뒤) · 학부모 · 관계자 · 메인 관리자 위치 조회 3종과 비상 신고 위치 첨부가 모두 그 값을 낸다 | 새 시험 결과 XML(Redis 실패 상태에서) | ✱ 대체 경로가 이름을 `null` 로 → 그 시험 실패 |
+| F-2 | 대체 조회 질의 수가 회차 수에 따라 늘지 않는다(1개 · 3개 회차의 SQL 문 수가 같다) | 새 시험(문 수 세기) | ✱ 회차마다 정차 목록을 따로 읽게 → 그 시험 실패 |
+| F-3 | 문서 — `TECH_DECISIONS §14.5` 「DB 대체 값의 한계」 와 장애 표의 "대체 값에는 현재 정차지 이름이 없다" 가 새 동작으로 · 사양에 같은 한계 문장이 있으면 함께 | `grep -c "현재 정차지 이름이 없다"` → 0 · 닿는 곳 표 | — |
+| H-1 | web 주석 경위 0 · 문자열(시험 이름 · 단언 메시지) 경위 0 — 경위가 아닌 표지(시험 날짜 데이터 설명 등)는 이유를 적은 남긴 줄로 | `comment_history.py <ws> --repo web=<wt> --kept <창 남긴 줄 파일> --check` 의 `web` · `web-str` → 0 | ✱ 경위 주석 하나 · 경위 시험 이름 하나를 되살림 → 종료 코드 1 |
+| H-2 | web 코드 동작 그대로 — 주석 단계 커밋에서 `--same-code` 어긋남 0 · 문자열 단계 뒤 시험 수가 전과 같고 실패 0 · 건너뜀 0(의도 1 제외) | `comment_history.py <ws> --repo web=<wt> --same-code <기준> --to <주석 커밋>` · `scripts/verify.sh` | — |
+| H-3 | mobile 주석 경위 0 · 문자열(시험 이름 · `reason:` · `fail`) 경위 0 — 남긴 줄은 이유와 함께 | 같은 명령의 `mobile` · `mobile-str` → 0 | ✱ H-1 과 같은 형태 |
+| H-4 | mobile 코드 동작 그대로 — `--same-code` 어긋남 0 · 패키지별 시험 수가 전과 같고 실패 0 · 건너뜀 0 · APK 2개 | `--same-code` · `scripts/verify.sh` | — |
+| H-5 | 규칙 — `CONVENTIONS_REACT` · `CONVENTIONS_FLUTTER` 에 "시험 이름 · 단언 메시지 문자열에도 경위를 쓰지 않는다" | `grep -c` | — (조율자 착수 전) |
+| G-1 | backend 병합본 전체 시험 실패 0 · 건너뜀 0 | `scripts/test.sh --rerun` 결과 XML | — |
+| G-2 | 깨진 참조 0 · 규칙 사본 · 주석 · 문자열 경위 검사(병합본 · 네 저장소 모든 영역 0 · 기준치 0) 통과 · 닿는 곳 표 마지막 칸 채움 | `query.py` · `.claude/bin/` 스크립트 | — |
+| G-3 | 실서버 계약 시험(이미지 새로 빌드) — 웹 · 학부모(`FIXTURE_DB=schoolbus`) · 매니저 실패 0 · 건너뜀 0(웹 의도 1 제외) | `.claude/PROJECT_NOTES.md` 정식 명령 | — |

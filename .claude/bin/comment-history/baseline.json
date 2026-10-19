@@ -3,6 +3,8 @@
  "backend-test": 0,
  "backend-main-str": 0,
  "backend-test-str": 0,
- "web": 404,
- "mobile": 362
+ "web": 415,
+ "mobile": 354,
+ "web-str": 57,
+ "mobile-str": 94
 }
