@@ -19,3 +19,4 @@
 *	docs/qa/QA_SCENARIOS.md	끝난 운행 54회 · **임시 취소 1회**	패턴 오탐 — 시드 통계의 회차 수(C-04 한도와 무관)
 *	docs/planning/FEATURE_SPEC.md	| 미승차 대기 만료 판정 (EXC-01) |	기능 이름(목록 제목) — 값이 아니라 표시 이름
 *	docs/planning/PRD.md	| D | 미승차 대기 시간 | **기본 3분**	결정 기록 원문 — PRD §10 결정 D(판정·결정 기록은 원문 보존, Ruling 888)
+정책 위치 송신 2초	docs/qa/QA_SCENARIOS.md	로컬 시뮬레이터가 2초마다 위치를 올리므로 학원 B 와 같은 자동 회차는	비전공 팀원용 QA 항목 — 시뮬레이터 갱신 간격을 숫자로 알아야 Redis 재시작 직후 티가 안 나는 이유가 읽힌다(R63 QA-ADM-23)
