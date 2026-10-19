@@ -50,3 +50,19 @@ backend-test	backend/src/test/java/src/backend/monitoring/controller/StaffDashbo
 backend-test	backend/src/test/java/src/backend/observability/metrics/DomainEventCounterWiringTest.java	2033-04-01 12:00 KST	고정한 시험 시계 값이지 경위가 아님
 backend-test	backend/src/test/java/src/backend/observability/metrics/DomainEventCounterWiringTest.java	이 시험의 고정 시계(2033년)는	고정한 시험 시계 값이지 경위가 아님
 backend-test	backend/src/test/java/src/backend/observability/scheduler/RunPositionLostGaugeSchedulerTest.java	시계가 2030-04-01(서울)이니	고정한 시험 시계 값이지 경위가 아님
+web	src/features/manager/lib/managerBoard.ts	"2026-10-03" → "10월 3일"	날짜 변환 형식을 보이는 예시 값이지 경위가 아님
+web	src/shared/lib/format/dateTime.test.ts	서울 2026-10-01 01:00	고정한 시험 입력 시각이지 경위가 아님
+web	src/shared/lib/format/dateTime.test.ts	서울 2026-09-30 23:59	고정한 시험 입력 시각이지 경위가 아님
+web	src/shared/lib/format/dateTime.test.ts	서울 2026-10-01 목요일 01:00	고정한 시험 입력 시각의 요일 설명이지 경위가 아님
+web	src/shared/lib/format/dateTime.test.ts	서울 2026-09-30 수요일 23:59	고정한 시험 입력 시각의 요일 설명이지 경위가 아님
+web	src/shared/lib/format/dateTime.test.ts	서울 2026-10-01 00:05	고정한 시험 입력 시각이지 경위가 아님
+web-str	src/features/route/lib/routeAssignments.test.ts	2026-10-05 는 월요일, 하루 더하면 화요일이고 월 경계를 넘는다	날짜 계산을 확인하는 표본 날짜(시험 데이터)이지 경위가 아님
+mobile	apps/manager-app/lib/core/constants/position_constants.dart	바뀌기 전에 기사가 먼저 알도록	바뀌기 전 = 상태가 바뀌는 시점 앞이라는 조건(기사에게 먼저 알리는 값)이지 경위가 아님
+mobile	apps/manager-app/test/features/drive_mode/drive_mode_arrive_feedback_test.dart	출발 시각은 2026-09-30 08:00	시험 데이터(managerRunFixture)의 고정 출발 시각 설명이지 경위가 아님
+mobile	apps/manager-app/test/features/notifications/notifications_screen_test.dart	2026-09-30 10:00 KST (수요일)	시험이 고정한 현재 시각 설명이지 경위가 아님
+mobile	apps/parent-app/lib/core/ui/format_date_time.dart	2026-09-12 07:30:00.000Z	DateTime 원문 출력 예시(형식 설명)이지 경위가 아님
+mobile	apps/parent-app/test/features/child_link/presentation/child_link_screen_test.dart	2026-09-12 00:00:00.000	원문 시각 출력 예시(검사 대상 모양)이지 경위가 아님
+mobile	apps/parent-app/test/features/notifications/presentation/notifications_screen_test.dart	2026-09-30 10:00 KST (수요일)	시험이 고정한 현재 시각 설명이지 경위가 아님
+mobile	packages/baraeda_ui/lib/widgets/feedback/notification_time.dart	2025년 12월 28일(일)	날짜 머리 표시 형식 예시이지 경위가 아님
+mobile	packages/baraeda_ui/test/widgets/feedback/notification_time_test.dart	2026-09-30 10:00 KST (수요일)	시험이 고정한 현재 시각 설명이지 경위가 아님
+mobile	packages/baraeda_ui/test/widgets/feedback/notification_time_test.dart	2026-10-03 12:00 KST	시험이 고정한 현재 시각 설명이지 경위가 아님

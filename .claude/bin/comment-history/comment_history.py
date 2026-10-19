@@ -24,13 +24,13 @@ MARKERS = {
     "date": r"\b20\d\d-\d\d-\d\d\b|\b20\d\d년",
     "word": r"(?<!백그|포그)라운드|당시|이전에는|원래는|바뀌기 전|예전|시절",  # 백그라운드 · 포그라운드(안드로이드 서비스) 는 경위가 아니다
     # R58 2단계 검증(2026-10-18): 아래는 첫 판이 세지 않아 정리 뒤에도 약 580줄 남았다 — 지난 Phase 목표 번호 · 단계 · 작업 주인 · 리뷰 · 보고서 파일
-    "goal": r"목표 ?[A-Z]?-?\d|\bgoal \d|\b[A-Z]\d* #\d+\b|\bM-P\d+\b",  # 지난 목표 번호 · 피드백 목록 항목(B1 #14 · A #4)
+    "goal": r"목표 ?[A-Z]?-?\d|\bgoal \d|\b[A-Z]\d* #\d+\b|\bM-P\d+\b|\b[A-Z]\d [A-Z]\d\b|\b[A-Z]\d-\d{2}\b",  # 지난 목표 번호 · 작업 묶음 이름(F5 M3) · 묶음 항목 번호(M2-01 — 기능 ID 는 글자 뒤에 숫자가 없다) · 피드백 목록 항목(B1 #14 · A #4)
     "step": r"\b[A-Z]\d+ S\d+\b",
     "owner": r"\bT\d+ ?소유|(?<![\w.<])T\d\b(?![\w>])|\bP\d+-T\d|이 태스크|다른 좌석|이 좌석|좌석 경계|이 워크트리",  # 좌석 하나만은 버스 좌석일 수 있어 세지 않는다
     "review": r"게이트 리뷰|리뷰 라운드|조율자 판단|보고서 [①-⑩]",
     "file": r"\bp\d+-task|report-p\d+|docs/archive/rounds|Task \d+ 판단|\b[BF]E-R\d+\b|phase-goal-loop|parallel-agents",
     # 라운드 작업 파일(지시서 · 공통 규칙 · 후속 · 보고서)을 가리키는 표시 — 그 파일은 저장소에 없다
-    "brief": r"\b(?:BRIEF|COMMON|FIX)(?:-[A-Za-z0-9]+)+(?:\.md)?\b|\b(?:BRIEF|COMMON|GOALS)\.md\b|\bverdict-\w+\.md\b|\breport-\w[\w-]*\.md\b|보고서 ?(?:§ ?\d|\d+ ?항)",
+    "brief": r"\b(?:BRIEF|COMMON|FIX)(?:-[A-Za-z0-9]+)+(?:\.md)?\b|\b(?:BRIEF|COMMON|GOALS)\.md\b|\bverdict-\w+\.md\b|\breport-\w[\w-]*\.md\b|보고서 ?(?:§|\d+ ?항)",
     "hash": r"커밋 `?[0-9a-f]{7,}",
 }
 MARK = re.compile("|".join(f"(?:{v})" for v in MARKERS.values()))
@@ -455,6 +455,8 @@ void t() {
     want["brief"] = [True, True, True, True, True, True, True, True, False, False, False, True]
     got["label"] = [bool(MARK.search(c)) for c in ("B1 #14 — 같은 이름", "A #5 외부 내비", "F5 M2 목표 A-2", "M-P1 지도", "PR #12 참고", "RUN-08 외부 내비", "목표 시각 07:30")]
     want["label"] = [True, True, True, True, False, False, False]
+    got["lane"] = [bool(MARK.search(c)) for c in ("F5 M3 목표", "보고서 § 실측 참고", "M2-01 로그아웃", "M-15 비상", "RUN-08", "A4 용지 크기", "H3 제목")]
+    want["lane"] = [True, True, True, False, False, False, False]
     got["apos"] = [ln for ln, _ in hits("<p>don't stop</p>\n// R57 에서 바꿈\nconst s = \"x\";\n")]
     want["apos"] = [2]
     ok = got == want
