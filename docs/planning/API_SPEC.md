@@ -365,6 +365,8 @@ HTTP 상태 코드 + 본문. 본문 형태는 전 엔드포인트 공통.
 
 form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경로로 가입 — 코드 로그인·발급 계정 부재.
 
+**권한** 비인증
+
 **요청**
 
 | 필드 | 타입 | 필수 | 설명 |
@@ -416,6 +418,8 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 로그인 (AUTH-04·05). **비인증 허용.**
 
+**권한** 비인증
+
 **요청** — `login_id` (string, 필수) · `password` (string, 필수) · 헤더 `X-Client-Type` (`app` · `web`, 미전달 시 `app`)
 
 **응답**
@@ -445,6 +449,8 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 토큰 재발급 (C-14). **비인증 허용** — refresh 토큰이 인증 수단.
 
+**권한** 비인증 (refresh 토큰이 인증 수단)
+
 **요청** — `refresh_token` (string). **앱만 본문에 담고, 웹은 `refresh_token` 쿠키로 전송**하므로 본문이 비어 있음.
 
 **판정** — 서버는 **쿠키를 먼저 보고, 없으면 본문**을 읽는다. 쿠키로 들어온 요청은 웹으로 간주해 응답도 `Set-Cookie` 로 돌려준다 — 이 경로는 `X-Client-Type` 을 요구하지 않음.
@@ -469,6 +475,8 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 비밀번호 변경 (AUTH-07).
 
+**권한** 인증된 전 역할
+
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
 | `current_password` | string | ● | 현재 비밀번호 |
@@ -481,6 +489,8 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 ### 2.9 POST /auth/recover
 
 아이디·비밀번호 복구 (AUTH-08). **비인증 허용.**
+
+**권한** 비인증
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
@@ -756,6 +766,8 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 
 신청 상태 조회 (REQ-03).
 
+**권한** 학부모 — 자기와 연결된 자녀만(연결이 없거나 학부모가 아니면 `403 FORBIDDEN`)
+
 **응답** — `items[]`
 
 | 필드 | 타입 | 필수 | 설명 |
@@ -855,6 +867,8 @@ form 회원가입 (AUTH-01, C-01). **비인증 허용.** 전 인원이 이 경�
 ### 3.13 PATCH /notifications/{id}/read
 
 알림 읽음 처리 (NTF-08). 응답 `204`. 중요 통지는 이 처리가 수신 확인(NTF-10)의 근거.
+
+**권한** 인증된 전 역할 — 본인 알림만
 
 **에러** — `404 NOTIFICATION_NOT_FOUND` · `403 FORBIDDEN`(타 계정 알림 — 다른 학원 알림 포함 · §1.11 표의 소유 자원 규칙)
 
@@ -1450,6 +1464,8 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 
 수락 / 거절 (AUTH-10·11, A-02).
 
+**권한** 학원 관계자 (`SIGNUP_APPROVE`)
+
 **요청**
 
 | 필드 | 타입 | 필수 | 설명 |
@@ -1509,6 +1525,8 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 ### 5.4 GET /staff/runs/{runId}/roster
 
 호차별 일일 명단 (RST-03, A-04).
+
+**권한** 학원 관계자 · 메인 관리자 (`STUDENT_READ_SENSITIVE`) — 관계자는 자기 학원 회차만
 
 **응답** — 학생 단위 행의 **배열**을 `data` 에 그대로 싣는다(`items` 로 감싸지 않음 — 관계자 웹 `roster.ts` 가 이 형태를 읽는다, 2026-09-25 BR-155)
 
@@ -1650,6 +1668,8 @@ $ curl -s -X POST http://localhost:8081/api/v1/runs/999999/emergency -H "Authori
 ### 5.6 POST /staff/approvals/{id}/decide
 
 승인 / 거절 (REQ-04, A-05).
+
+**권한** 학원 관계자 (`CHANGE_APPROVE`)
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
@@ -2042,6 +2062,8 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 
 ### 5.12 차량 관리 (BUS-01~04, A-11)
 
+**권한** 학원 관계자 (`BUS_MANAGE`)
+
 | 메서드 · 경로 | 기능 ID | 설명 |
 |---|---|---|
 | `GET /staff/buses` | BUS-01 | 목록 |
@@ -2077,6 +2099,8 @@ STU-05) — 화면이 "이 자리에 이미 있다" 를 알려 관계자가 같�
 **에러** — `422 VALIDATION_FAILED`(필수 항목 빈 문자열 · `capacity` ≤ 기사 + 동승자) · `409 DUPLICATE_BUS_NO`(같은 학원에 같은 호차 — 등록·수정 공통, 2026-08-26 신설 · Ruling 164) · `404 BUS_NOT_FOUND`(`PATCH` 대상 부재 · 타 학원 — 존재 비노출, Ruling 163)
 
 ### 5.13 매니저 관리 (MGR-01~04, A-12)
+
+**권한** 학원 관계자 (`MANAGER_MANAGE`)
 
 | 메서드 · 경로 | 기능 ID | 설명 |
 |---|---|---|
@@ -2388,6 +2412,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 
 학원 등록 (ACAD-02, O-01).
 
+**권한** 메인 관리자 (`ACADEMY_MANAGE`)
+
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
 | `name` | string | ● | 학원명. 가입 검색 대상 |
@@ -2408,6 +2434,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 ### 6.3 GET · PATCH /admin/academies/{id}
 
 학원 상세 · 정보 수정 · 비활성화 (ACAD-03·04, O-01).
+
+**권한** 메인 관리자 (`ACADEMY_MANAGE`)
 
 **GET 응답** — §6.1 항목 + `address` · `contact` · `memo` · `staff_accounts[]`(`account_id` · `name` · `login_id` · `phone` · `status` · **`last_login_at`** — `Ruling 806`) · `stats`(`moving_bus_count` = 운행일이 어제 이후인 미취소 `moving` 회차가 있는 차량 수 — 그보다 이른 끝나지 않은 회차는 세지 않고 §6.16 목록이 맡는다, BR-315 · **`moving_bus_nos[]`** = 그 차량들의 호차 이름, `Ruling 806` · 등)
 
@@ -2430,6 +2458,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 
 관계자 가입 요청 목록 (ACAD-05, O-02). 관계자도 form 가입, 승인 주체는 메인 관리자 (C-01).
 
+**권한** 메인 관리자 (`STAFF_APPROVE`)
+
 **요청 (쿼리)** — `status`(`pending` 기본 · `accepted` · `rejected`, 그 밖의 값은 `422 VALIDATION_FAILED`) · `sort`(`requested_at` 만 — 기본 오래된 순, 같은 값은 `id` 오름차순) · 페이징. §5.1 의 `role` 은 이 목록에서 **읽지 않고 무시**한다 (`Ruling 860`).
 
 **응답** — `items[]` — `request_id` · `name` · `phone` · `academy`(`id` · `name` · `region` · `code`) · `requested_at` · `academy_staff_count` · **`current_staff`**(그 학원의 재직(`active`) 관계자 — `name` · `login_id` · `last_login_at`. 없으면 `null`. 정원이 1명이라 객체 하나다 — 승인이 막힌 이유와 푸는 방법(그 사람 퇴사 처리 §6.7)을 처리 화면에 보인다, `Ruling 807`)
@@ -2441,6 +2471,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 ### 6.5 POST /admin/staff-signup-requests/{id}/decide
 
 관계자 가입 수락 / 거절 (ACAD-05, O-02).
+
+**권한** 메인 관리자 (`STAFF_APPROVE`)
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|:-:|---|
@@ -2466,6 +2498,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 ### 6.7 PATCH /admin/staff-accounts/{id}
 
 관계자 계정 관리 (ACAD-06, O-02).
+
+**권한** 메인 관리자 (`STAFF_APPROVE`)
 
 **요청**
 
@@ -2573,6 +2607,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 
 승하차지별 학생 리스트 (O-06).
 
+**권한** 메인 관리자 (`MONITOR_ALL`)
+
 **응답** — `stops[]` → `students[]`
 
 | 필드 | 타입 | 필수 | 설명 |
@@ -2590,6 +2626,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 ### 6.10 GET /admin/blocked-accounts
 
 차단 계정 목록 (AUTH-06, O-03).
+
+**권한** 메인 관리자 (`ACCOUNT_UNBLOCK`)
 
 **응답** — `items[]`
 
@@ -2635,6 +2673,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 
 로그인 차단 해제 (AUTH-06, O-03).
 
+**권한** 메인 관리자 (`ACCOUNT_UNBLOCK`)
+
 **요청** 본문 부재 · **응답** `account_status`(**차단 직전 상태로 복귀** — `active` · `pending` · `rejected`) · `unblocked_by` · `unblocked_at` · **이력** 처리자·일시 저장
 
 **해제는 로그인 차단만 푼다** (2026-09-25 `Ruling 328`) — 차단 사유는 로그인 실패 5회(C-11)이고 가입 승인과 무관하다. 무조건 `active` 로 두면 승인 대기 중 차단된 계정이 **가입 승인 없이** 활성화되고, 관계자 역할이면 학원 전체 개인정보 권한을 얻는다.
@@ -2644,6 +2684,8 @@ SMS 연동(`PRD` F-05) 전까지 §2.9 가 `503` 이라 **학원 사용자의 �
 ### 6.13 감사 · 접속 이력
 
 O-04 · SYS-01·02. 정본 API명세서에 경로 미기재 — 감사 로그 요건에서 도출.
+
+**권한** 메인 관리자 (`AUDIT_READ`)
 
 | 메서드 · 경로 | 기능 ID | 응답 항목 |
 |---|---|---|
