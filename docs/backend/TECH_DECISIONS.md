@@ -102,9 +102,7 @@ Spring Security 는 기능이 넓어 "쓴다"만으로는 범위가 안 잡힌�
 ```java
 public enum Permission {
     STUDENT_READ_BASIC, STUDENT_READ_SENSITIVE, STUDENT_READ_PHOTO, STUDENT_WRITE,
-    ROSTER_READ, BOARDING_WRITE, BOARDING_REVERT,
-    RUN_START, RUN_ARRIVE, DELAY_NOTIFY,
-    EMERGENCY_RAISE, EMERGENCY_ACK, EXCEPTION_REPORT,
+    ROSTER_READ, EMERGENCY_RAISE, EMERGENCY_ACK, EXCEPTION_REPORT_READ,
     ROUTE_READ, ROUTE_MANAGE, INTENT_WRITE, CHANGE_REQUEST_WRITE, CHANGE_APPROVE,
     SIGNUP_APPROVE, MANAGER_MANAGE, BUS_MANAGE, SCHEDULE_MANAGE,
     MONITOR_ACADEMY, MONITOR_ALL, NOTIFICATION_LOG_READ,
@@ -114,18 +112,16 @@ public enum Permission {
 // 역할 → 권한. 이 파일 하나가 FEATURE_SPEC §6.2 의 정본 구현
 static final Map&lt;Role, Set&lt;Permission&gt;&gt; ROLE_PERMISSIONS = Map.of(
     ESCORT, EnumSet.of(ROSTER_READ, STUDENT_READ_BASIC, STUDENT_READ_PHOTO,
-                       BOARDING_WRITE, BOARDING_REVERT, DELAY_NOTIFY,
-                       EMERGENCY_RAISE, EXCEPTION_REPORT, ROUTE_READ),
-    // DRIVER 에는 BOARDING_* 와 DELAY_NOTIFY 가 부재 — 운전 중 조작 차단 (C-06 · M-05)
+                       EMERGENCY_RAISE, ROUTE_READ),
+    // 승하차 · 지연 알림 · 운행 시작 · 예외 보고는 상수가 아니라 서비스 계층이 역할과 회차 배치로 판정 (C-06 · M-05)
     DRIVER, EnumSet.of(ROSTER_READ, STUDENT_READ_BASIC, STUDENT_READ_PHOTO,
-                       RUN_START, RUN_ARRIVE,
-                       EMERGENCY_RAISE, EXCEPTION_REPORT, ROUTE_READ)
+                       EMERGENCY_RAISE, ROUTE_READ)
     // ...
 );
 ```
 
 ```java
-@PreAuthorize("hasPermission('BOARDING_WRITE')")
+@PreAuthorize("hasPermission('EMERGENCY_RAISE')")
 ```
 
 **권한을 토큰에 싣지 않는다.** JWT 에는 `role` 만 넣고 권한은 서버가 매핑에서 유도한다. 토큰에 권한 목록을 실으면 **매핑을 고쳐도 기존 토큰이 옛 권한을 그대로 들고 다닌다** — refresh 만료까지 최대 며칠. 역할 하나는 계정 상태와 함께 어차피 검증하므로 유도 비용이 없다.
@@ -854,7 +850,7 @@ org.springframework.boot:spring-boot-testcontainers
 | 실패 | 영향 | 저하 동작 | 복구 |
 |---|---|---|---|
 | **지도 API 장애** | 노선 계산 ③단계 | **직선거리 근사로 폴백** + 그 사실을 화면에 표시. 배치는 계속 진행 | 서킷 닫히면 다음 회차부터 정상. 이미 배포된 노선은 재계산하지 않음 |
-| **Redis 장애** | 최신 좌표 · 캐시 | 위치 조회 3종(학부모 버스 위치 · 관계자 관제 · 메인 관리자 관제)과 비상 신고의 위치 첨부는 **DB 이력(`run_position`)의 회차별 최신 행**으로 대체 조회 — 여러 회차는 조회 한 번(`recorded_at` 이 최근 24시간(+10분) 안인 행만 읽어 일 파티션 2개 이하로 닿는다 — 24시간 넘게 위치가 없는 `moving` 회차는 대체 위치도 없다). 대체 값에는 현재 정차지 이름이 없다. **근접·출발 판정도 같은 DB 대체 값으로 판정한다**(`Ruling 624` — 건너뛰면 그 사이 기사가 도착 처리해 "다음 미도착" 이 넘어간 정차지는 선점 한 번 못 해 도착 임박 알림이 영구히 빠진다. 대체 위치는 지연될 수 있어 300m 진입을 늦게 알 수는 있다). 반복되는 Redis 실패 로그는 호출 위치당 분당 1건만 스택과 함께 남기고 생략 건수를 알린다(`Ruling 625`). 명령 시간 상한 500ms · 연결 1초 · 끊긴 동안의 명령은 즉시 거절이라 답하지 않는 Redis 앞에서도 요청이 DB 커넥션을 오래 쥐지 않는다. 대체 횟수는 `schoolbus.position.fallback` 으로 센다. 명령 하나는 최대 0.5초 기다리고, 실패가 5번 이어지면 `redis` 서킷이 열려 Redis 를 부르지 않고 곧바로 대체 경로로 내려간다(5초 뒤 시험 호출로 스스로 닫는다). Redis 가 멈춰도 헬스는 UP 이라(`Ruling 932`) 서버가 서비스에서 빠지지 않는다. Redis 를 쓰는 7곳(템플릿을 주입받는 클래스 6개 + 구독 컨테이너 설정 1개)의 대체 경로 · 대가 · 판단은 §14.5 | 자동 |
+| **Redis 장애** | 최신 좌표 · 캐시 | 위치 조회 3종(학부모 버스 위치 · 관계자 관제 · 메인 관리자 관제)과 비상 신고의 위치 첨부는 **DB 이력(`run_position`)의 회차별 최신 행**으로 대체 조회 — 여러 회차는 조회 한 번(`recorded_at` 이 최근 24시간(+10분) 안인 행만 읽어 일 파티션 2개 이하로 닿는다 — 24시간 넘게 위치가 없는 `moving` 회차는 대체 위치도 없다). 대체 값의 현재 정차지 이름은 현재 판본 정차 항목에서 구한다(위치 송신과 같은 규칙, 조회는 회차 수와 무관하게 한 번 더). **근접·출발 판정도 같은 DB 대체 값으로 판정한다**(`Ruling 624` — 건너뛰면 그 사이 기사가 도착 처리해 "다음 미도착" 이 넘어간 정차지는 선점 한 번 못 해 도착 임박 알림이 영구히 빠진다. 대체 위치는 지연될 수 있어 300m 진입을 늦게 알 수는 있다). 반복되는 Redis 실패 로그는 호출 위치당 분당 1건만 스택과 함께 남기고 생략 건수를 알린다(`Ruling 625`). 명령 시간 상한 500ms · 연결 1초 · 끊긴 동안의 명령은 즉시 거절이라 답하지 않는 Redis 앞에서도 요청이 DB 커넥션을 오래 쥐지 않는다. 대체 횟수는 `schoolbus.position.fallback` 으로 센다. 명령 하나는 최대 0.5초 기다리고, 실패가 5번 이어지면 `redis` 서킷이 열려 Redis 를 부르지 않고 곧바로 대체 경로로 내려간다(5초 뒤 시험 호출로 스스로 닫는다). Redis 가 멈춰도 헬스는 UP 이라(`Ruling 932`) 서버가 서비스에서 빠지지 않는다. Redis 를 쓰는 7곳(템플릿을 주입받는 클래스 6개 + 구독 컨테이너 설정 1개)의 대체 경로 · 대가 · 판단은 §14.5 | 자동 |
 | **DB 장애** | **전면** | 매니저 앱은 오프라인 큐로 승하차만 지속. 나머지 제품은 조회 불가 | 복구 후 큐 동기화 (멱등) |
 | **앱 인스턴스 재시작** | WS 끊김 · 배치 중단 | 클라이언트 자동 재연결. 배치는 **폴링이라 놓친 회차를 다음 틱에 자동 회수** | 자동 — 별도 절차 부재 |
 | **배치 밀림** | 확정 지연 | 도래분이 다음 틱으로 이월. 지연 지표 상승 | 워커 수 증설, 그다음 인스턴스 (§3) |
@@ -927,7 +923,7 @@ org.springframework.boot:spring-boot-testcontainers
 - **방송** — 발행이 실패하면 이 인스턴스의 구독자에게 직접 전송하므로 1대 운영에서는 방송 간격이 늘지 않는다(최대 0.93초). 2대 운영에서 다른 인스턴스로 가는 방송 손실은 `Ruling 900` B 그대로다.
 - **복귀** — 다시 켠 뒤 서킷은 kill 은 6.1초, pause 는 3.0초 안에 닫히고, 중계 구독은 kill 2.1초 · pause 0.1초에 선다. 얼렸다 풀린 Redis 에 남은 멈추기 전 좌표는 `RunPositionStore` 가 마지막 Redis 실패 시각 이전 값을 DB 최신 행으로 읽어 걸러, 복귀 직후에도 낡은 좌표 응답이 0건이었다. Redis 가 비어서 돌아오면 다음 송신이 값을 다시 쓸 때까지의 위치는 DB 최신 행이 메운다(아래 "빈 Redis") — 연습이 빈 응답을 낡은 값과 함께 세고 0 이어야 통과한다.
 - **빈 Redis (다시 시작한 Redis)** — Redis 는 저장하지 않아(`--save ""`) 다시 시작하면 운행 중 회차의 최신 좌표 키가 없다. 그대로 두면 다음 송신이 키를 다시 쓸 때까지(기사 앱 2초 주기) 학부모 홈의 버스 · 관제 화면의 회차 · 비상 신고의 위치 첨부가 비었다(`API_SPEC §3.11` 에 `run_status=moving` 인데 위치가 모두 비는 조합은 없다). 그래서 `RunPositionStore` 는 읽은 회차 중 키가 없는 회차가 있을 때 그 회차들의 **운행 중 최신 `run_position` 행**을 위치가 낡았다고 보는 기준(2분) 안에서 DB 에서 읽는다(`findLatestMovingByRunIdIn`, 회차 수와 무관하게 한 번, 회차마다 인덱스 앞 1행). 행이 없으면 예전과 같은 빈 값이다. 학부모 버스 위치 · 관계자/메인 관리자 관제 · 비상 신고 · 근접 판정이 모두 이 한 곳(`findAll`/`find`)을 지난다. 비용은 **추정**이다(측정한 것이 아니다): 목적지 3,200곳(L-3)을 학부모 안전망 조회가 30초 간격(`API_SPEC §7.2`)으로 읽는다고 가정하면 읽기 호출이 분당 약 6,400번이고, 키가 없는 틈은 Redis 를 다시 시작한 뒤 다음 송신까지(약 2초)라 그 틈에 들어오는 읽기 약 200번이 질의 1번씩을 더 낸다(Redis 를 다시 시작할 때마다 한 번뿐). 평소에는 운행 중 회차의 키가 송신마다 다시 쓰여(만료 30분) 키가 없는 회차가 생기지 않으므로 추가 질의가 0이다 — 예외는 30분 넘게 송신이 없는 운행 중 회차(`StaleMovingRun` 경보 대상)이고, 그런 회차 × 그 회차를 보는 사용자 수 × 분당 2번이 상한이다. 질의 횟수는 지표 `schoolbus_position_miss_fallback_total` 이 센다. 연습: Redis 를 `kill` 했다 켠 뒤(빈 Redis) 위치 조회의 빈 응답은 0건이었다.
-- **DB 대체 값의 한계** — DB 이력에는 현재 정차지 이름이 없다. 이름은 위치를 저장하는 트랜잭션이 정차 목록과 도착 기록에서 한 번 계산해 Redis 값에 실어 보낸다(`RunPositionCommandService`). DB 에서 다시 만들려면 회차마다 정차 목록 · 도착 기록 읽기와 학원 id 가 필요해 회차 수만큼의 읽기가 되므로 한 번의 인덱스 읽기로 끝나지 않는다. 그래서 채우지 않는다: Redis 가 멈춘 동안과 빈 Redis 로 돌아온 직후(다음 송신까지)에는 위치는 나가고 `current_stop_name` 은 비어 나간다. 도착 시각 `stop_arrived_at` 은 따로 읽으므로 그대로 나간다. 다음 송신이 Redis 값을 다시 쓰면 이름이 돌아온다.
+- **DB 대체 값의 비용** — DB 이력(`run_position`) 행에는 정차지 이름 열이 없다. 대체 값은 이름을 정차 항목에서 다시 구한다: 위치를 저장하는 트랜잭션이 Redis 값에 싣는 것과 같은 규칙(`CurrentRunStopResolver` — 도착 시각이 채워진 정차 중 `seq` 최댓값)이고, 회차 수와 무관하게 정차 항목 조회 한 번(`run_id IN (…)`)이 위치 최신 행 조회에 더해진다. 그래서 대체 읽기 한 번의 대가는 SQL 한 문장 증가이며(관제 30회차든 1회차든 같다) 회차마다 읽지 않는다. Redis 가 멈춘 동안과 빈 Redis 로 돌아온 직후에도 `current_stop_name` 은 Redis 값과 같은 이름으로 나간다 — 마지막 송신 이후에 일어난 도착이 이름에 이미 반영되므로 Redis 값보다 같거나 최신이다. 도착 시각 `stop_arrived_at` 은 따로 읽으므로 그대로 나간다. 도착한 정차가 하나도 없거나 가장 최근 도착이 학원 도착지면 이름은 비어 나간다(Redis 경로도 같다)
 - **재접속 대기** — Lettuce 기본 재접속 대기(최대 30초)로는 60초 kill 뒤 구독 복구가 11.7초 걸려 기준(10초)을 넘었다. `RedisClientConfig` 가 대기를 100ms 에서 2초까지로 묶은 뒤 2.1초다.
 - **헬스 (`Ruling 932`)** — Redis 는 헬스를 DOWN 으로 만들지 않는다. `redis` 구성 요소가 Redis 에 `PING` 하되 안 될 때 `DOWN` 대신 `UNKNOWN` 을 내(`RedisHealthIndicator`) 전체 헬스는 DB 가 살아 있으면 UP 이다 — 컨테이너 헬스체크(`/actuator/health`)와 외부 감시 `/healthz` 가 모두 200 이고 DB 가 끊기면 503 이다(`RedisOutageHealthTest`). 이전에는 Redis 가 멈추면 `/healthz` 가 503 이었고 컨테이너가 약 150초 뒤 `unhealthy` 가 됐으며, 그 상태로 다시 시작한 백엔드는 구독 컨테이너가 기동 때 Redis 에 못 붙어 예외를 던지는 바람에 기동에 실패하고 재시작을 반복했다. `FailSoftRedisMessageListenerContainer` 가 그 실패를 삼키고 `RedisSubscriptionRetrier` 가 2초마다 구독을 다시 건다(`RedisStartupWhileDownTest`). Redis 상태는 `RedisFallbackActive` 와 메인 관리자 시스템 상태 칸(`SystemHealthReader` — `redis` 구성 요소가 `UP` 이 아니면 `api` 칸이 `down`)으로 본다. 작은 회차 실측: Redis 가 멈추고 얼린 동안 `/healthz`(nginx · 직접)와 컨테이너 헬스가 모든 표본에서 200 · `healthy`, Redis 가 멈춘 채 다시 시작한 백엔드가 15.9초에 `healthy`(start_period 90초).
 

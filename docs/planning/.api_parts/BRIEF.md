@@ -48,7 +48,7 @@
     <dl class="kv">
       <dt>토큰</dt><dd><span class="b b-auth">Bearer 필수</span> <code>Authorization: Bearer {access_token}</code></dd>
       <dt>허용 계정 상태</dt><dd><code>active</code> 만 (게이트 §1.4)</dd>
-      <dt>역할 · 권한</dt><dd>버스기사 — <code>RUN_START</code>. 배치되지 않은 회차는 <code>403 FORBIDDEN</code></dd>
+      <dt>역할 · 권한</dt><dd>버스기사 — 권한 상수 없이 서비스 계층이 역할과 배치를 확인. 기사가 아니면 <code>403 DRIVER_ONLY</code>, 배치되지 않은 회차는 <code>403 FORBIDDEN</code></dd>
       <dt>격리</dt><dd>소속 학원 + 배치된 회차 (§1.5)</dd>
     </dl>
 
