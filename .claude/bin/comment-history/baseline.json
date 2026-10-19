@@ -1,13 +1,13 @@
 {
- "backend-main": 40,
- "backend-test": 52,
+ "backend-main": 0,
+ "backend-test": 0,
  "backend-main-str": 0,
- "backend-test-str": 19,
- "web": 139,
- "mobile": 222,
- "web-str": 48,
- "mobile-str": 41,
- "backend-names": 6,
+ "backend-test-str": 0,
+ "web": 0,
+ "mobile": 0,
+ "web-str": 0,
+ "mobile-str": 0,
+ "backend-names": 0,
  "web-names": 0,
- "mobile-names": 4
+ "mobile-names": 0
 }
