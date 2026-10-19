@@ -26,7 +26,7 @@ description: 바래다 작업 공간에서 Orca 워크트리·작업 창을 띄�
 ## 워크트리 위치
 
 - **`/Users/mskim/Desktop/PJ/baraeda-wt/<이름>` 에 둔다**(2026-10-17 R57 뒤 — 예전 위치 `.claude/wt/` 는 민감 경로라 창이 편집 · 커밋마다 승인 질문에서 멈췄다 · 전역 Skill `orca-launch` · 훅이 `.claude/` 아래를 거부). 작업 창은 `--permission-mode auto` — ⚠ `git -C <backend|web|mobile> worktree add` 의 상대 경로는 **그 저장소 기준**이라 **절대 경로**를 준다(2026-10-03 실제로 `web/.claude/wt/` 에 생겼다)
-- 만든 직후 `~/.claude/skills/orca-launch/wt-prep.sh <원본 저장소> <워크트리>` — `backend/.env` · `web/.env.local` · 앱 생성 파일을 복사한다
+- 만든 직후 `~/.claude/skills/orca-launch/wt-prep.sh <원본 저장소> <워크트리> <기준 브랜치>` — 워크트리 HEAD 가 그 브랜치 끝 커밋이 아니면 아무것도 복사하지 않고 실패한다(R62) · `backend/.env` · `web/.env.local` · 앱 생성 파일을 복사한다
 - 워크트리 안 에이전트에는 `API_SPEC_PATH` · `WEB_REPO_DIR` 를 절대 경로로 준다(프로젝트 `CLAUDE.md` — 세 저장소가 상대 경로로 이어져 있다)
 
 ## web · mobile 디자인 작업 창
