@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """주석 경위 측정·검사 (Ruling 903 A). 사용 — python3 comment_history.py <작업 공간 루트> [--check | --lines <영역> | --update-baseline | --selftest] [--repo 이름=경로 …]
 코드 주석(//, ///, /* */) 안에서 경위 표지(라운드 · Phase · 날짜 · 경위 낱말 · 커밋 해시)가 든 줄을 영역별로 센다. 문자열 · 텍스트 블록 · 템플릿 안의 // 와 /* 는 주석이 아니다.
+한 글자 + 숫자 꼬리표(`label` — H3 · W6 · F3 · 변형 M2 · R1 재판정)는 센다. 단 사양 · 시드 · 도구가 정의한 낱말(L1~L3 개인정보 등급 · V1 Flyway · S1~S6 시드 학생 · R1~R5 시드 회차 · `Ruling 828 D5` …)은 is_term 이 뺀다(근거 표 .claude/r63/label-families.tsv).
+gap-hunt 표지 — hyph(F5-W1 · r11-t1) · task(Task 4) · revw(보완 리뷰 Important #5) · actor(조율자 · 팀 리드) · past(". 전에는") · audit(F02-05 — 지난 웹·앱 검사 번호).
 `Ruling N` · `BR-N` · 기능 ID 는 표지가 아니다(남긴다 — query.py goal-rows 가 코드 주석에서 판정 번호를 찾는다). --check 는 baseline.json 을 넘거나 kept-lines.tsv 의 남긴 줄이 낡았으면 종료 코드 1.
+파일 이름 검사 — *-names 영역(backend-names · web-names · mobile-names)은 git 이 추적하는 경로(`git ls-files`)에서 라운드 번호가 제 이름 조각(`foo_r46_test.dart` · `r60_x.js`)으로 든 파일을 파일마다 1줄로 센다. `--lines` 는 경로를 낸다. 워크트리 경로(`--repo`)와 `--kept` 가 그대로 통한다.
 --repo backend=<워크트리> 처럼 저장소 위치를 바꿔 워크트리를 잰다. --kept <파일> 은 kept-lines.tsv 대신 그 파일을 쓴다. 범위 밖 — yml · sql · sh 주석.
 주석 영역 하위 경로 "." 는 저장소 루트 바로 아래 파일만이다(web 의 next.config.ts · vitest.setup.ts 등 — 2026-10-19 측정 때 src 밖 손으로 쓴 .ts 는 이 3개뿐, mobile 은 apps · packages 밖에 .dart 없음).
 문자열 검사 — *-str 영역은 주석이 아니라 시험 이름 · 단언 메시지 문자열을 같은 표지로 센다. 텍스트 블록 · `+` 로 이은 조각 포함, 주석 · 대상 밖 문자열은 보지 않는다.
@@ -32,8 +35,56 @@ MARKERS = {
     # 라운드 작업 파일(지시서 · 공통 규칙 · 후속 · 보고서)을 가리키는 표시 — 그 파일은 저장소에 없다
     "brief": r"\b(?:BRIEF|COMMON|FIX)(?:-[A-Za-z0-9]+)+(?:\.md)?\b|\b(?:BRIEF|COMMON|GOALS)\.md\b|\bverdict-\w+\.md\b|\breport-\w[\w-]*\.md\b|보고서 ?(?:§|\d+ ?항)",
     "hash": r"커밋 `?[0-9a-f]{7,}",
+    # gap-hunt 2026-10-20 — 표본 18개 파일에서 찾은 빈틈 다섯 가지(전체 측정 합계는 baseline.json)
+    "hyph": r"(?<![\w.<-])[A-Za-z]\d{1,3}-[A-Za-z]\d{0,2}(?![\w>-])",  # 하이픈 묶음 이름 — F5-W1 · F4-B · r11-t1 · r20-a (C-04 · UF-O-04 처럼 글자 둘 이상이 먼저 오면 아니다)
+    "audit": r"\bF0\d-\d{2}\b",  # 지난 웹·앱 검사 지적 번호 — F02-05 · F05-01 · F06-16 (문서는 "2026-09-30 웹 전체 검사 F02-05" 로 경위만 적는다)
+    "task": r"\bTask \d+",  # 지난 작업 번호 — "Task 4 소관" · "Task 2 브리프"
+    "revw": r"보완 리뷰|\b(?:Important|Minor) ?#?\d|리뷰어|리뷰가 (?:\d|축)",  # 리뷰 지적 번호 · 리뷰어가 한 일
+    "actor": r"조율자|팀 ?리드|병합 커밋|\b[BF]E-[A-Z]\b",  # 작업 방식의 사람 · 작업 주인 이름
+    "past": r"[.!?—] ?전에는",  # 문장 머리의 "전에는" = 지난 코드 상태 서술("출발 전에는" 같은 조건절은 아니다)
+    # 한 글자 + 숫자 1~2자리 꼬리표(H3 · W6 · F3 · 변형 M2 · R1 재판정). 사양 · 시드 · 도구가 정의한 낱말(L1~L3 등급 · V1 Flyway · S1~S6 시드 학생 …)은 is_term 이 거른다
+    "label": r"(?P<label>(?<![\w.<-])[A-Z]\d{1,2}(?![\w>-]))",
 }
 MARK = re.compile("|".join(f"(?:{v})" for v in MARKERS.values()))
+# --- label 의 낱말 판정 — 근거는 .claude/r63/label-families.tsv ---
+RULING_SUB = re.compile(r"Ruling \d+(?:[ ·,~]+(?:\d+|[A-Z]\d{0,2}|[①-⑳]))*[ ·,]*$")  # Ruling 828 D5 · Ruling 900 H · K5 — 판정 번호 뒤 항목은 판정 표시의 일부다
+FIXED_TERM = re.compile(r"P(?:50|90|95|99)\b|H2(?=\s*(?:DB|데이터|인메모리|in-memory))|F(?:5|12)(?=\s*(?:키|새로고침))|M3(?=\s*(?:TextTheme|ColorScheme|Theme|디자인))|A4(?=\s*용지)")
+LEAD = re.compile(r"[\s*/(\[「`\"'<]*(?:\d{3} ?[①-⑳]? ?· |후속\d+ )?")  # 글 맨 앞 장식(주석 기호 · 괄호 · 판정 번호 · 후속1)
+DASH = re.compile(r"\s*(?:\([^)]*\))?\s*[—–:]")  # 꼬리표 뒤 " — " · "(UF-D-02) —" · ":"
+SEED_ROLE = re.compile(r"(?:학생|학부모|기사|관계자|보호자|계정|동승자|매니저|parent|student|driver) $")
+
+def label_pos(a, b, string):
+    """꼬리표가 글(주석 한 줄 · 문자열) 맨 앞의 이름표 자리인가 — 주석은 뒤에 대시가 붙을 때, 문자열은 맨 앞이거나 괄호로 끝에 달릴 때."""
+    if not LEAD.fullmatch(a):
+        return string and a.endswith("(") and b == ")"
+    return string or bool(DASH.match(b))
+
+def is_term(c, m, string=False):
+    """label 로 잡힌 꼬리표가 경위가 아닌 낱말인가. 가족(첫 글자)별 규칙 — L1~L3 개인정보 등급(FEATURE_SPEC §6.3) · V Flyway 버전(ERD) 은 이름표 자리일 때만 꼬리표,
+    S1~S6 시드 학생 · R 시드 회차(재판정 · 🔴 · ⚠ · 번호 ①… · 리뷰 R2 는 꼬리표) · A 시드 계정 · G 시드 보호자 묶음 · P0~P3 우선순위(PRD §7.1) · D `D5` 계정 이름, 그 밖은 전부 꼬리표."""
+    t, a, b = m[0], c[:m.start()], c[m.end():]
+    if RULING_SUB.search(a) or FIXED_TERM.match(t + b):
+        return True
+    f, n = t[0], int(t[1:])
+    if f == "L" and n <= 3 or f == "V":
+        return not label_pos(a, b, string)
+    if f == "S":
+        return n <= 6
+    if f == "R":
+        return not (re.match(r"\s*(?:재판정|판정|[🔴⚠①-⑳])", b) or a.endswith("리뷰 "))
+    if f == "A":
+        return bool(SEED_ROLE.search(a))
+    if f == "G":
+        return bool(re.search(r"보호자|student\d", c))
+    if f == "P":
+        return n <= 3 and bool(re.search(r"§[\d.]+ $", a) or b.startswith(" 후속"))
+    if f == "D":
+        return a.endswith("`") and b.startswith("`")
+    return False
+
+def marked(c, string=False):
+    """경위 표지가 든 글인가 — label 은 낱말(is_term)을 뺀다."""
+    return any(not (m["label"] and is_term(c, m, string)) for m in MARK.finditer(c))
 SKIP_DIRS = {"build", "node_modules", ".dart_tool", "graft", ".next", "design-system", ".gradle"}
 # 영역 → (저장소 이름, 저장소 안 하위 경로들, 확장자)
 AREAS = {
@@ -45,7 +96,20 @@ AREAS = {
     "mobile": ("mobile", ["apps", "packages"], (".dart",), "comment"),
     "web-str": ("web", ["src", "."], (".ts", ".tsx"), "string"),
     "mobile-str": ("mobile", ["apps", "packages"], (".dart",), "string"),
+    # 파일 이름 검사 — git 이 추적하는 경로 안에 라운드 번호가 제 이름 조각으로 든 파일을 센다(하위 경로 · 확장자는 쓰지 않는다)
+    "backend-names": ("backend", ["."], (), "names"),
+    "web-names": ("web", ["."], (), "names"),
+    "mobile-names": ("mobile", ["."], (), "names"),
 }
+NAME_ROUND = re.compile(r"(^|[/_.-])[rR]\d{2,3}([/_.-]|$)")  # foo_r46_test.dart · r60_x.js · load/r46/ — router.dart · r2dbc · v1.2.3 은 아니다
+
+def tracked_round_names(root):
+    """git 추적 파일 경로 중 라운드 번호 이름 조각이 든 것 — 워크트리 경로도 된다(-z: 한글 경로가 따옴표로 감싸이지 않게)."""
+    r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True, text=True)
+    if r.returncode:
+        print(f"⚠ git ls-files 실패 — {root}: {r.stderr.strip()[:80]}", file=sys.stderr)
+        return []
+    return sorted(p for p in r.stdout.split("\0") if p and NAME_ROUND.search(p))
 LANG = {".java": "java", ".ts": "ts", ".tsx": "ts", ".mts": "ts", ".dart": "dart"}
 SAME_EXTS = {"backend": (".java",), "web": (".ts", ".tsx"), "mobile": (".dart",)}
 GENERATED = (".g.dart", ".freezed.dart")
@@ -296,10 +360,10 @@ def read_literal(text, i, line, lang="java"):
     return j + 1, line + body.count("\n"), (body if q != "'" or lang != "java" else None)
 
 def str_hits(text, lang="java"):
-    return [(ln, t) for ln, t in string_calls(text, lang) if MARK.search(t)]
+    return [(ln, t) for ln, t in string_calls(text, lang) if marked(t, True)]
 
 def hits(text, lang=None):
-    return [(ln, c.strip()) for ln, c in comments(text) if MARK.search(c)]
+    return [(ln, c.strip()) for ln, c in comments(text) if marked(c)]
 
 def files(root, sub, exts):
     base = os.path.join(root, sub)
@@ -324,7 +388,7 @@ def measure(repos, kept):
     for area, (repo, subs, exts, kind) in AREAS.items():
         root = repos[repo]
         rows, k = [], 0
-        for sub in subs:
+        for sub in subs if kind != "names" else []:
             for p in files(root, sub, exts):
                 rel = os.path.relpath(p, root)
                 for ln, c in (str_hits if kind == "string" else hits)(open(p, encoding="utf-8", errors="ignore").read(), LANG[os.path.splitext(p)[1]]):
@@ -333,6 +397,12 @@ def measure(repos, kept):
                         used.update(m); k += 1
                     else:
                         rows.append((rel, ln, c))
+        for rel in tracked_round_names(root) if kind == "names" else []:
+            m = [j for j, e in enumerate(kept) if e[0] == area and e[1] == rel]
+            if m:
+                used.update(m); k += 1
+            else:
+                rows.append((rel, 0, "(파일 이름)"))
         out[area] = {"lines": rows, "kept": k}
     return out, used
 
@@ -357,7 +427,7 @@ class A {
                                      a.replace("x = 1", "x = 2"), a.replace("/** 설명 (R1 · Ruling 7). */\n", ""), a.replace("R1 · Ruling 7", "R1"))]
     got["shape"] = [shape[0][0] == s[0] for s in shape] + [s[1] for s in shape] + [shape[0][2] == s[2] for s in shape]
     want["shape"] = [True, True, False, True, True] + [1, 1, 1, 0, 1] + [True, True, True, False, False]
-    got["more"] = [bool(MARK.search(c)) for c in ("(Phase 9 목표 6·15)", "F3 S2 목표 11", "T2 소유", "게이트 리뷰 실측", "p13-task-t2.md", "그 시절엔", "목표 시각 07:30", "Ruling 239 · BR-031",
+    got["more"] = [marked(c) for c in ("(Phase 9 목표 6·15)", "F3 S2 목표 11", "T2 소유", "게이트 리뷰 실측", "p13-task-t2.md", "그 시절엔", "목표 시각 07:30", "Ruling 239 · BR-031",
                                                 "── goal 1 — type 필터", "T3 담당", "P5-T6", "이 워크트리에 없다", "버스 좌석 수", "제네릭 <T1> · Map.T1")]
     want["more"] = [True, True, True, True, True, True, False, False, True, True, True, True, False, False]
     got["joined"] = [bool(JOINED.search(t)) for t in (" * 계속 늘어난다. *", " * 성립하지 않는다.     */", " *", " */", " * <p>문단")]
@@ -449,14 +519,40 @@ void t() {
     got["same"] = [[code_shape(a)[0] == code_shape(b)[0], code_shape(a)[0] == code_shape(c)[0]] for a, b, c in sh]
     want["same"] = [[True, False], [True, False]]
     # 짝 없는 따옴표(JSX 글자의 don't)가 다음 줄의 주석을 가리면 안 된다
-    got["fg"] = [bool(MARK.search(c)) for c in ("포그라운드 서비스 알림", "백그라운드로 가면", "이번 라운드에서")]
+    got["fg"] = [marked(c) for c in ("포그라운드 서비스 알림", "백그라운드로 가면", "이번 라운드에서")]
     want["fg"] = [False, False, True]
-    got["brief"] = [bool(MARK.search(c)) for c in ("BRIEF-a1.md 참고", "BRIEF-web 의 규칙", "COMMON-B2 §2", "COMMON.md 3항", "FIX-H.md", "verdict-W.md", "보고서 §1", "보고서 4항", "README.md 참고", "CLAUDE.md", "공통 COMMON 상수", "report-r61-t2.md")]
+    got["brief"] = [marked(c) for c in ("BRIEF-a1.md 참고", "BRIEF-web 의 규칙", "COMMON-B2 §2", "COMMON.md 3항", "FIX-H.md", "verdict-W.md", "보고서 §1", "보고서 4항", "README.md 참고", "CLAUDE.md", "공통 COMMON 상수", "report-r61-t2.md")]
     want["brief"] = [True, True, True, True, True, True, True, True, False, False, False, True]
-    got["label"] = [bool(MARK.search(c)) for c in ("B1 #14 — 같은 이름", "A #5 외부 내비", "F5 M2 목표 A-2", "M-P1 지도", "PR #12 참고", "RUN-08 외부 내비", "목표 시각 07:30")]
+    got["label"] = [marked(c) for c in ("B1 #14 — 같은 이름", "A #5 외부 내비", "F5 M2 목표 A-2", "M-P1 지도", "PR #12 참고", "RUN-08 외부 내비", "목표 시각 07:30")]
     want["label"] = [True, True, True, True, False, False, False]
-    got["lane"] = [bool(MARK.search(c)) for c in ("F5 M3 목표", "보고서 § 실측 참고", "M2-01 로그아웃", "M-15 비상", "RUN-08", "A4 용지 크기", "H3 제목")]
-    want["lane"] = [True, True, True, False, False, False, False]
+    got["lane"] = [marked(c) for c in ("F5 M3 목표", "보고서 § 실측 참고", "M2-01 로그아웃", "M-15 비상", "RUN-08", "A4 용지 크기", "H3 제목")]
+    want["lane"] = [True, True, True, False, False, False, True]
+    # 한 글자 + 숫자 꼬리표 — 양: 작업 항목 이름(주석 · 시험 이름 · 단언 메시지) / 음: 사양 · 시드 · 도구가 정의한 낱말
+    tag_c = lambda c: bool(hits("// " + c + "\n"))
+    tag_pos = ["W6 — 차단 직전 상태", "변형 M2 가 살아남았다", "(R1 재판정 — 구조적으로)", "F3 이 끝난 뒤에도", "시안 C3 와 같다", "화면 전용(L5) — 다른 역할", "L8(`Ruling 830`) — 매니저 앱",
+               "861 ⑥ · L2(UF-X-01) — 가입이", "L3 — 등원은 도착이 곧 종료", "R2 🔴 지적(조율자)", "F1 결과 ②(R3 ⑪e)", "리뷰 R2 판정문", "후속1 V1 — 키가 비워진", "예상 거리(S7)를 낸다",
+               "G2 — 홈의 주 단추", "A9 목록 번호", "B1 형제", "음성 대조 N11·N12 로 실측", "M3 이 밟은 함정"]
+    tag_neg = ["L3 필드가 실린 응답", "마스킹(L2)을 유지한다", "개인정보 등급 L2 이상 금지", "V1 스키마와 맞는다", "시드(V2)가 이미", "데모 선단(V13)이 3·4·5호차를", "Ruling 828 D5", "(Ruling 900 H · K5)",
+               "RUN-08", "C-04", "UF-O-04", "BR-217", "A4 용지", "S3 에 올린 뒤에만", "형제 S1·S2 의 보호자", "시드 회차 R3(학원 1, moving)", "ARCHITECTURE §14 R3", "학부모 A1 = 계정 5",
+               "G2 — student3·student4 의 보호자", "PRD §7.1 P2 후속 F-01", "P99 지연", "H2 DB 에서", "M3 TextTheme 은", "제네릭 <T1> · Map.T1", "색 #F5F5F5", "`driverD3`~`D5` 회차", "R48 씨"]
+    got["tags"] = [tag_c(c) for c in tag_pos] + [tag_c(c) for c in tag_neg[:-1]]
+    want["tags"] = [True] * len(tag_pos) + [False] * (len(tag_neg) - 1)
+    got["tag-src"] = [[ln for ln, _ in hits(t)] for t in ("/** W6 — 설명. */\nclass A {}\n", "// 변형 M2\nconst a = 1; // 정상 설명\n", "/// F2 — 화면 꺼짐\n/// L3 필드가 실린 응답\n")]
+    want["tag-src"] = [[1], [1], [1]]
+    got["tag-str"] = [ln for ln, _ in str_hits('@DisplayName("H1 — 하원 시작")\n@DisplayName("사진 교체와 같은 L3 수정 감사 1행")\nassertThat(x).as("G1 — 5명").isTrue();\n')] + \
+                     [100 + ln for ln, _ in str_hits('it("W4 연속 실패 표시", () => {});\nit("정상", () => {});\nit("L4 처음에는", () => {});\n', "ts")] + \
+                     [200 + ln for ln, _ in str_hits("test('L4 처음에는 꺼져 있다', () {});\ntest('스키마는 V1 한 파일', () {});\nreason: 'F2 이유',\n", "dart")]
+    want["tag-str"] = [1, 3, 101, 103, 201, 203]
+    # 파일 이름 — 라운드 번호가 제 이름 조각인 경로만
+    got["names"] = [bool(NAME_ROUND.search(x)) for x in ("foo_r46_test.dart", "r60_x.js", "load/k6/r60_redis_outage.js", "a/R48.sql", "x/load-r46.py", "router.dart", "r2dbc", "color_r_value.dart", "v1.2.3", "src/error46/x.ts", "r1234.txt")]
+    want["names"] = [True, True, True, True, True, False, False, False, False, False, False]
+    # gap-hunt(2026-10-20 표본 18개 파일) — 하이픈 묶음 이름 · Task 번호 · 리뷰 지적 번호 · 조율자 · 과거 상태 서술
+    gap_pos = ["실제 F5-W1 전용 백엔드에 붙인다", "r11-t1 — decideSignupRequest 재현", "(`r20-a` 미병합)", "F4-B 에서 실제 지도로", "F05-01 — 계정이 바뀌면", "기능 간 import 경계(F02-05·X-02)", "호출부(Task 4)가 아직 없어", "Task 2 소유라",
+               "(보완 리뷰 Important #5)", "리뷰 Important 2", "리뷰어가 프로브로 실측했다", "조율자 판정(Ruling 260)", "(팀 리드 우려 3)", "BE-A 병합 커밋 기준", "BR-170) — 전에는 무한이라 넘치면", "읽는다. 전에는 3개 모듈이"]
+    gap_neg = ["C-04 · UF-O-04 · RUN-08", "h1 부터 h6 까지", "출발 전에는 알림이 없다", "전에는 있었으나 후에는 없는 승하차지", "(출발 30분 전) 전에는 ①", "코드 리뷰 없이 나갈 수 있다", "taskbar 와 Task 클래스", "BE 와 FE 는 따로 배포한다",
+               "아웃박스 워커가 다시 집는다", "16px-24px 로 늘어난다", "a11y-label 속성"]
+    got["gap"] = [tag_c(c) for c in gap_pos + gap_neg]
+    want["gap"] = [True] * len(gap_pos) + [False] * len(gap_neg)
     got["apos"] = [ln for ln, _ in hits("<p>don't stop</p>\n// R57 에서 바꿈\nconst s = \"x\";\n")]
     want["apos"] = [2]
     ok = got == want
