@@ -284,6 +284,8 @@ public interface RouteOptimizer {
 
 **문자열 4종에도 경위를 쓰지 않는다** — 같은 규칙이 `@Operation` 의 `summary`·`description`, `@DisplayName`, `@AcademyScopeExempt` 사유, 단언 메시지(`as` · `describedAs` · `withFailMessage` · `overridingErrorMessage` · `fail` 의 문자열) 이렇게 네 곳의 문자열에도 걸린다. 텍스트 블록과 `+` 로 이은 조각도 같다. 확인은 `.claude/bin/comment-history/comment_history.py <작업 공간> --check` 이고, 주석 영역(`backend-main` · `backend-test`)과 같은 표지로 문자열 영역(`backend-main-str` · `backend-test-str`)을 세며 기준치는 0 이다.
 
+**파일 이름 · 작업 라벨에도 경위를 쓰지 않는다** — 추적 파일 이름에 라운드 번호(`r46_judge.py`)를 넣지 않고, 지난 작업 항목을 가리키는 한 글자 라벨(`W6` · `F3` · `F03-12` · `변형 M2` · `R1 재판정`) · 작업 주체(`조율자` · `팀 리드`)을 주석과 위 문자열에 쓰지 않는다. 사양이 정의한 용어(개인정보 등급 `L3` · 마이그레이션 버전 `V1` · `Ruling N` 바로 뒤 하위 항목)는 남긴다. 경위 검사의 `label` 표지와 `backend-names` 영역이 센다(`Ruling 936` D).
+
 **주석이 사양을 복제하지 않는다** — 30분·±3분 같은 값은 주석에 적지 않고 규칙 ID(`C-04` · `RTE-02`)로 참조한다(`IMPLEMENTATION_PLAN §7` 규칙 18과 같은 이유).
 
 ⚠ 흔한 오해 — "주석이 많을수록 친절하다." 반대다. 주석은 코드와 함께 갱신되지 않으므로 **틀린 주석은 없는 주석보다 나쁘다.** 이름으로 말할 수 없는 것(왜 이 예외를 쓰는가 · 왜 이벤트가 아닌가)만 남긴다.

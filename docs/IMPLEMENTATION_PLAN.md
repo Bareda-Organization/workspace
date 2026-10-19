@@ -662,6 +662,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 
 | 항목 | 내용 | 처리 |
 |---|---|---|
+| **R63 — 글 규칙 31개 코드화 · 팀 QA 준비(공개 직전까지) · 파일 이름 · 작업 라벨 경위**(2026-10-19 · 사용자 "다음 라운드") | 규칙 대장 31행 · RQA 결함 후보 5 · APK 2 · QA 문서 · 에뮬레이터 · 부하 스크립트 6 · 앱 시험 파일 4 · 라벨 · 판정 936 · 작업 창 5개(RULES · QA · BE · WEB · MOBILE) | **진행** — §8.113 |
 | **R61 — 쓰지 않는 권한 상수 · 사양 「권한」 빈 줄 · DB 대체 위치의 정류장 이름 · 웹 · 앱 주석 · 문자열 경위**(2026-10-19 · 사용자 "r61 진행") | 상수 6개 삭제 · 「권한」 줄 29개 · 대체 위치 정류장 이름 · 경위 web 404 · mobile 354줄 + 문자열 · 판정 935 · 작업 창 3개(BE · WEB · MOBILE) | **완료**(2026-10-19) — 결과 §8.112 「R61 결과」 · 판정 935 · push 안 함 |
 | **R60 — 서버 2대 기동 제거 · Redis 장애 대비 · CI 단축 · 권한 전수 시험 · 문자열 경위 · 지도 코드 합치기**(2026-10-18 · 사용자 "다음 라운드") | `918` · `919` · `920` · `917` C · 판정 929 · 작업 창 4개(BE-SCALE · BE-REDIS · BE-PERM · MOBILE) | **완료**(2026-10-19) — 결과 §8.111 「R60 결과」 · 판정 929~934 · backend `ae7719b9` · mobile `0dbf236` · push 안 함 |
 | **R59 — 서버 2대 대비 · 2 vCPU 부하 재측정**(2026-10-17 · 사용자 "다음 계획까지 만들어줘") | Redis Pub/Sub 중계 · 미리보기 캐시 Redis · 캐시 비움 전파 · 2대 compose · 한 대씩 배포 · 부하 재측정(1대 2 vCPU · 2대) · 판정 900 · 단계 1 작업 창 2개(BE-SCALE · INFRA) → 병합 → 단계 2 측정 창 1개 | **완료**(2026-10-18) — 단계 1 · 2 결과 §8.110 「R59 단계 1 결과」 · 「R59 단계 2 결과」 · 판정 915~927 · backend `2b5699ba` · 작업 공간 `44f722c`(단계 2 push 안 함). 운영 1대(`917` · `918`) · 운영 기계 = 집 PC 16GB(`922`) · 목표 규모 통과(L-1 · L-2 · L-3 · L-6) · J-1 반영(`927`). 다음 = R60 |
@@ -1380,6 +1381,7 @@ Phase 별 범위 · 선행 · 완료 조건 · 산출물 · 이월(Phase 10~14 �
 | 933 | CI 시간 측정값 인정(사용자) — 시간 때문에 시험을 빼거나 약하게 하지 않음 | 본문 §8.111 |
 | 934 | 배포는 팀 QA 뒤 · 호스팅은 이 Mac 의 Docker + ngrok(사용자) · EC2 경로 안 씀 | 본문 §8.111 |
 | 935 | R61 범위 — 안 쓰는 권한 상수 6개 삭제 · 「권한」 빈 줄 29개는 코드 값 · DB 대체 위치도 정류장 이름(사용자) · 작업 창 3개(조율자) | 본문 §8.112 |
+| 936 | R63 범위 — 글 규칙 31개 코드화 · 팀 QA 준비는 공개 직전까지(사용자) · RQA 결함 후보 재판정 · 경위 규칙을 파일 이름 · 작업 라벨로 · 작업 창 5개(조율자) | 본문 §8.113 |
 
 
 ## 8.73 ⚖ `R46-BE` — 성능 개선(감사 제외) + 바로 고칠 것 (2026-10-01 · 분기점 `ea37ba6c` · 번호대 410~419 · 백엔드 갈래)
@@ -2957,3 +2959,58 @@ Code navigation uses the graft CLI with the repo folder as the last argument (`b
 - **바뀐 줄** — backend 31파일 +399 / −90(커밋 6) · web 197파일 +733 / −808(9) · mobile 273파일 +775 / −827(10) · 문서 9파일 +98 / −24
 - **비용** — 합계 약 $49 · 조율자 47%(검증 워크플로 포함) · 목표 행당 $3.3(`round-cost.py --rows 15`)
 - **다음 라운드 후보** — 라운드 번호가 든 앱 시험 파일 이름 3개(`signup_screen_r46_test.dart` · `run_card_r46_test.dart` · `settings_screen_r48_test.dart`) · 도구가 기능 ID 와 가르지 못하는 한 글자 라벨(`H3` · `P1` 형태 — 이번에 손으로 지움, 다시 생기면 못 잡음) · 팀 QA 준비(`934`)
+
+## 8.113 ⚖ `R63` — 글 규칙 31개 코드화 · 팀 QA 준비(공개 직전까지) · 파일 이름 · 한 글자 작업 라벨 경위 (진행 · 2026-10-19 · 번호 936 · 사용자 결정)
+
+사용자 지시(2026-10-19) — *"다음 라운드"* · AskUserQuestion: 규칙 코드화 **"31개 전부"** · 팀 QA 준비 **"공개 직전까지"**. 범위는 §8.112 「R61 결과」 의 다음 라운드 후보 3개 + 세션 시작 줄(R62 규칙 대장 — 글로만 적힌 규칙 중 2번 이상 어긴 31개). 근거 커밋 backend `18f26dcf` · web `4d0d0b6` · mobile `9ddf349` · 작업 공간 `7619f63`(+ 착수 전 도구 · 규약 커밋) · 설정 저장소 `3cc2096`.
+
+조율자 확인(2026-10-19) — 라운드 번호가 든 파일 이름은 기록의 3개가 아니라 **mobile 시험 4개**(`packages/baraeda_ui/test/widgets/core/r48_parts_test.dart` 추가) + **backend 부하 스크립트 6개**(`backend/load/` 의 `r46_*` 5개 · `load/k6/r60_redis_outage.js`) · 주석의 한 글자 토큰(`[A-Z]\d{1,2}`) 후보 344줄(backend 216 · web 50 · mobile 78) — 개인정보 등급 `L3` · 마이그레이션 `V1` · 시드 학생 `S1` 처럼 사양 · 시드 용어인 것이 약 190줄이라 가르는 규칙은 착수 전 도구 작업(`.claude/r63/label-families.tsv`) · 같은 작업의 표본 대조(18파일)에서 도구가 못 세던 경위 6종을 더 찾음 — 하이픈 작업 번호(`F5-W1` · `r11-t1`) · `Task N 소관` · 리뷰 표시 · 작업 주체(`조율자` · `팀 리드` · `병합 커밋`) · `전에는` 으로 시작하는 문장 · 문서에 정의가 없는 지난 감사 지적 번호(`F03-12` — 약 263줄, 대부분 시험 주석의 머리표). 새 표지를 넣은 기준치는 backend 111 · web 187 · mobile 263 · 파일 이름 10 · RQA 결함 후보 5개 중 웹 「학생 응급상황」(`emergencyLabels.ts`) · 웹 화면 문자열 「정차지」(사양은 「승하차지」 — FEATURE_SPEC 141 : 3 · USER_FLOWS 149 : 2) · 매니저 앱 「어느 운행의 비상입니까?」(`Ruling 890` 해요체 위반)가 아직 코드에 있다 · 10-17 APK 뒤 mobile 커밋 15개(R57 오프라인 대기열 DB 스키마 5 → 1 — 옛 빌드 기기는 재설치).
+
+| Ruling | 판정 | 근거 |
+|---|---|---|
+| **936** | **R63 범위와 방식**(사용자 결정 A · B · 조율자 C~E · 2026-10-19) — **A. 글로만 적힌 규칙 중 2번 이상 어긴 31개를 전부 코드로 바꾼다**(사용자 "31개 전부") — 규칙 대장(`~/.claude/tools/rule-ledger/ledger.tsv`)의 그 행이 `text` 가 아니게: 도구 입력만으로 위반이 판정되고 정당한 쓰임이 없으면 거부(`refuse` · `refuse:<check>`), 도구가 파일로 확인하면 `evidence`, 그 밖은 그 순간 규칙 줄을 보여 주는 `remind`. 전역 방식 변경이라 cascade **3.8.0**. **B. 팀 QA 준비는 서버 공개 직전까지**(사용자 "공개 직전까지") — APK 2개 재빌드(스테이징 주소 · 빠른 로그인 값 그대로) · `QA_SCENARIOS` 와 QA 안내 페이지를 R57~R61 의 화면 변경에 맞춤 · 에뮬레이터 확인은 이 Mac 의 스테이징을 ngrok 없이 띄워서. ngrok 공개 · Vercel `web-dev` 갱신은 팀 QA 시작 때 사용자 지시로(`934`). **C. RQA 결함 후보 5개를 사양 기준으로 다시 판정한다**(조율자) — 사양이 정한 문구(「승하차지」 · 비상 유형 표기 · 해요체 `890`)와 다른 화면 문자열은 고치고, 동작 후보(기사 운행 중 현장 보고 단추 · 동승자 운행 전 [탑승] 409)는 사양이 정한 동작이 분명할 때만 고치며 그 밖은 QA 안내의 알려진 한계로. **D. 경위 규칙(`903` A)을 파일 이름과 한 글자 작업 라벨까지 넓힌다**(조율자) — backend · web · mobile 의 추적 파일 이름에 라운드 번호를 쓰지 않는다 · `W6` · `F3` · `F03-12` · `변형 M2` · `R1 재판정` 같은 지난 작업 항목 라벨과 작업 주체(`조율자` · `팀 리드`)를 주석 · 검사 문자열에 쓰지 않는다(사양 · 시드가 정의한 용어는 남긴다) · 경위 검사 도구에 `label` 외 6개 표지 · `*-names` 영역 · 규약 3개 문서에 한 문장. **E. 작업 창 5개 동시**(조율자) — t1 RULES(전역 설정 저장소) · t2 QA(web · mobile · 문서 · APK · 에뮬레이터) · t3 BE(backend 경위 · 부하 스크립트 이름) · t4 WEB(web 경위) · t5 MOBILE(mobile 경위 · 시험 파일 이름) · 모두 `claude-sonnet-5-5[1m]` · `high` | 31개는 R62 세션 시작 줄이 다음 라운드 목표 표에 코드화 행을 요구한다(cascade 3.7.0 8단계). 공개는 외부에 서버를 여는 일이라 사용자 시점. 결함 후보는 팀 QA 가 다시 낼 것이라 공개 전에 닫는다 — 사양이 이미 정한 것만 |
+
+### R63 갈래 (Orca 작업 창 5개 · 동시)
+
+| 창 | 저장소 · 워크트리 | 맡는 것(파일 주인) |
+|---|---|---|
+| t1 RULES | 설정 저장소 `~/.claude-config.git` `r63-cfg` | `tools/rule-ledger/**` · 31개 규칙의 확인이 들어갈 전역 도구(`skills/cascade/bin/**` · `tools/goal-table-gate/**` · `workflows/round-verify.js` 등) · `skills/cascade/{SKILL,CHANGELOG}.md` — `CLAUDE.md` · `agents/**` · `mods/**` · `projects/**` 는 손대지 않는다(라이브에 커밋 안 된 편집) |
+| t2 QA | web `r63-qa-web` · mobile `r63-qa-mobile` · 작업 공간 `r63-qa-docs` | 결함 후보를 고치는 web · mobile 파일(「정차지」 · 「응급상황」 화면 문자열이 든 web 파일 · `emergency_button.dart` 와 그 시험 · 동작 후보를 고치면 그 파일 — 목록 밖 파일은 묻고) · `docs/qa/QA_SCENARIOS.md` · 사양 문서 문구 정정 · `docs/render/qa/qa-guide.html`(git 밖 · 본 작업 공간) · APK · 스테이징 기동 · 정지 |
+| t3 BE | backend `r63-be` · 작업 공간 `r63-be-docs` | backend 주석 · 검사 문자열의 경위 · `backend/load/` 이름 바꾸기와 그 참조 · `docs/backend/LOAD_TESTING.md` 등 참조 문서 |
+| t4 WEB | web `r63-app-web` | web 주석 · 검사 문자열의 경위 — t2 목록의 파일은 손대지 않고 남은 줄을 보고 |
+| t5 MOBILE | mobile `r63-app-mobile` | mobile 주석 · 검사 문자열의 경위 · mobile 시험 파일 4개 이름 — t2 목록의 파일은 손대지 않고 남은 줄을 보고 |
+
+### R63 목표 표 (착수 때 `.claude/r63/GOALS.md` 로 그대로 복사한다. 고칠 때는 이 표를 먼저 고친다)
+
+`<cfg>` = `/Users/mskim/Desktop/PJ/baraeda-wt/r63-cfg` · `R` = `.claude/r63` · `CH` = `python3 .claude/bin/comment-history/comment_history.py <작업 공간>`
+
+| ID | 조건 | 명령 | 결함 심기(✱) |
+|---|---|---|---|
+| C-1 | 대장에서 31개(`R/codify-31.tsv` 의 id) 모두 `enforce` 가 `text` 가 아니다 · 대장 검사 통과 · 세션 시작 줄 없음 | `python3 <cfg>/tools/rule-ledger/rule-gate.py --check-ledger` → 0 · `… --session-start` → 0줄 · 31개 id 의 `enforce` 에 `text` 0 | ✱ 한 행을 `text` 로 되돌림 → 세션 시작 줄에 그 id |
+| C-2 | 행마다 판정 가능한 가장 강한 형태 — `R/codify-31.tsv`(id · 전 · 후 · 순간(도구 + 입력 모양) · 더 강하게 못 한 이유 · 시험 이름) 빈 칸 0 · `refuse` · `remind` 행은 `example_hit` 이 걸리고 `example_pass` 가 안 걸림 · 새 확인 함수마다 시험(RED 먼저) | `python3 <cfg>/tools/rule-ledger/test_rule_gate.py` → OK · 표 빈 칸 수 | ✱ 새 확인 함수 하나를 끔 → 그 시험 실패 |
+| C-3 | 소음 — 흔한 명령(`git status` · `git log` · `ls` · `orca terminal read` · 소스 파일 Read · Edit)에 알림 0줄 · 한 번에 알림 최대 3줄 | 시험 | ✱ 3줄 상한 제거 → 시험 실패 |
+| C-4 | 비용 · 등록 — 맞지 않는 입력 10회 중앙값 < 100 ms(Bash · 새로 매칭하는 도구 각각) · `register.py` 의 matcher 가 대장의 `tool` 값을 모두 덮음(임시 설정 파일) · 라이브 `~/.claude/settings.json` 바이트 그대로(shasum 처음 = 끝) | 시간 측정 출력 · 임시 파일 시험 · shasum | — |
+| C-5 | 문서 — `skills/cascade/SKILL.md` 3.8.0 · `CHANGELOG.md` 3.8.0(사용자 말 · 31개의 전후 분포 · 시험 · 심기 수) | `grep -c` | — |
+| C-6 | 기존 도구 검사 전부 통과(R62 G-1 의 명령 11개) | 그 명령들 → 모두 종료 0 | — |
+| C-7 | 병합 뒤(조율자) — 라이브 등록(matcher 가 바뀌면 사용자가 `register.py` 실행) · 거부 행 하나 · 알림 행 하나가 조율자 세션에서 실제로 동작 · 새 세션 시작 줄 없음 | 조율자 | — |
+| Q-1 | RQA 결함 후보 5개 판정 — `R/qa-candidates.tsv`(후보 · 지금 코드 file:line · 사양 근거 문서 § · 처리 = 고침 <커밋> / 알려진 한계 <이유> / 물음 <id>) 빈 칸 0 · 고친 것마다 화면 문자열 · 동작 시험(RED 먼저) | 표 · web `scripts/verify.sh` · mobile `scripts/verify.sh` 실패 0 · 건너뜀 0(web 의도 1 제외) | ✱ 고친 문자열 하나를 되돌림 → 그 시험 실패 |
+| Q-2 | web 화면 문자열(리터럴 · JSX 글 — 주석 제외)에 「정차지」 · 「응급상황」 0 · mobile 「비상입니까」 0 | 개수(명령은 보고서 ③) | — |
+| Q-3 | QA 문서 — RQA 기준(작업 공간 `fbe6eea` · backend `5f083a93` · mobile `55c1222` · web `f49944d`) 뒤 화면 · 동작이 바뀐 커밋마다 `R/qa-changes.tsv`(저장소 · 커밋 · 바뀐 것 · QA 항목 ID 고침/새로 · 또는 "화면 변화 없음: 이유") 빈 칸 0 · `QA_SCENARIOS.md` 개정 줄 · QA 안내 페이지 항목 ID 집합 = `QA_SCENARIOS` 항목 ID 집합 · 알려진 한계(매니저 앱 재설치 · Q-1 의 남긴 후보) | 표 · ID 집합 비교 명령 | — |
+| Q-4 | APK 2개 — t2 mobile 마지막 커밋에서 스테이징 주소(`backend/.env` 의 `PUBLIC_URL`) · 빠른 로그인 값으로 arm64 release → `R/apk/{parent,manager}.apk` · `libapp.so` 안에 스테이징 주소 문자열 · 커밋 · sha256 · 크기를 보고서 ③ 에 | `unzip -p <apk> lib/arm64-v8a/libapp.so \| strings \| grep -c <host>` ≥ 1 · `shasum -a 256` | — |
+| Q-5 | 에뮬레이터 확인 — 스테이징을 ngrok 없이(`COMPOSE_PROFILES=` 비움) 새 시드로 띄우고 같은 커밋을 `API_BASE_URL=http://10.0.2.2:3100/api/v1` 로 빌드해 `baraeda_qa` 에서: 4역할(학부모 · 학생 · 기사 · 동승자) 로그인 · 기사 운행 시작 뒤 위치 송신(프록시 로그 `204`) · 학부모 지도에 버스 · 매니저 앱 새로 설치 첫 실행 정상 · Q-1 에서 고친 앱 화면 → `R/emu/` 캡처 · 내내 compose ngrok 컨테이너 0 | 캡처 · 로그 줄 · `docker ps --format '{{.Names}}' \| grep -c '^school-bus-staging-ngrok'` → 0 | — |
+| Q-6 | 끝 — 스테이징 내림(`-v` 없음) · 에뮬레이터 종료 | `docker ps` | — |
+| N-1 | backend 부하 스크립트 6개 이름에 라운드 번호 없음 · 옛 이름을 가리키는 곳 0(backend · `docs/` — `docs/archive/` 와 `IMPLEMENTATION_PLAN.md` 의 끝난 라운드 절 제외) · 바꾼 스크립트 구문 검사 통과(`python3 -m py_compile` · `k6 inspect`) | `CH --repo backend=<wt> --check` 의 `backend-names` 0 · 옛 이름 `git grep` 0 | ✱ 이름 하나를 되돌림 → `backend-names` 1 · 종료 1 |
+| N-2 | backend 주석 · 검사 문자열의 작업 라벨 0(4개 영역) — 라벨을 지운 줄은 그 줄이 전하던 무엇 · 왜로 다시 쓰고, 도구가 잘못 세는 사양 용어는 이유와 함께 남긴 줄 | `CH --repo backend=<wt> --kept R/kept-t3.tsv --check` 의 backend 영역 0 | ✱ 라벨 주석 하나 · `@DisplayName` 라벨 하나를 되살림 → 종료 1 |
+| N-3 | backend 동작 그대로 — `--same-code <기준> --to <마지막 커밋>` 어긋남 0 · 문자열을 바꾼 시험 클래스 재실행 실패 0 · 마지막에 전체 한 번 실패 0 · 건너뜀 0 | `CH --same-code …` · `scripts/test.sh` 결과 XML | — |
+| A-1 | mobile 시험 파일 4개 이름에 라운드 번호 없음 · 패키지별 시험 수 전후 같음 | `CH --repo mobile=<wt> --kept R/kept-t5.tsv --check` 의 `mobile-names` 0 · `scripts/verify.sh` | ✱ 이름 하나 되돌림 → 종료 1 |
+| A-2 | web 주석 · 검사 문자열의 경위 0(새 표지 포함) — t2 파일 목록의 줄은 손대지 않고 보고서 ② 에 넘김 | `CH --repo web=<wt> --kept R/kept-t4.tsv --check` 의 web · web-str 0 | ✱ 라벨 주석 하나 · 시험 이름 하나 되살림 → 종료 1 |
+| A-3 | web 동작 그대로 — `--same-code` 어긋남 0 · 시험 수 전후 같음 · 실패 0 · 건너뜀 0(의도 1 제외) | `CH --same-code …` · `scripts/verify.sh` | — |
+| A-4 | mobile 주석 · 검사 문자열의 경위 0(새 표지 포함) — t2 파일 목록의 줄은 손대지 않고 보고서 ② 에 넘김 | `CH --repo mobile=<wt> --kept R/kept-t5.tsv --check` 의 mobile · mobile-str 0 | ✱ 라벨 주석 하나 · 시험 이름 하나 되살림 → 종료 1 |
+| A-5 | mobile 동작 그대로 — `--same-code` 어긋남 0 · 패키지별 시험 수 전후 같음 · 실패 0 · 건너뜀 0 | `CH --same-code …` · `scripts/verify.sh` | — |
+| K-1 | 규약 — `CODE_CONVENTIONS §19` · `CONVENTIONS_REACT` · `CONVENTIONS_FLUTTER` 에 "파일 이름 · 작업 라벨에도 경위를 쓰지 않는다" | `grep -c` | — (조율자 착수 전) |
+| G-1 | backend 병합본 전체 시험 실패 0 · 건너뜀 0 | `scripts/test.sh --rerun` 결과 XML | — |
+| G-2 | 깨진 참조 0 · 규칙 사본 0 · 경위 검사 네 저장소 모든 영역(`label` · `*-names` 포함) 0 · 기준치 0 · 닿는 곳 표 마지막 칸 | `query.py` · `.claude/bin/` 스크립트 | — |
+| G-3 | 실서버 계약 시험(이미지 새로 빌드 · 시드 새로) — 웹 · 학부모(`FIXTURE_DB=schoolbus`) · 매니저 실패 0 · 건너뜀 0(웹 의도 1 제외) | `.claude/PROJECT_NOTES.md` 정식 명령 | — |
+| G-4 | 공개 준비 — 새 APK 2개를 `backend/downloads/` 로(옛 것은 `R/apk-old/`) · 끝 64KB 해시가 `R/apk` 와 같음 · QA 안내 Artifact 를 같은 주소로 다시 게시 | `tail -c 65536 \| shasum` · Artifact 결과 | — |
+
+**닿는 곳 표**(D — `query.py goal-rows 'Ruling 903, "주석에 경위", "경위를 쓰지"'` 17행 · 2026-10-19) — 규칙 문장이 있는 곳은 `CODE_CONVENTIONS §19`(283 · 285) · `CONVENTIONS_REACT`(149) · `CONVENTIONS_FLUTTER §9`(190) 셋(K-1). 나머지 14행은 판정 번호 언급(이 문서의 절 3.1 · 3.2 · 3.3 · 4.6.4 · 8.108~8.110 · `ARCHITECTURE §9.5` · `CODE_CONVENTIONS §20.3` · `DEPLOYMENT §11.2` · 코드 2곳)이라 안 바뀜 — 범위 문장을 담지 않는다.
