@@ -199,12 +199,12 @@ R46 에서 서버·웹·앱이 바뀐 뒤(`IMPLEMENTATION_PLAN §8.84`) 09-09 �
 
 | 파일 | 하는 일 |
 |---|---|
-| `sql/r46_parent_seed.sql` | `r0_capacity_seed.sql` **뒤에** 한 번 더 실행. 학생마다 보호자 1명(학부모 계정 `loadcap-…-par` + `guardian` + `guardian_student`) 2,000. 다시 실행해도 겹치지 않는다 |
-| `r46_mint_tokens.py <출력.json> [학부모 수]` | 학부모 N명 · 관계자 11 · 메인 관리자의 접근 토큰을 **회차 직전에** 발급(유효 15분). k6 안에서 로그인하지 않는 이유 — 학부모 수백 명의 BCrypt 로그인 CPU 가 측정 구간(누적 CPU 차)에 섞인다 |
+| `sql/parent_seed.sql` | `r0_capacity_seed.sql` **뒤에** 한 번 더 실행. 학생마다 보호자 1명(학부모 계정 `loadcap-…-par` + `guardian` + `guardian_student`) 2,000. 다시 실행해도 겹치지 않는다 |
+| `mint_tokens.py <출력.json> [학부모 수]` | 학부모 N명 · 관계자 11 · 메인 관리자의 접근 토큰을 **회차 직전에** 발급(유효 15분). k6 안에서 로그인하지 않는 이유 — 학부모 수백 명의 BCrypt 로그인 CPU 가 측정 구간(누적 CPU 차)에 섞인다 |
 | `k6/scenario5_polling.js` | 폴링 + 시청 세션. 환경변수로 갈래를 켜고 끈다(0 이면 끔) |
-| `sql/r46_link_position_riders.sql` | 위치용 회차(`LP-…`)에 **같은 학원의** 명단 20명씩을 붙인다 — 없으면 학생 채널로 방송이 안 나가 시청 세션이 아무것도 못 받는다. `r3_mixed.sh` 의 `realistic` 모드가 회차마다 자동 실행하고, 그 모드는 위치용 회차를 LOADCAP 학원마다 나눠 심는다(`scenario2_prep.sql -v academy_id=<학원 id>`). ⚠ 옛 판은 학원 1 의 위치용 회차에 다른 학원 학생을 붙여 `run_rider` 18,000건이 학원 경계를 넘었다 — 점검은 `sql/check_academy_boundary.sql`(전부 0 이어야 함 · `Ruling 675`·`676`), 이미 어긋난 행은 그 파일 머리의 `DELETE` 한 문장으로 지운다 |
-| `r46_judge.py <라벨>` | r3 회차를 사양 기준 5항(아래 6.5.4)으로 판정 |
-| `r46_summarize.py <묶음 출력> <접두사>` | 회차 출력을 표 한 줄로 모은다(호스트 간섭 평균 포함) |
+| `sql/link_position_riders.sql` | 위치용 회차(`LP-…`)에 **같은 학원의** 명단 20명씩을 붙인다 — 없으면 학생 채널로 방송이 안 나가 시청 세션이 아무것도 못 받는다. `r3_mixed.sh` 의 `realistic` 모드가 회차마다 자동 실행하고, 그 모드는 위치용 회차를 LOADCAP 학원마다 나눠 심는다(`scenario2_prep.sql -v academy_id=<학원 id>`). ⚠ 옛 판은 학원 1 의 위치용 회차에 다른 학원 학생을 붙여 `run_rider` 18,000건이 학원 경계를 넘었다 — 점검은 `sql/check_academy_boundary.sql`(전부 0 이어야 함 · `Ruling 675`·`676`), 이미 어긋난 행은 그 파일 머리의 `DELETE` 한 문장으로 지운다 |
+| `judge_round.py <라벨>` | r3 회차를 사양 기준 5항(아래 6.5.4)으로 판정 |
+| `summarize_round.py <묶음 출력> <접두사>` | 회차 출력을 표 한 줄로 모은다(호스트 간섭 평균 포함) |
 
 ### 6.5.2 폴링 요청 묶음 — 앱·웹 코드에서 센 값
 
@@ -236,7 +236,7 @@ R46 에서 서버·웹·앱이 바뀐 뒤(`IMPLEMENTATION_PLAN §8.84`) 09-09 �
 ```bash
 cd backend/load
 docker exec -i school-bus-postgres-1 psql -U schoolbus -d schoolbus_load -q < sql/r0_capacity_seed.sql
-docker exec -i school-bus-postgres-1 psql -U schoolbus -d schoolbus_load -q < sql/r46_parent_seed.sql
+docker exec -i school-bus-postgres-1 psql -U schoolbus -d schoolbus_load -q < sql/parent_seed.sql
 # 서버: §6.1 의 load 기동에 --spring.data.redis.database=<칸> 을 더한다(공유 Redis 를 다른 작업과 나눌 때)
 
 ROUND_LABEL=r46_r2_n100_i2_a SCENARIO2_INTERVAL_SEC=2 ./r2_round.sh 100 60                  # 위치 수신, 2초 송신
@@ -253,8 +253,8 @@ ROUND_LABEL=r46_r3_G50_v570_a R3_ADMINS=50 R3_INTERVAL=2 ./r3_mixed.sh 570 1
 # 관리자 수를 올려 여유 배수를 잰다(메인 관리자 10% 비율 유지) — 50 → 200 → 500
 ROUND_LABEL=r46_r3_G200_v570_a R3_ADMINS=200 R3_INTERVAL=2 ./r3_mixed.sh 570 1
 # 판정(회차 결과 파일에서 5항을 읽는다) · 표 요약
-./r46_judge.py r46_r3_G50_v570_a
-./r46_summarize.py <묶음 출력 파일> r46_r3_
+./judge_round.py r46_r3_G50_v570_a
+./summarize_round.py <묶음 출력 파일> r46_r3_
 ```
 
 `R3_ADMINS` 는 `scenario5_polling.js` 의 `ADMIN_USERS` 로 전달된다 — 메인 관리자 10%(전체 관제 `ADMIN_LIVE` WS + `GET /admin/academies/{id}/runs/live` 7초 + `/admin/emergencies` 5초 + `/admin/runs/attention` 30초), 학원 관계자 90%(절반은 대시보드 탭, 절반은 금일 운행 탭 + 각자 학원 채널 WS · 비상 5초 · 승인 30초). 학원 관계자 계정이 학원당 1개라 45 는 같은 계정의 열린 탭 수이다.
@@ -274,13 +274,13 @@ ROUND_LABEL=r46_r3_G200_v570_a R3_ADMINS=200 R3_INTERVAL=2 ./r3_mixed.sh 570 1
 - **WS 봉투의 `run_id` 는 JSON 문자열이다**(`"192"` — Ruling 332). `scenario2_position.js` 가 숫자와 `===` 로 비교해 **echo 가 항상 0 으로 잡혔다**(`position_echo_received_total: count>0` 임계가 있어도 k6 종료 코드 99 로만 드러남 — 요청 실패 0 인데 99). `Number(body.run_id)` 로 고쳤다. 식별자 문자열화는 09-09 측정 뒤(2026-09-25)에 들어간 변경이라 09-09 수치는 영향이 없고, 이 시나리오를 09-25 이후 코드에서 처음 돌릴 때 걸리는 함정이다
 - **"응답 뒤 쉼" 모델은 송신 달성률을 인위적으로 낮춘다** — 응답이 평균 0.3초면 2초 주기가 2.3초가 되어 달성률 87% 가 나온다(관리자 300·400 회차에서 달성률 86~89% 인데 POST p95 는 1.4~1.7초로 2초 안이었다). 판정 회차는 `R3_FIXED_RATE=1` 로 앱과 같은 고정 주기로 돌린다. 관리자 50 4회차는 응답 20~35ms 라 두 모델의 차이가 1~2% 미만이어서 기본 모델로 쟀다
 - **회차마다 위치용 회차가 쌓인다** — 위 종료 처리가 없으면 같은 N 의 같은 시험이 회차를 거듭할수록 요청당 CPU 가 늘어난다
-- **측정 DB 가 회차를 거듭하며 오염된다** — `scenario2_prep.sql` 은 회차마다 위치용 회차(`LP-…`)를 새로 심고(기본 학원 1 · `realistic` 모드는 LOADCAP 학원마다 — R46-LATERBE `Ruling 676`) 지우지 않는다(회차 시작 때 앞 회차를 `finished` 로만 돌림). 2026-10-01 한 번의 측정에서 학원 1 의 오늘 회차가 12,016건이 되어 학원 1 `GET /staff/dashboard` 응답이 **5.1MB · 0.69초**(정상 학원 7.7KB · 13ms)가 됐고, 옛 `r46_link_position_riders.sql` 이 붙인 `run_rider` 30,000건은 학원이 다른 학생·정차지를 가리킨다(`Ruling 676` 로 원인 수정 — 새 판은 같은 학원만 붙인다). **다음 측정 전에 비운다**:
+- **측정 DB 가 회차를 거듭하며 오염된다** — `scenario2_prep.sql` 은 회차마다 위치용 회차(`LP-…`)를 새로 심고(기본 학원 1 · `realistic` 모드는 LOADCAP 학원마다 — R46-LATERBE `Ruling 676`) 지우지 않는다(회차 시작 때 앞 회차를 `finished` 로만 돌림). 2026-10-01 한 번의 측정에서 학원 1 의 오늘 회차가 12,016건이 되어 학원 1 `GET /staff/dashboard` 응답이 **5.1MB · 0.69초**(정상 학원 7.7KB · 13ms)가 됐고, 옛 `link_position_riders.sql` 이 붙인 `run_rider` 30,000건은 학원이 다른 학생·정차지를 가리킨다(`Ruling 676` 로 원인 수정 — 새 판은 같은 학원만 붙인다). **다음 측정 전에 비운다**:
   ```sql
   DELETE FROM run_rider WHERE run_id IN (SELECT r.id FROM run r JOIN bus b ON b.id = r.bus_id WHERE b.bus_no LIKE 'LP-%');
   DELETE FROM assignment WHERE run_id IN (SELECT r.id FROM run r JOIN bus b ON b.id = r.bus_id WHERE b.bus_no LIKE 'LP-%');
   DELETE FROM run WHERE bus_id IN (SELECT id FROM bus WHERE bus_no LIKE 'LP-%');
   ```
-  (또는 스키마를 비우고 `r0_capacity_seed.sql` · `r46_parent_seed.sql` 부터 다시 심는다)
+  (또는 스키마를 비우고 `r0_capacity_seed.sql` · `parent_seed.sql` 부터 다시 심는다)
 - **호스트에 다른 부하가 있으면 수치가 무효다** — 같은 조건 p95 가 54ms → 2,165~2,747ms 로 50배 갈렸다(게임이 도는 동안). 회차 전후 `r46_host_noise.log` 형태로 측정과 무관한 프로세스 CPU 를 남기고, 높으면 시작하지 않는다
 - **접근 토큰 유효시간 15분** — 토큰 발급과 측정 시작 사이가 길면 401 이 난다. 회차 직전에 발급한다
 
@@ -359,7 +359,7 @@ make down
 
 | 회차 | 무엇을 재나 | 통과 기준 | 도구 |
 |---|---|---|---|
-| L-1 | 관리자 50 · 시청 570 · 위치 2초 고정 주기 · 확정 배치 100 에서 **연속 3회** + E · E2 각 1회 | `Ruling 484` 판정 5항 · `OOMKilled=false` · E · E2 는 기록만 | `prod_sized_round.sh` · `r3_mixed.sh` · `r46_judge.py`(미통과면 종료 코드 1, `Ruling 921` G) |
+| L-1 | 관리자 50 · 시청 570 · 위치 2초 고정 주기 · 확정 배치 100 에서 **연속 3회** + E · E2 각 1회 | `Ruling 484` 판정 5항 · `OOMKilled=false` · E · E2 는 기록만 | `prod_sized_round.sh` · `r3_mixed.sh` · `judge_round.py`(미통과면 종료 코드 1, `Ruling 921` G) |
 | L-2 | L-1 배경 위에서 세션 2,000(학생 1,900 · 학원 90 · 관제 10)을 같은 순간에 닫고 대기 없이 재접속 · 재구독 · REST 스냅샷 1회 | 전원 60초 안 재구독 · 닫기 전 구독 2,000 확인 | `scenario7_reconnect_storm.js` |
 | L-3 | 학생 목적지 3,200곳 구독 · 곳마다 위치 수신 | 위치를 받은 목적지 ≥ 3,000 · 위치 POST p95 < 2,000ms · 방송 지연 p95 ≤ 5,000ms · 실패 0 | `scenario6_student_destinations.js` |
 | L-4 · L-5 | 2대 + nginx 에서 L-1 부하 · 부하 중 한 대씩 배포 | **`917` B 로 뺐다** (운영 1대 결정, 2대 기동 제거 `918`). 기준 · 손실 계산식은 `DEPLOYMENT §15.3` | — |
@@ -370,7 +370,7 @@ make down
 | 파일 | 하는 일 |
 |---|---|
 | `start_prod_sized.sh` | 운영 크기 컨테이너를 띄운다. `REDIS_DB=13 ./start_prod_sized.sh` (2 vCPU · 3GB 는 `APP_CPUS=2 APP_MEM=3072m APP_PROCESSORS=`) |
-| `prod_sized_round.sh <라벨> <명령…>` | 호스트 잡음 검사 → 회차 → cgroup 메모리 · CPU(앱 · Postgres · Redis) → `<라벨>_env.json` → `r46_judge.py`. 라벨은 `ROUND_LABEL` 로 명령에 넘어간다 |
+| `prod_sized_round.sh <라벨> <명령…>` | 호스트 잡음 검사 → 회차 → cgroup 메모리 · CPU(앱 · Postgres · Redis) → `<라벨>_env.json` → `judge_round.py`. 라벨은 `ROUND_LABEL` 로 명령에 넘어간다 |
 | `retry_round.sh` | 잡음 검사(종료 코드 3)에 걸리면 1분마다 같은 회차를 다시 건다 |
 | `cgroup_sampler.sh` · `sampler.sh` | 컨테이너 안 cgroup 값 · 앱 지표(힙 확정 · 비힙 · 직접 버퍼 · GC 정지)를 1초마다 CSV 로 |
 | `results_table.py <라벨…>` | 회차별 메모리 · CPU 를 표로 모은다 |
@@ -438,7 +438,7 @@ REDIS_DB=13 NO_JUDGE=1 DESTINATIONS=3200 MIN_DESTINATIONS=3000 ./prod_sized_roun
 - **고정 `maxDuration: 10m`** — 위치 송신이 10분을 넘는 회차에서 VU 가 중간에 끊겨 달성률이 89.6% 로 떨어진다. 송신 시간 + 180초로 맞췄다.
 - **앱 포트의 동시 연결 상한(4,000)에 닿으면 같은 포트의 지표 요청이 응답하지 않아 1초 표본이 빠진다** — 관리 포트(호스트 18081)에서 읽는다.
 - 시험 컨테이너 직전 구성(회차 `p59L1_a`~`c`)의 98% 달성률은 위 관측자 문제의 표시였다 — 같은 조건 재측정(`r1`~`r3`)이 기준이다. `r1`~`r3` 은 관측자 하트비트 고침 전이라 위치 구간 약 60초에 관측자 소켓이 닫힌 값(99.0 ~ 99.1%)이고, 고친 뒤 `p59J1_confirm` 은 달성률 100.0% 였다.
-- 판정 도구(`r46_judge.py`)는 재야 할 채널(학원 채널 관측자 · 방식에 따라 학생 · 관계자 · 관제 채널)에 표본이 없으면 3항을 미통과로 친다 — 관측자가 비어도 나머지 채널만으로 통과하던 것을 막는다.
+- 판정 도구(`judge_round.py`)는 재야 할 채널(학원 채널 관측자 · 방식에 따라 학생 · 관계자 · 관제 채널)에 표본이 없으면 3항을 미통과로 친다 — 관측자가 비어도 나머지 채널만으로 통과하던 것을 막는다.
 
 ### 8.6 판정과 연결
 
